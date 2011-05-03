@@ -1,0 +1,23 @@
+package-as: FarmHud
+externals:
+	lib/LibStub:
+		url: svn://svn.wowace.com/wow/libstub/mainline/trunk
+		tag: latest
+	lib/CallbackHandler-1.0:
+		url: svn://svn.wowace.com/wow/callbackhandler/mainline/trunk/CallbackHandler-1.0
+		tag: latest
+	lib/LibQTip-1.0:
+		url: svn://svn.wowace.com/wow/libqtip-1-0/mainline/trunk
+		tag: latest
+	lib/LibDataBroker-1.1:
+		url: git://github.com/tekkub/libdatabroker-1-1.git
+		tag: latest
+	lib/AceConfig-3.0:
+		url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceConfig-3.0
+		tag: latest
+	lib/AceGUI-3.0:
+		url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceGUI-3.0
+		tag: latest
+	lib/LibDBIcon-1.0:
+		url: svn://svn.wowace.com/wow/libdbicon-1-0/mainline/trunk
+		tag: latest

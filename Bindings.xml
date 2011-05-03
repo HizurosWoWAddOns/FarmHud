@@ -1,0 +1,8 @@
+<Bindings>
+	<Binding name="TOGGLEFARMHUD" header="FARMHUD">
+		FarmHud:Toggle()
+	</Binding>
+	<Binding name="TOGGLEFARMHUDMOUSE">
+		FarmHud:MouseToggle()
+	</Binding>
+</Bindings>

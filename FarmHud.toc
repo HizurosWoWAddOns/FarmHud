@@ -1,0 +1,23 @@
+## Interface: 40100
+## Title: FarmHud
+## Notes: FarmHud for gathering!
+## Author: CodeRedLin
+## OptionalDeps: Ace3, LibQTip-1.0, CallbackHandler-1.0, LibDBIcon-1.0, LibStub, GatherMate2, Routes
+## SavedVariables: FarmHudDB
+
+#@no-lib-strip@
+lib\LibStub\LibStub.lua
+lib\CallbackHandler-1.0\CallbackHandler-1.0.xml
+lib\AceGUI-3.0\AceGUI-3.0.xml
+lib\AceConfig-3.0\AceConfig-3.0.xml
+lib\LibQTip-1.0\lib.xml
+#@end-no-lib-strip@
+
+lib\LibDataBroker-1.1\LibDataBroker-1.1.lua
+
+#@no-lib-strip@
+lib\LibDBIcon-1.0\LibDBIcon-1.0.lua
+#@end-no-lib-strip@
+
+HudMap.xml
+FarmHud.lua
