@@ -24,6 +24,8 @@ local LDB = LibStub("LibDataBroker-1.1"):NewDataObject("FarmHud",
 
 local LDBIcon = LDB and LibStub("LibDBIcon-1.0", true)
 
+local NPCScan = _NPCScan and _NPCScan.Overlay and _NPCScan.Overlay.Modules.List[ "Minimap" ];
+
 BINDING_HEADER_FARMHUD		= "FarmHud"
 BINDING_NAME_TOGGLEFARMHUD	= "Toggle FarmHud's Display"
 BINDING_NAME_TOGGLEFARMHUDMOUSE	= "Toggle FarmHud's tooltips (Can't click through Hud)"
@@ -98,6 +100,15 @@ local options = {
 				FarmHudDB.show_routes = v
 			end,
 		},
+		show_npcscan = {
+			type = "toggle", width = "double",
+			name = "Toggle NPCScan support",
+			order = 8,
+			get = function() return FarmHudDB.show_npcscan end,
+			set = function(_, v)
+				FarmHudDB.show_npcscan = v
+			end,
+		},
 	}
 }
 
@@ -126,6 +137,10 @@ local onShow = function(self)
 		Routes:CVAR_UPDATE(nil, "ROTATE_MINIMAP", "1")
 	end
 
+	if NPCScan and NPCScan.SetMinimapFrame and (FarmHudDB.show_npcscan == true) then
+		NPCScan:SetMinimapFrame(FarmHudMapCluster)
+	end
+
 	FarmHud:SetScript("OnUpdate", updateRotations)
 	MinimapCluster:Hide()
 end
@@ -142,6 +157,10 @@ local onHide = function(self, force)
 		Routes:CVAR_UPDATE(nil, "ROTATE_MINIMAP", fh_mapRotation)
 	end
 	
+	if NPCScan and NPCScan.SetMinimapFrame then
+		NPCScan:SetMinimapFrame(Minimap)
+	end
+
 	FarmHud:SetScript("OnUpdate", nil)
 	MinimapCluster:Show()
 end
@@ -239,6 +258,10 @@ function FarmHud:PLAYER_LOGIN()
 
 	if not FarmHudDB.show_routes then
 		FarmHudDB.show_routes = true
+	end
+
+	if not FarmHudDB.show_npcscan then
+		FarmHudDB.show_npcscan = true
 	end
 
 	if LDBIcon then
