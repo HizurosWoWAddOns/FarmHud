@@ -17,7 +17,7 @@ local LDB = LibStub("LibDataBroker-1.1"):NewDataObject("FarmHud",
 		if button == "LeftButton" then
 			FarmHud:Toggle()
 		else
-			InterfaceOptionsFrame_OpenToCategory("FarmHud")
+			LibStub("AceConfigDialog-3.0"):Open("FarmHud")
 		end
 	end
 })
