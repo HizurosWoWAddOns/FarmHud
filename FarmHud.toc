@@ -1,4 +1,4 @@
-## Interface: 40100
+## Interface: 40200
 ## Title: FarmHud
 ## Notes: Turns your minimap into a hud for gathering resources!
 ## Author: CodeRedLin
