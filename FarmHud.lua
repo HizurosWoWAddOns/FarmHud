@@ -131,7 +131,7 @@ local onShow = function(self)
 		GatherMate2:GetModule("Display"):ReparentMinimapPins(FarmHudMapCluster)
 		GatherMate2:GetModule("Display"):ChangedVars(nil, "ROTATE_MINIMAP", "1")
 	end
-	
+
 	if Routes and Routes.ReparentMinimap and (FarmHudDB.show_routes == true) then
 		Routes:ReparentMinimap(FarmHudMapCluster)
 		Routes:CVAR_UPDATE(nil, "ROTATE_MINIMAP", "1")
@@ -151,12 +151,12 @@ local onHide = function(self, force)
 		GatherMate2:GetModule("Display"):ReparentMinimapPins(Minimap)
 		GatherMate2:GetModule("Display"):ChangedVars(nil, "ROTATE_MINIMAP", fh_mapRotation)
 	end
-	
+
 	if Routes and Routes.ReparentMinimap then
 		Routes:ReparentMinimap(Minimap)
 		Routes:CVAR_UPDATE(nil, "ROTATE_MINIMAP", fh_mapRotation)
 	end
-	
+
 	if NPCScan and NPCScan.SetMinimapFrame then
 		NPCScan:SetMinimapFrame(Minimap)
 	end
@@ -169,10 +169,10 @@ end
 function FarmHud:SetScales()
 	FarmHudMinimap:ClearAllPoints()
 	FarmHudMinimap:SetPoint("CENTER", UIParent, "CENTER")
-	
+
 	FarmHudMapCluster:ClearAllPoints()
 	FarmHudMapCluster:SetPoint("CENTER")
-	
+
 	local size = UIParent:GetHeight() / fh_scale
 	FarmHudMinimap:SetWidth(size)
 	FarmHudMinimap:SetHeight(size)
@@ -180,11 +180,11 @@ function FarmHud:SetScales()
 	FarmHudMapCluster:SetWidth(size)
 	gatherCircle:SetWidth(size * 0.45)
 	gatherCircle:SetHeight(size * 0.45)
-	
+
 	FarmHudMapCluster:SetScale(fh_scale)
 	playerDot:SetWidth(15)
 	playerDot:SetHeight(15)
-	
+
 	for k, v in ipairs(directions) do
 		v.radius = FarmHudMinimap:GetWidth() * 0.214
 	end
@@ -223,7 +223,7 @@ end
 do
 	local target = 1 / 90
 	local total = 0
-	
+
 	function updateRotations(self, t)
 		total = total + t
 		if total < target then return end
@@ -240,11 +240,11 @@ end
 
 function FarmHud:PLAYER_LOGIN()
 
-	if not FarmHudDB then
+	if FarmHudDB == nil then
 		FarmHudDB = {}
 	end
 
-	if not FarmHudDB.MinimapIcon then
+	if FarmHudDB.MinimapIcon == nil then
 		FarmHudDB.MinimapIcon = {
 			hide = false,
 			minimapPos = 220,
@@ -252,15 +252,15 @@ function FarmHud:PLAYER_LOGIN()
 		}
 	end
 
-	if not FarmHudDB.show_gathermate then
+	if FarmHudDB.show_gathermate == nil then
 		FarmHudDB.show_gathermate = true
 	end
 
-	if not FarmHudDB.show_routes then
+	if FarmHudDB.show_routes == nil then
 		FarmHudDB.show_routes = true
 	end
 
-	if not FarmHudDB.show_npcscan then
+	if FarmHudDB.show_npcscan == nil then
 		FarmHudDB.show_npcscan = true
 	end
 
