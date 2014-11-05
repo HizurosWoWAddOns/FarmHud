@@ -109,6 +109,12 @@ local options = {
 				FarmHudDB.show_npcscan = v
 			end,
 		},
+		show_bloodhound2 = {
+			type = "toggle", width = "double", order = 9,
+			name = "Toggle Bloodhound2 support",
+			get = function() return FarmHudDB.show_bloodhound2; end,
+			set = function(_,v) FarmHudDB.show_bloodhound2 = v; end
+		}
 	}
 }
 
@@ -141,6 +147,10 @@ local onShow = function(self)
 		NPCScan:SetMinimapFrame(FarmHudMapCluster)
 	end
 
+    if Bloodhound2 and Bloodhound2.ReparentMinimap and (FarmHudDB.show_bloodhound2==true) then
+        Bloodhound2.ReparentMinimap(FarmHudMapCluster,"FarmHud");
+    end
+
 	FarmHud:SetScript("OnUpdate", updateRotations)
 	MinimapCluster:Hide()
 end
@@ -159,6 +169,10 @@ local onHide = function(self, force)
 
 	if NPCScan and NPCScan.SetMinimapFrame then
 		NPCScan:SetMinimapFrame(Minimap)
+	end
+
+	if Bloodhound2 and Bloodhound2.ReparentMinimap then
+		Bloodhound2.ReparentMinimap(_G.Minimap,"Minimap");
 	end
 
 	FarmHud:SetScript("OnUpdate", nil)
@@ -262,6 +276,10 @@ function FarmHud:PLAYER_LOGIN()
 
 	if FarmHudDB.show_npcscan == nil then
 		FarmHudDB.show_npcscan = true
+	end
+
+	if FarmHudDB.show_bloodhound2 == nil then
+		FarmHudDB.show_bloodhound2 = true;
 	end
 
 	if LDBIcon then
