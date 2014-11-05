@@ -30,6 +30,8 @@ BINDING_HEADER_FARMHUD		= "FarmHud"
 BINDING_NAME_TOGGLEFARMHUD	= "Toggle FarmHud's Display"
 BINDING_NAME_TOGGLEFARMHUDMOUSE	= "Toggle FarmHud's tooltips (Can't click through Hud)"
 
+local directions = {};
+
 local options = {
 	name = "FarmHud",
 	type = "group",
@@ -56,11 +58,33 @@ local options = {
 				if v then LDBIcon:Hide("FarmHud") else LDBIcon:Show("FarmHud") end
 			end,
 		},
+		hide_gathercircle = {
+			type = "toggle", width = "double", order = 4,
+			name = "Toggle green gather circle",
+			get = function() return FarmHudDB.hide_gathercircle; end,
+			set = function(_,v)
+				FarmHudDB.hide_gathercircle = v;
+				if (v) then gatherCircle:Hide(); else gatherCircle:Show(); end
+			end
+		},
+		hide_indicators = {
+			type = "toggle", width = "double", order = 5,
+			name = "",
+			get = function() return FarmHudDB.hide_indicators; end,
+			set = function(_,v)
+				FarmHudDB.hide_indicators = v;
+				if (v) then
+					for i,e in ipairs(directions) do e:Hide(); end
+				else
+					for i,e in ipairs(directions) do e:Show(); end
+				end
+			end
+		},
 		bind_showtoggle = {
 			type = "keybinding", width = "double",
 			name = "Toggle FarmHud's Display",
 			desc = "Set the keybinding to show FarmHud.",
-			order = 4,
+			order = 6,
 			get = function() return GetBindingKey("TOGGLEFARMHUD") end,
 			set = function(_, v)
 				local keyb = GetBindingKey("TOGGLEFARMHUD")
@@ -73,7 +97,7 @@ local options = {
 			type = "keybinding", width = "double",
 			name = "Toggle FarmHud's tooltips (Can't click through Hud)",
 			desc = "Set the keybinding to allow mouse over tooltips.",
-			order = 5,
+			order = 7,
 			get = function() return GetBindingKey("TOGGLEFARMHUDMOUSE") end,
 			set = function(_, v)
 				local keyb = GetBindingKey("TOGGLEFARMHUDMOUSE")
@@ -85,7 +109,7 @@ local options = {
 		show_gathermate = {
 			type = "toggle", width = "double",
 			name = "Toggle GatherMate2 support",
-			order = 6,
+			order = 8,
 			get = function() return FarmHudDB.show_gathermate end,
 			set = function(_, v)
 				FarmHudDB.show_gathermate = v
@@ -94,7 +118,7 @@ local options = {
 		show_routes = {
 			type = "toggle", width = "double",
 			name = "Toggle Routes support",
-			order = 7,
+			order = 9,
 			get = function() return FarmHudDB.show_routes end,
 			set = function(_, v)
 				FarmHudDB.show_routes = v
@@ -103,14 +127,14 @@ local options = {
 		show_npcscan = {
 			type = "toggle", width = "double",
 			name = "Toggle NPCScan support",
-			order = 8,
+			order = 10,
 			get = function() return FarmHudDB.show_npcscan end,
 			set = function(_, v)
 				FarmHudDB.show_npcscan = v
 			end,
 		},
 		show_bloodhound2 = {
-			type = "toggle", width = "double", order = 9,
+			type = "toggle", width = "double", order = 11,
 			name = "Toggle Bloodhound2 support",
 			get = function() return FarmHudDB.show_bloodhound2; end,
 			set = function(_,v) FarmHudDB.show_bloodhound2 = v; end
@@ -125,7 +149,6 @@ LibStub("AceConfigDialog-3.0"):AddToBlizOptions("FarmHud")
 local fh_scale = 1.4
 local fh_mapRotation
 local indicators = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"}
-local directions = {}
 local playerDot
 local updateRotations
 local mousewarn
@@ -266,6 +289,14 @@ function FarmHud:PLAYER_LOGIN()
 		}
 	end
 
+	if FarmHudDB.hide_gathercircle == nil then
+		FarmHudDB.hide_gathercircle = false;
+	end
+
+	if FarmHudDB.hide_indicators == nil then
+		FarmHudDB.hide_indicators = false;
+	end
+
 	if FarmHudDB.show_gathermate == nil then
 		FarmHudDB.show_gathermate = true
 	end
@@ -308,6 +339,9 @@ function FarmHud:PLAYER_LOGIN()
 	gatherCircle:SetHeight(radius)
 	gatherCircle.alphaFactor = 0.5
 	gatherCircle:SetVertexColor(0, 1, 0, 1 * (gatherCircle.alphaFactor or 1) / FarmHudMapCluster:GetAlpha())
+	if FarmHudDB.hide_gathercircle==true then
+		gatherCircle:Hide();
+	end
 
 	playerDot = FarmHudMapCluster:CreateTexture()
 	playerDot:SetTexture([[Interface\GLUES\MODELS\UI_Tauren\gradientCircle.blp]])
@@ -327,6 +361,9 @@ function FarmHud:PLAYER_LOGIN()
 		ind:SetShadowOffset(0.2,-0.2)
 		ind.rad = rot
 		ind.radius = radius
+		if FarmHudDB.hide_indicators==true then
+			ind:Hide();
+		end
 		tinsert(directions, ind)
 	end
 
