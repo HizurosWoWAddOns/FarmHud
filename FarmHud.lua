@@ -69,7 +69,7 @@ local options = {
 		},
 		hide_indicators = {
 			type = "toggle", width = "double", order = 5,
-			name = "",
+			name = "Toggle direction indicators",
 			get = function() return FarmHudDB.hide_indicators; end,
 			set = function(_,v)
 				FarmHudDB.hide_indicators = v;
