@@ -42,16 +42,17 @@ local options = {
 			name = "A Hud for farming ore and herbs.\n",
 			cmdHidden = true
 		},
+
 		displayheader = {
-			order = 2,
+			order = 10,
 			type = "header",
 			name = "FarmHud Options",
 		},
 		hide_minimapicon = {
-			type = "toggle", width = "double",
+			type = "toggle", width = "double", order = 11,
 			name = "Hide Minimap Icon",
 			desc = "Show or hide the minimap icon.",
-			order = 3,
+			
 			get = function() return FarmHudDB.MinimapIcon.hide end,
 			set = function(_, v)
 				FarmHudDB.MinimapIcon.hide = v
@@ -59,8 +60,8 @@ local options = {
 			end,
 		},
 		hide_gathercircle = {
-			type = "toggle", width = "double", order = 4,
-			name = "Toggle green gather circle",
+			type = "toggle", width = "double", order = 12,
+			name = "Hide green gather circle",
 			get = function() return FarmHudDB.hide_gathercircle; end,
 			set = function(_,v)
 				FarmHudDB.hide_gathercircle = v;
@@ -68,8 +69,8 @@ local options = {
 			end
 		},
 		hide_indicators = {
-			type = "toggle", width = "double", order = 5,
-			name = "Toggle direction indicators",
+			type = "toggle", width = "double", order = 13,
+			name = "Hide direction indicators",
 			get = function() return FarmHudDB.hide_indicators; end,
 			set = function(_,v)
 				FarmHudDB.hide_indicators = v;
@@ -80,11 +81,38 @@ local options = {
 				end
 			end
 		},
+		hide_coords = {
+			type = "toggle", width = "double", order = 14,
+			name = "Hide player coordinations",
+			get = function() return FarmHudDB.hide_coords; end,
+			set = function(_,v)
+				FarmHudDB.hide_coords = v;
+				if (v) then FarmHudCoords:Hide(); else FarmHudCoords:Show(); end
+			end
+		},
+		coords_bottom = {
+			type = "toggle", width = "double", order = 15,
+			name = "coordinations on bottom",
+			get = function() return FarmHudDB.coords_bottom; end,
+			set = function(_,v)
+				FarmHudDB.coords_bottom = v;
+				if (v) then
+					FarmHudCoords:SetPoint("CENTER", FarmHudMapCluster, "CENTER", 0, -FarmHudMapCluster:GetWidth()*.23);
+				else
+					FarmHudCoords:SetPoint("CENTER", FarmHudMapCluster, "CENTER", 0, FarmHudMapCluster:GetWidth()*.23);
+				end
+			end
+		},
+
+		keybindheader = {
+			order = 20,
+			type = "header",
+			name = "Keybind Options",
+		},
 		bind_showtoggle = {
-			type = "keybinding", width = "double",
+			type = "keybinding", width = "double", order = 21,
 			name = "Toggle FarmHud's Display",
 			desc = "Set the keybinding to show FarmHud.",
-			order = 6,
 			get = function() return GetBindingKey("TOGGLEFARMHUD") end,
 			set = function(_, v)
 				local keyb = GetBindingKey("TOGGLEFARMHUD")
@@ -94,10 +122,9 @@ local options = {
 			end,
 		},
 		bind_mousetoggle = {
-			type = "keybinding", width = "double",
+			type = "keybinding", width = "double", order = 22,
 			name = "Toggle FarmHud's tooltips (Can't click through Hud)",
 			desc = "Set the keybinding to allow mouse over tooltips.",
-			order = 7,
 			get = function() return GetBindingKey("TOGGLEFARMHUDMOUSE") end,
 			set = function(_, v)
 				local keyb = GetBindingKey("TOGGLEFARMHUDMOUSE")
@@ -106,36 +133,42 @@ local options = {
 				SaveBindings(GetCurrentBindingSet())
 			end,
 		},
+
+		supportheader = {
+			order = 30,
+			type = "header",
+			name = "Support Options",
+		},
 		show_gathermate = {
-			type = "toggle", width = "double",
-			name = "Toggle GatherMate2 support",
-			order = 8,
+			type = "toggle", width = "double", order = 31,
+			name = "Enable GatherMate2 support",
+			
 			get = function() return FarmHudDB.show_gathermate end,
 			set = function(_, v)
 				FarmHudDB.show_gathermate = v
 			end,
 		},
 		show_routes = {
-			type = "toggle", width = "double",
-			name = "Toggle Routes support",
-			order = 9,
+			type = "toggle", width = "double", order = 32,
+			name = "Enable Routes support",
+			
 			get = function() return FarmHudDB.show_routes end,
 			set = function(_, v)
 				FarmHudDB.show_routes = v
 			end,
 		},
 		show_npcscan = {
-			type = "toggle", width = "double",
-			name = "Toggle NPCScan support",
-			order = 10,
+			type = "toggle", width = "double", order = 33,
+			name = "Enable NPCScan support",
+			
 			get = function() return FarmHudDB.show_npcscan end,
 			set = function(_, v)
 				FarmHudDB.show_npcscan = v
 			end,
 		},
 		show_bloodhound2 = {
-			type = "toggle", width = "double", order = 11,
-			name = "Toggle Bloodhound2 support",
+			type = "toggle", width = "double", order = 34,
+			name = "Enable Bloodhound2 support",
 			get = function() return FarmHudDB.show_bloodhound2; end,
 			set = function(_,v) FarmHudDB.show_bloodhound2 = v; end
 		}
@@ -152,6 +185,7 @@ local indicators = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"}
 local playerDot
 local updateRotations
 local mousewarn
+local coords
 
 local onShow = function(self)
 	fh_mapRotation = GetCVar("rotateMinimap")
@@ -202,6 +236,10 @@ local onHide = function(self, force)
 	MinimapCluster:Show()
 end
 
+local onUpdate = function(self,elapsed)
+	local x,y=GetPlayerMapPosition("player");
+	coords:SetFormattedText("%.1f, %.1f",x*100,y*100);
+end
 
 function FarmHud:SetScales()
 	FarmHudMinimap:ClearAllPoints()
@@ -297,6 +335,15 @@ function FarmHud:PLAYER_LOGIN()
 		FarmHudDB.hide_indicators = false;
 	end
 
+	if FarmHudDB.hide_coords == nil then
+		FarmHudDB.hide_coords = false;
+	end
+
+	if FarmHudDB.coords_bottom == nil then
+		FarmHudDB.coords_bottom = false;
+	end
+
+
 	if FarmHudDB.show_gathermate == nil then
 		FarmHudDB.show_gathermate = true
 	end
@@ -374,9 +421,22 @@ function FarmHud:PLAYER_LOGIN()
 	mousewarn:SetText("MOUSE ON")
 	mousewarn:Hide()
 
+	coords = FarmHudMapCluster:CreateFontString("FarmHudCoords", nil, "GameFontNormalSmall");
+	if FarmHudDB.coords_bottom==true then
+		coords:SetPoint("CENTER", FarmHudMapCluster, "CENTER", 0, -FarmHudMapCluster:GetWidth()*.23);
+	else
+		coords:SetPoint("CENTER", FarmHudMapCluster, "CENTER", 0, FarmHudMapCluster:GetWidth()*.23);
+	end
+	if FarmHudDB.hide_coords==true then
+		coords:Hide();
+	else
+		coords:Show();
+	end
+
 	FarmHudMapCluster:Hide()
 	FarmHudMapCluster:SetScript("OnShow", onShow)
 	FarmHudMapCluster:SetScript("OnHide", onHide)
+	FarmHudMapCluster:SetScript("OnUpdate", onUpdate)
 end
 
 function FarmHud:PLAYER_LOGOUT()
