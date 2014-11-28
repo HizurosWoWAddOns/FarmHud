@@ -1,11 +1,10 @@
 ## Interface: 60000
 ## Title: FarmHud
-## Version:6.0-Release4
+## Version: @project-version@
 ## Notes: Turns your minimap into a hud for gathering resources!
 ## Author: Hizuro, CodeRedLin
 ## OptionalDeps: Ace3, CallbackHandler-1.0, LibDBIcon-1.0, LibStub, GatherMate2, Routes, _NPCScan.Overlay
 ## SavedVariables: FarmHudDB
-## X-test-Version-placeholder: @project-version@
 
 #@no-lib-strip@
 lib\LibStub\LibStub.lua
