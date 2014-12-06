@@ -209,7 +209,7 @@ local onShow = function(self)
     end
 
 	FarmHud:SetScript("OnUpdate", updateRotations)
-	MinimapCluster:Hide()
+	Minimap:Hide()
 end
 
 local onHide = function(self, force)
@@ -233,7 +233,7 @@ local onHide = function(self, force)
 	end
 
 	FarmHud:SetScript("OnUpdate", nil)
-	MinimapCluster:Show()
+	Minimap:Show()
 end
 
 local onUpdate = function(self,elapsed)
@@ -303,7 +303,7 @@ do
 		total = total + t
 		if total < target then return end
 		while total > target do total = total - target end
-		if MinimapCluster:IsVisible() then MinimapCluster:Hide() end
+		if Minimap:IsVisible() then Minimap:Hide() end
 		local bearing = GetPlayerFacing()
 		for k, v in ipairs(directions) do
 			local x, y = math.sin(v.rad + bearing), math.cos(v.rad + bearing)
