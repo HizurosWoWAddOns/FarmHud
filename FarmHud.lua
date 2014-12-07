@@ -30,7 +30,7 @@ BINDING_HEADER_FARMHUD		= "FarmHud"
 BINDING_NAME_TOGGLEFARMHUD	= "Toggle FarmHud's Display"
 BINDING_NAME_TOGGLEFARMHUDMOUSE	= "Toggle FarmHud's tooltips (Can't click through Hud)"
 
-local directions = {};
+local directions, blackborderblobs_Toggle = {};
 
 local options = {
 	name = "FarmHud",
@@ -102,6 +102,12 @@ local options = {
 					FarmHudCoords:SetPoint("CENTER", FarmHudMapCluster, "CENTER", 0, FarmHudMapCluster:GetWidth()*.23);
 				end
 			end
+		},
+		blackborderblobs = {
+			type = "toggle", width = "double", order = 16,
+			name = "black bordered quest and archaeology blobs",
+			get = function() return FarmHudDB.blackborderblobs; end,
+			set = function(_,v) FarmHudDB.blackborderblobs = v; blackborderblobs_Toggle(); end
 		},
 
 		keybindheader = {
@@ -313,6 +319,19 @@ do
 	end
 end
 
+function blackborderblobs_Toggle()
+	local none, outside = [[Interface\glues\credits\bloodelf_priestess_master6]],[[Interface\common\ShadowOverlay-Top]]
+	local media = "interface\\minimap\\"
+	blobs = not blobs;
+	FarmHudMinimap:SetArchBlobInsideTexture(			(blobs) and none	or media.."UI-ArchBlobMinimap-Inside");
+	FarmHudMinimap:SetArchBlobOutsideTexture(			(blobs) and outside or media.."UI-ArchBlobMinimap-Outside");
+	FarmHudMinimap:SetArchBlobRingTexture(				(blobs) and none	or media.."UI-ArchBlob-MinimapRing");
+	FarmHudMinimap:SetQuestBlobInsideTexture(			(blobs) and none	or media.."UI-QuestBlobMinimap-Inside");
+	FarmHudMinimap:SetQuestBlobOutsideSelectedTexture(	(blobs) and outside or media.."UI-QuestBlobMinimap-OutsideSelected");
+	FarmHudMinimap:SetQuestBlobOutsideTexture(			(blobs) and outside or media.."UI-QuestBlobMinimap-Outside");
+	FarmHudMinimap:SetQuestBlobRingTexture(				(blobs) and none	or media.."UI-QuestBlob-MinimapRing");
+end
+
 function FarmHud:PLAYER_LOGIN()
 
 	if FarmHudDB == nil then
@@ -343,6 +362,9 @@ function FarmHud:PLAYER_LOGIN()
 		FarmHudDB.coords_bottom = false;
 	end
 
+	if FarmHudDB.blackborderblobs == nil then
+		FarmHudDB.blackborderblobs = true;
+	end
 
 	if FarmHudDB.show_gathermate == nil then
 		FarmHudDB.show_gathermate = true
@@ -431,6 +453,10 @@ function FarmHud:PLAYER_LOGIN()
 		coords:Hide();
 	else
 		coords:Show();
+	end
+
+	if FarmHudDB.blackborderblobs then
+		blackborderblobs_Toggle()
 	end
 
 	FarmHudMapCluster:Hide()
