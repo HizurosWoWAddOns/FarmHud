@@ -18,7 +18,7 @@ if (LOCALE_deDE) then
 	--L["NW"] = "";
 
 	--- mouse over active text
-	L["MOUSE ON"] = "";
+	L["MOUSE ON"] = "MAUS AN";
 
 	--- Tooltip elements
 	L["Click"] = "Klick";
