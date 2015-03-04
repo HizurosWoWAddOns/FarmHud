@@ -9,7 +9,7 @@ BINDING_NAME_TOGGLEFARMHUDMOUSE	= L["Toggle FarmHud's tooltips (Can't click thro
 
 local directions, blackborderblobs_Toggle = {};
 local fh_scale = 1.4;
-local fh_mapRotation, playerDot, updateRotations, mousewarn, coords, Astrolabe,_
+local fh_mapRotation, playerDot, updateRotations, mousewarn, coords, closebtn, mousebtn, Astrolabe, _
 local indicators = {L["N"], L["NE"], L["E"], L["SE"], L["S"], L["SW"], L["W"], L["NW"]};
 
 local LDB = LibStub("LibDataBroker-1.1"):NewDataObject("FarmHud",{
@@ -53,7 +53,7 @@ local options = {
 			name = L["FarmHud Options"],
 		},
 		hide_minimapicon = {
-			type = "toggle", width = "d.ouble", order = 11,
+			type = "toggle", --[[width = "double",]] order = 11,
 			name = L["Minimap Icon"],
 			desc = L["Show or hide the minimap icon."],
 			get = function() return not FarmHudDB.MinimapIcon.hide; end,
@@ -62,7 +62,7 @@ local options = {
 			end,
 		},
 		hide_gathercircle = {
-			type = "toggle", width = "do.uble", order = 12,
+			type = "toggle", --[[width = "double",]] order = 12,
 			name = L["Green gather circle"],
 			desc = L["Show or hide the green gather circle"],
 			get = function() return not FarmHudDB.hide_gathercircle; end,
@@ -71,7 +71,7 @@ local options = {
 			end
 		},
 		hide_indicators = {
-			type = "toggle", width = "d.ouble", order = 13,
+			type = "toggle", --[[width = "double",]] order = 13,
 			name = L["Direction indicators"],
 			desc = L["Show or hide the direction indicators"],
 			get = function() return not FarmHudDB.hide_indicators; end,
@@ -84,7 +84,7 @@ local options = {
 			end
 		},
 		hide_coords = {
-			type = "toggle", width = "d.ouble", order = 14,
+			type = "toggle", --[[width = "double",]] order = 14,
 			name = L["Player coordinations"],
 			desc = L["Show or hide player coordinations"],
 			get = function() return not FarmHudDB.hide_coords; end,
@@ -93,7 +93,7 @@ local options = {
 			end
 		},
 		coords_bottom = {
-			type = "toggle", width = "do.uble", order = 15,
+			type = "toggle", width = "double", order = 15,
 			name = L["Coordinations on bottom"],
 			desc = L["Display player coordinations on bottom"],
 			get = function() return FarmHudDB.coords_bottom; end,
@@ -105,33 +105,43 @@ local options = {
 				end
 			end
 		},
+		hide_buttons = {
+			type = "toggle", --[[width = "double",]] order = 16,
+			name = L["OnScreen buttons"],
+			desc = L["Show or hide OnScreen buttons (mouse mode and close hud button)"],
+			get = function() return not FarmHudDB.hide_buttons; end,
+			set = function(_,v) FarmHudDB.hide_buttons = not v;
+				if (not v) then 
+					closebtn:Hide();
+					mousebtn:Hide();
+				else
+					closebtn:Show();
+					mousebtn:Show();
+				end
+			end
+		},
+		buttons_bottom = {
+			type = "toggle", width = "double", order = 17,
+			name = L["OnScreen buttons on bottom"],
+			desc = L["Display toggle buttons on bottom"],
+			get = function() return FarmHudDB.buttons_bottom; end,
+			set = function(_,v) FarmHudDB.buttons_bottom = v;
+				if (v) then
+					closebtn:SetPoint("CENTER", FarmHudMapCluster, "CENTER", 12, -FarmHudMapCluster:GetWidth()*.25);
+					mousebtn:SetPoint("CENTER", FarmHudMapCluster, "CENTER", -12, -FarmHudMapCluster:GetWidth()*.25);
+				else
+					closebtn:SetPoint("CENTER", FarmHudMapCluster, "CENTER", 12, FarmHudMapCluster:GetWidth()*.25);
+					mousebtn:SetPoint("CENTER", FarmHudMapCluster, "CENTER", -12, FarmHudMapCluster:GetWidth()*.25);
+				end
+			end
+		},
 		blackborderblobs = {
-			type = "toggle", width = "double", order = 16,
+			type = "toggle", width = "double", order = 18,
 			name = L["black bordered quest and archaeology blobs"],
 			desc = L["Replace blizzards quest and archaeology blobs. (This option is experimental...)"],
 			get = function() return FarmHudDB.blackborderblobs; end,
 			set = function(_,v) FarmHudDB.blackborderblobs = v; blackborderblobs_Toggle(); end
 		},
-		--[[
-		enable_customborderblobs = {
-			type = "toggle", width = "double", order = 16,
-			name = L["Enable custom blobs"],
-			desc = L["Enable/Disable custom bordered quest and archaeology blobs"],
-			get = function() return FarmHudDB.blackborderblobs; end,
-			set = function(_,v) FarmHudDB.blackborderblobs = v; customborderblobs_Toggle(); end
-		},
-		choose_customborderblobs = {
-			type = "select", order = 17,
-			name = L["Choose a custom blob graphic"],
-			desc = L["Choose a graphic from this list for use as custom blob"],
-		},
-		input_customborderblobs = {
-			type = "editbox", order = 18,
-			name = L["Input a custom blob graphic"],
-			desc = L["Input a path to a graphic to use it as custom blob"],
-		},
-		--]]
-
 		keybindheader = {
 			order = 30,
 			type = "header",
@@ -382,6 +392,8 @@ function FarmHud:PLAYER_LOGIN()
 		hide_indicators = false,
 		hide_coords = false,
 		coords_bottom = false,
+		hide_buttons = false,
+		buttons_buttom = false,
 		blackborderblobs = true,
 
 		-- Support other addons options
@@ -471,6 +483,35 @@ function FarmHud:PLAYER_LOGIN()
 		blackborderblobs_Toggle();
 	end
 
+	local t = "Interface\\BUTTONS\\UI-Panel-MinimizeButton-";
+	closebtn = CreateFrame("Button",nil,FarmHudMapCluster);
+	closebtn:SetPoint("CENTER", FarmHudMapCluster, "CENTER", 12, FarmHudMapCluster:GetWidth()*.26);
+	closebtn:SetSize(20,20);
+	closebtn:SetNormalTexture(t.."Up");
+	closebtn:SetHighlightTexture(t.."Highlight");
+	closebtn:SetPushedTexture(t.."Down");
+	closebtn:SetAlpha(0.7);
+	closebtn:SetScript("OnClick",function()
+		FarmHud:Toggle()
+	end);
+
+	local t = "Interface\\Addons\\"..addon.."\\mouse";
+	mousebtn = CreateFrame("Button",nil,FarmHudMapCluster);
+	mousebtn:SetPoint("CENTER", FarmHudMapCluster, "CENTER", -12, FarmHudMapCluster:GetWidth()*.26);
+	mousebtn:SetSize(20,20);
+	mousebtn:SetNormalTexture(t.."1");
+	mousebtn:SetHighlightTexture(t.."2");
+	mousebtn:SetPushedTexture(t.."3");
+	mousebtn:SetAlpha(0.9);
+	mousebtn:SetScript("OnClick",function()
+		FarmHud:MouseToggle()
+	end);
+
+	if(FarmHudDB.hide_buttons) then
+		closebtn:Hide();
+		mousebtn:Hide();
+	end
+
 	FarmHudMapCluster:Hide();
 	FarmHudMapCluster:SetScript("OnShow", onShow);
 	FarmHudMapCluster:SetScript("OnHide", onHide);
@@ -484,3 +525,4 @@ end
 FarmHud:SetScript("OnEvent", function(self, event, ...) if self[event] then return self[event](self, event, ...) end end);
 FarmHud:RegisterEvent("PLAYER_LOGIN");
 FarmHud:RegisterEvent("PLAYER_LOGOUT");
+
