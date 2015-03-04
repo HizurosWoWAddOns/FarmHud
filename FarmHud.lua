@@ -34,7 +34,7 @@ local LDB = LibStub("LibDataBroker-1.1"):NewDataObject("FarmHud",{
 
 local LDBIcon = LDB and LibStub("LibDBIcon-1.0", true);
 
-local NPCScan = _NPCScan and _NPCScan.Overlay and _NPCScan.Overlay.Modules.List[ "Minimap" ];
+local NPCScan = nil;
 
 local options = {
 	name = "FarmHud",
@@ -361,6 +361,8 @@ function blackborderblobs_Toggle()
 end
 
 function FarmHud:PLAYER_LOGIN()
+
+	NPCScan = (_NPCScan) and (_NPCScan.Overlay) and _NPCScan.Overlay.Modules.List[ "Minimap" ];
 
 	if (FarmHudDB==nil) then
 		FarmHudDB={};
