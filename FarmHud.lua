@@ -239,8 +239,14 @@ local onShow = function(self)
 		TomTom:ReparentMinimap(FarmHudMapCluster);
 		if (not Astrolabe) and (DongleStub) then
 			_, Astrolabe = pcall(DongleStub,"Astrolabe-1.0");
+			if(type(Astrolabe)~="table")then
+				_, Astrolabe = pcall(DongleStub,"Astrolabe-TomTom-1.0");
+			end
+			if not type(Astrolabe) then
+				Astrolabe=nil;
+			end
 		end
-		if (Astrolabe) then
+		if (Astrolabe and Astrolabe.SetTargetMinimap) then
 			Astrolabe:SetTargetMinimap(FarmHudMinimap);
 		end
 	end
@@ -272,7 +278,7 @@ local onHide = function(self, force)
 
 	if (TomTom) and (TomTom.ReparentMinimap) then
 		TomTom:ReparentMinimap(_G.Minimap);
-		if (Astrolabe) then
+		if (Astrolabe and Astrolabe.SetTargetMinimap) then
 			Astrolabe:SetTargetMinimap(_G.Minimap);
 		end
 	end
