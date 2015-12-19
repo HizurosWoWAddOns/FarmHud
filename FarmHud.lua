@@ -11,6 +11,7 @@ local directions, blackborderblobs_Toggle = {};
 local fh_scale = 1.4;
 local fh_mapRotation, playerDot, updateRotations, mousewarn, coords, closebtn, mousebtn, Astrolabe, _
 local indicators = {L["N"], L["NE"], L["E"], L["SE"], L["S"], L["SW"], L["W"], L["NW"]};
+local LibHijackMinimap_Token,LibHijackMinimap = {};
 
 local LDB = LibStub("LibDataBroker-1.1"):NewDataObject("FarmHud",{
 	type	= "launcher",
@@ -249,6 +250,10 @@ local onShow = function(self)
 		end
 	end
 
+	if (LibHijackMinimap)then
+		LibHijackMinimap:HijackMinimap(LibHijackMinimap_Token,FarmHudMapCluster);
+	end
+
 	FarmHud:SetScript("OnUpdate", updateRotations);
 	Minimap:Hide();
 end
@@ -277,6 +282,10 @@ local onHide = function(self, force)
 		if (Astrolabe and Astrolabe.SetTargetMinimap) then
 			Astrolabe:SetTargetMinimap(_G.Minimap);
 		end
+	end
+
+	if (LibHijackMinimap)then
+		LibHijackMinimap:ReleaseMinimap(LibHijackMinimap_Token);
 	end
 
 	FarmHud:SetScript("OnUpdate", nil);
@@ -518,6 +527,11 @@ function FarmHud:PLAYER_LOGIN()
 	FarmHudMapCluster:SetScript("OnShow", onShow);
 	FarmHudMapCluster:SetScript("OnHide", onHide);
 	FarmHudMapCluster:SetScript("OnUpdate", onUpdate);
+
+	if(LibStub.libs['LibHijackMinimap-1.0'])then
+		LibHijackMinimap = LibStub('LibHijackMinimap-1.0');
+		LibHijackMinimap:RegisterHijacker(addon,LibHijackMinimap_Token);
+	end
 end
 
 function FarmHud:PLAYER_LOGOUT()
