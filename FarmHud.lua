@@ -215,16 +215,14 @@ LibStub("AceConfigDialog-3.0"):AddToBlizOptions("FarmHud")
 
 local onShow = function(self)
 	fh_mapRotation = GetCVar("rotateMinimap");
-	SetCVar("rotateMinimap", "1");
+	SetCVar("rotateMinimap", "1", "ROTATE_MINIMAP");
 
 	if (GatherMate2) and (FarmHudDB.show_gathermate==true) then
 		GatherMate2:GetModule("Display"):ReparentMinimapPins(FarmHudMapCluster);
-		GatherMate2:GetModule("Display"):ChangedVars(nil, "ROTATE_MINIMAP", "1");
 	end
 
 	if (Routes) and (Routes.ReparentMinimap) and (FarmHudDB.show_routes==true) then
 		Routes:ReparentMinimap(FarmHudMapCluster);
-		Routes:CVAR_UPDATE(nil, "ROTATE_MINIMAP", "1");
 	end
 
 	if (NPCScan) and (NPCScan.SetMinimapFrame) and (FarmHudDB.show_npcscan==true) then
@@ -256,16 +254,14 @@ local onShow = function(self)
 end
 
 local onHide = function(self, force)
-	SetCVar("rotateMinimap", fh_mapRotation);
+	SetCVar("rotateMinimap", fh_mapRotation, "ROTATE_MINIMAP");
 
 	if (GatherMate2) then
 		GatherMate2:GetModule("Display"):ReparentMinimapPins(Minimap);
-		GatherMate2:GetModule("Display"):ChangedVars(nil, "ROTATE_MINIMAP", fh_mapRotation);
 	end
 
 	if (Routes) and (Routes.ReparentMinimap) then
 		Routes:ReparentMinimap(Minimap);
-		Routes:CVAR_UPDATE(nil, "ROTATE_MINIMAP", fh_mapRotation);
 	end
 
 	if (NPCScan) and (NPCScan.SetMinimapFrame) then
