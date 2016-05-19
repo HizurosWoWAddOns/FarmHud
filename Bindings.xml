@@ -1,8 +1,11 @@
 <Bindings>
 	<Binding name="TOGGLEFARMHUD" header="FARMHUD" category="ADDONS">
-		FarmHud:Toggle()
+		FarmHud_Toggle();
 	</Binding>
 	<Binding name="TOGGLEFARMHUDMOUSE" category="ADDONS">
-		FarmHud:MouseToggle()
+		FarmHud_ToggleMouse();
+	</Binding>
+	<Binding name="TOGGLEFARMHUDBACKGROUND" category="ADDONS">
+		FarmHud_ToggleBackground();
 	</Binding>
 </Bindings>
