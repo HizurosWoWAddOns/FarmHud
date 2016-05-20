@@ -1,14 +1,10 @@
-## Interface: 60200
+## Interface: 70000
 ## Title: FarmHud
-## Version: 6.2-Release3
+## Version: @project-version@
 ## Notes: Turns your minimap into a hud for gathering resources!
 ## Author: Hizuro, CodeRedLin
 ## OptionalDeps: Ace3, CallbackHandler-1.0, LibDBIcon-1.0, LibStub
 ## SavedVariables: FarmHudDB
-## X-Curse-Packaged-Version: 6.2-Release3
-## X-Curse-Project-Name: FarmHud
-## X-Curse-Project-ID: farmhud
-## X-Curse-Repository-ID: wow/farmhud/mainline
 
 #@no-lib-strip@
 lib\LibStub\LibStub.lua
@@ -22,4 +18,3 @@ lib\LibDBIcon-1.0\LibDBIcon-1.0.lua
 
 FarmHud.xml
 
-# FarmHud.lua
