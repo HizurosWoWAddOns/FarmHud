@@ -558,7 +558,7 @@ function FarmHud_OnLoad()
 	end);
 
 	hooksecurefunc(Minimap,"SetZoom",function(self,level)
-		if not self.zoomLocked and self:IsShown() then
+		if not self.zoomLocked and FarmHudMinimap:IsShown() and FarmHudMinimap:IsVisible() then
 			self.zoomLocked = true;
 			self:SetZoom(0);
 			self.zoomLocked = nil;
