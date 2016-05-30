@@ -412,8 +412,10 @@ function FarmHudCloseButton_OnClick()
 	FarmHud_Toggle()
 end
 
-function FarmHud_OnEvent(self,event,...)
-	if event=="PLAYER_LOGIN" then
+function FarmHud_OnEvent(self,event,arg1,...)
+	if event=="ADDON_LOADED" and arg1==addon then
+		ns.print(L["AddOn loaded..."]);
+	elseif event=="PLAYER_LOGIN" then
 		NPCScan = (_NPCScan) and (_NPCScan.Overlay) and _NPCScan.Overlay.Modules.List[ "Minimap" ];
 
 		if (FarmHudDB==nil) then
@@ -422,9 +424,9 @@ function FarmHud_OnEvent(self,event,...)
 
 		if (FarmHudDB.MinimapIcon==nil) then
 			FarmHudDB.MinimapIcon = {
-				show = false,
+				show = true,
 				minimapPos = 220,
-				radius = 80,
+				radius = 80
 			};
 		end
 		
@@ -477,7 +479,10 @@ function FarmHud_OnEvent(self,event,...)
 		end
 
 		if (LDBIcon) then
-			LDBIcon:Register("FarmHud", LDB, FarmHudDB.MinimapIcon);
+			LDBIcon:Register(addon, LDB, FarmHudDB.MinimapIcon);
+			if not FarmHudDB.MinimapIcon.show then
+				LDBIcon:Hide(addon);
+			end
 		end
 
 		fh_font = {SystemFont_Small2:GetFont()};
@@ -542,7 +547,6 @@ function FarmHud_OnEvent(self,event,...)
 			LibHijackMinimap = LibStub('LibHijackMinimap-1.0');
 			LibHijackMinimap:RegisterHijacker(addon,LibHijackMinimap_Token);
 		end
-		ns.print(L["AddOn loaded..."]);
 	elseif event=="PLAYER_LOGOUT" then
 		FarmHud_Toggle(false);
 	end
@@ -564,7 +568,7 @@ function FarmHud_OnLoad()
 			self.zoomLocked = nil;
 		end
 	end);
-
+	FarmHud:RegisterEvent("ADDON_LOADED");
 	FarmHud:RegisterEvent("PLAYER_LOGIN");
 	FarmHud:RegisterEvent("PLAYER_LOGOUT");
 end
@@ -586,7 +590,7 @@ local options = {
 					desc = L["Show or hide the minimap icon."],
 					get = function() return FarmHudDB.MinimapIcon.show; end,
 					set = function(_,v) FarmHudDB.MinimapIcon.show = v;
-						if (v) then LDBIcon:Hide("FarmHud") else LDBIcon:Show("FarmHud"); end
+						if (v) then LDBIcon:Show(addon) else LDBIcon:Hide(addon); end
 					end,
 				},
 				playerdot = {
