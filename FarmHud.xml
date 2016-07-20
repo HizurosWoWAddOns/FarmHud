@@ -20,25 +20,38 @@
 		</Anchors>
 		<Layers>
 			<Layer level="ARTWORK">
-				<Texture parentKey="gatherCircle" file="spells\StrangleThorn_DiamondMine_Circle_Solid_White" alphaMode="ADD" hidden="true">
+				<Texture parentKey="gatherCircle" file="Interface\AddOns\FarmHud\media\gathercircle" alphaMode="ADD" hidden="true">
 					<Size x="60" y="60"/>
 					<Anchors>
 						<Anchor point="CENTER" />
 					</Anchors>
 				</Texture>
-				<FontString parentKey="mouseWarn" inherits="FarmHudFont" text="MOUSE ON" hidden="true" />
-				<FontString parentKey="coords" inherits="FarmHudFont" hidden="true" />
-				<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="N" />
-				<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="NE" />
-				<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="E" />
-				<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="SE" />
-				<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="S" />
-				<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="SW" />
-				<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="W" />
-				<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="NW" />
 			</Layer>
 		</Layers>
 		<Frames>
+			<Minimap name="FarmHudMinimap" enableMouse="false" setallpoints="true" alpha="0" />
+			<Frame name="FarmHudCluster" setallpoints="true" />
+			<Frame parentKey="TextFrame" setallpoints="true">
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString parentKey="mouseWarn" inherits="FarmHudFont" text="MOUSE ON" hidden="true" />
+						<FontString parentKey="coords" inherits="FarmHudFont" hidden="true" />
+						<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="N" />
+						<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="NE" />
+						<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="E" />
+						<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="SE" />
+						<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="S" />
+						<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="SW" />
+						<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="W" />
+						<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="NW" />
+					</Layer>
+				</Layers>
+			</Frame>
+			<Frame name="FarmHudMoveResizeBorder" frameStrata="TOOLTIP"  hidden="true" setallpoints="true">
+				<Backdrop edgeFile="Interface\Addons\FarmHud\media\BorderBlue2">
+					<EdgeSize val="8" />
+				</Backdrop>
+			</Frame>
 			<Frame parentKey="onScreenButtons" hidden="true">
 				<Size x="1" y="1" />
 				<Frames>
@@ -99,8 +112,6 @@
 					</Button>
 				</Frames>
 			</Frame>
-			<Frame name="FarmHudCluster" setallpoints="true" />
-			<Minimap name="FarmHudMinimap" enableMouse="false" setallpoints="true" alpha="0" />
 		</Frames>
 		<Scripts>
 			<OnLoad function="FarmHud_OnLoad" />

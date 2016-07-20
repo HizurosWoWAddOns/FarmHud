@@ -9,7 +9,8 @@ BINDING_NAME_TOGGLEFARMHUDBACKGROUND = L["Toggle FarmHud's minimap background"];
 
 local LibHijackMinimap_Token,AreaBorderStates,LibHijackMinimap,NPCScan = {},{};
 local media, media_blizz = "Interface\\AddOns\\"..addon.."\\media\\", "Interface\\Minimap\\";
-local fh_scale, fh_mapRotation, fh_mapZoom, fh_font, updateRotations, Astrolabe, HereBeDragonsPins, _ = 1.4;
+local mps = {}; -- minimap_prev_state
+local fh_scale, fh_font, updateRotations, Astrolabe, HereBeDragonsPins, _ = 1.4;
 local playerDot_updateLock, playerDot_orig, playerDot_textures, playerDot_custom = false,"Interface\\Minimap\\MinimapArrow", {
 	["blizz"]         = L["Blizzards player arrow"],
 	["blizz-smaller"] = L["Blizzards player arrow (smaller)"],
@@ -21,13 +22,15 @@ local blobSets = {
 	black = {"Interface\\glues\\credits\\bloodelf_priestess_master6","Interface\\common\\ShadowOverlay-Top","Interface\\glues\\credits\\bloodelf_priestess_master6","Interface\\common\\ShadowOverlay-Top"}
 }
 local dbDefaults = {
-	gathercircle_show=false,gathercircle_color={0,1,0,0.5},
-	cardinalpoints_show=false,cardinalpoints_color1={1,0.82,0,0.7},cardinalpoints_color2={1,0.82,0,0.7},
-	coords_show=false,coords_bottom=false,coords_color={1,0.82,0,0.7},
-	buttons_show=false,buttons_buttom=false,buttons_alpha=0.6, mouseoverinfo_color={1,0.82,0,0.7},
-	areaborder_arch_show=false,areaborder_arch_texture=false,areaborder_arch_alpha=1,
-	areaborder_quest_show=false,areaborder_quest_texture=false,areaborder_quest_alpha=1,
-	areaborder_tasks_show=false,areaborder_task_texture=false,areaborder_task_alpha=1,
+	hud_scale=1.4, text_scale=1.4,
+	gathercircle_show=true,gathercircle_color={0,1,0,0.5},
+	cardinalpoints_show=true,cardinalpoints_color1={1,0.82,0,0.7},cardinalpoints_color2={1,0.82,0,0.7},cardinalpoints_radius=0.47,
+	coords_show=true,coords_bottom=false,coords_color={1,0.82,0,0.7},coords_radius=0.51,
+	buttons_show=false,buttons_buttom=false,buttons_alpha=0.6,buttons_radius=0.56,
+	mouseoverinfo_color={1,0.82,0,0.7},
+	areaborder_arch_show="blizz",areaborder_arch_texture=false,areaborder_arch_alpha=1,
+	areaborder_quest_show="blizz",areaborder_quest_texture=false,areaborder_quest_alpha=1,
+	areaborder_tasks_show="blizz",areaborder_task_texture=false,areaborder_task_alpha=1,
 	player_dot="blizz", background_alpha=0.8,
 	support_gathermate=true,support_routes=true,support_npcscan=true,support_bloodhound2=true,support_tomtom=true,
 }
@@ -82,13 +85,12 @@ ns.print = function (...)
 	print(unpack(t));
 end
 
-
 local function SetPlayerDotTexture(bool)
 	local tex = media.."playerDot-"..FarmHudDB.player_dot
 	if FarmHudDB.player_dot=="blizz" or not bool then
 		tex = playerDot_custom or playerDot_orig;
 	end
-	Minimap:SetPlayerTexture(tex);
+	FarmHudMinimap:SetPlayerTexture(tex);
 end
 
 local function AreaBorder_SetAlpha(Type,Value)
@@ -109,14 +111,7 @@ local function AreaBorder_SetTexture(Type,Inside,Outside,Ring,Selected)
 end
 
 local function AreaBorder_Update(bool)
-	--[[
-	local opts = {
-		Arch  = {media_blizz.."UI-ArchBlobMinimap-Inside",    media_blizz.."UI-ArchBlobMinimap-Outside",    media_blizz.."UI-QuestBlob-MinimapRing"};
-		Quest = {media_blizz.."UI-QuestBlobMinimap-Inside",   media_blizz.."UI-QuestBlobMinimap-Outside",   media_blizz.."UI-QuestBlob-MinimapRing", media_blizz.."UI-QuestBlobMinimap-OutsideSelected"};
-		Task  = {media_blizz.."UI-BonusObjectiveBlob-Inside", media_blizz.."UI-BonusObjectiveBlob-Outside", media_blizz.."UI-BonusObjectiveBlob-MinimapRing"};
-	}
-	--]]
-	if bool then
+	if bool==true then
 		for i=1, GetNumTrackingTypes() do
 			local name, texture, active, category, nested  = GetTrackingInfo(i);
 			if texture:find("ArchBlob") and FarmHudDB.areaborder_arch_show~="blizz" and FarmHudDB.areaborder_arch_show~=active then
@@ -130,49 +125,6 @@ local function AreaBorder_Update(bool)
 			end
 			-- Bonus Objective is not present in list... maybe using QuestBlog as toggle
 		end
-
-		--[[
-		if FarmHudDB.areaborder_arch_alpha<1 then
-			AreaBorderStates.ArchAlpha = FarmHudDB.areaborder_arch_alpha;
-		end
-		if FarmHudDB.areaborder_quest_alpha<1 then
-			AreaBorderStates.QuestAlpha = FarmHudDB.areaborder_quest_alpha;
-		end
-		if FarmHudDB.areaborder_task_alpha<1 then
-			AreaBorderStates.TaskAlpha = FarmHudDB.areaborder_task_alpha;
-		end
-		]]
-
-		--[[
-		if FarmHudDB.areaborder_arch_texture then
-			opts.Arch.Textures = {
-				FarmHudDB.areaborder_arch_texture.."Inside",
-				FarmHudDB.areaborder_arch_texture.."Outside",
-				FarmHudDB.areaborder_arch_texture.."Ring"
-			};
-			AreaBorderStates.ArchTexture=true;
-		end
-
-
-		if FarmHudDB.areaborder_quest_texture then
-			opts.Quest.Textures = {
-				FarmHudDB.areaborder_quest_texture.."Inside";
-				FarmHudDB.areaborder_quest_texture.."Outside";
-				FarmHudDB.areaborder_quest_texture.."Ring";
-				FarmHudDB.areaborder_quest_texture.."Selected";
-			}
-			AreaBorderStates.QuestTexture=true;
-		end
-
-		if FarmHudDB.areaborder_task_texture then
-			opts.Task.Textures = {
-				FarmHudDB.areaborder_task_texture.."Inside";
-				FarmHudDB.areaborder_task_texture.."Outside";
-				FarmHudDB.areaborder_task_texture.."Ring";
-			}
-			AreaBorderStates.TaskTexture=true;
-		end
-		--]]
 	else
 		if AreaBorderStates.Arch~=nil then
 			SetTracking(TrackingIndex["ArchBlob"],AreaBorderStates.Arch);
@@ -181,51 +133,117 @@ local function AreaBorder_Update(bool)
 			SetTracking(TrackingIndex["QuestBlob"],AreaBorderStates.Quest);
 		end
 	end
-
-	--[[
-	for _,Type in ipairs({"Arch","Quest","Task"})do
-		if AreaBorderStates[Type.."Alpha"] then
-			if bool and type(AreaBorderStates[Type.."Alpha"])=="number" then
-				AreaBorder_SetAlpha(i,AreaBorderStates[Type.."Alpha"]);
-				--print("AreaBorder changed",AreaBorderStates[Type.."Alpha"]);
-				AreaBorderStates[Type.."Alpha"]=true;
-			else
-				AreaBorder_SetAlpha(i,1);
-				AreaBorderStates[Type.."Alpha"]=nil;
-				--print("AreaBorder changed",1);
-			end
-		end
-		if AreaBorderStates[Type.."Texture"] then
-			--AreaBorder_SetTexture(Type,unpack(opts[i].Textures));
-		end
-	end
-	--]]
 end
 
 
 -------------------------------------------------
 -- global functions
 -------------------------------------------------
+
+C_Timer.NewTicker(1/31, function()
+	if FarmHud:IsShown() then
+		local bearing = GetPlayerFacing();
+		for k, v in ipairs(FarmHud.TextFrame.cardinalPoints) do
+			local x, y = math.sin(v.rad + bearing), math.cos(v.rad + bearing);
+			v:ClearAllPoints();
+			v:SetPoint("CENTER", FarmHud, "CENTER", x * (FarmHud.textScaledHeight * FarmHudDB.cardinalpoints_radius), y * (FarmHud.textScaledHeight * FarmHudDB.cardinalpoints_radius));
+		end
+		if FarmHud.TextFrame.coords:IsShown() then
+			local x,y=GetPlayerMapPosition("player");
+			FarmHud.TextFrame.coords:SetFormattedText("%.1f, %.1f",x*100,y*100);
+		end
+	end
+end);
+
+function FarmHud_SetScales()
+	FarmHud:SetPoint("CENTER");
+
+	local size = UIParent:GetHeight();
+	FarmHud:SetSize(size,size);
+
+	local MinimalScaledSize = size / FarmHudDB.hud_scale;
+	FarmHudMinimap:SetScale(FarmHudDB.hud_scale);
+	FarmHudMinimap:SetSize(MinimalScaledSize, MinimalScaledSize);
+
+	FarmHud.TextFrame:SetScale(FarmHudDB.text_scale);
+	FarmHud.textScaledHeight = ((FarmHud:GetHeight()*FarmHud:GetScale()) / FarmHudDB.text_scale) * 0.5;
+
+	local _size = size * 0.435;
+	FarmHud.gatherCircle:SetSize(_size, _size);
+
+	local y = ((FarmHud:GetHeight()*FarmHud:GetScale()) * FarmHudDB.buttons_radius) * 0.5;
+	if (FarmHudDB.buttons_bottom) then
+		FarmHud.onScreenButtons:SetPoint("CENTER", FarmHud, "CENTER", 0, -y);
+	else
+		FarmHud.onScreenButtons:SetPoint("CENTER", FarmHud, "CENTER", 0, y);
+	end
+
+	local y = FarmHud.textScaledHeight * FarmHudDB.coords_radius;
+	if (FarmHudDB.coords_bottom) then
+		FarmHud.TextFrame.coords:SetPoint("CENTER", FarmHud, "CENTER", 0, -y);
+	else
+		FarmHud.TextFrame.coords:SetPoint("CENTER", FarmHud, "CENTER", 0, y);
+	end
+
+	FarmHud.TextFrame.mouseWarn:SetPoint("CENTER",FarmHud,"CENTER",0,-16);
+end
+
+function FarmHud_UpdateScale()
+	if not FarmHud:IsShown() then return end
+end
+
 function FarmHud_OnShow(self)
 	playerDot_updateLock = true;
-	fh_mapRotation = GetCVar("rotateMinimap");
-	SetCVar("rotateMinimap", "1", "ROTATE_MINIMAP");
+	mps = {
+		zoom = FarmHudMinimap:GetZoom(),
+		rotation = GetCVar("rotateMinimap"),
+	};
 
-	fh_mapZoom = FarmHudMinimap:GetZoom();
-	FarmHudMinimap:SetZoom(0);
-	FarmHudMinimap.zoomLocked = nil;
+	if _G.Minimap==FarmHudMinimap then
+		mps.anchors = {};
+		mps.childs = {};
+		mps.parent = FarmHudMinimap:GetParent();
+		mps.scale = FarmHudMinimap:GetScale();
+		mps.level = FarmHudMinimap:GetFrameLevel();
+
+		for i=1, FarmHudMinimap:GetNumPoints() do
+			mps.anchors[i] = {FarmHudMinimap:GetPoint(i)};
+		end
+
+		local childs = {FarmHudMinimap:GetChildren()};
+		for i=1, #childs do
+			childs[i].fh_prev = {childs[i]:IsShown(),childs[i]:GetAlpha()};
+			childs[i]:Hide();
+			childs[i]:SetAlpha(0);
+		end
+
+		FarmHudMinimap:SetFrameLevel(1);
+		FarmHudMinimap:SetScale(1);
+		FarmHudMinimap:ClearAllPoints();
+		FarmHudMinimap:SetParent(FarmHud);
+		FarmHudMinimap:SetAllPoints();
+		FarmHudMinimap:SetZoom(0);
+		FarmHudMinimap:SetAlpha(0);
+		FarmHudMinimap:EnableMouse(false);
+		_G.Minimap.zoomLocked = nil;
+	else
+		FarmHudMinimap:EnableMouse(false);
+		_G.Minimap:Hide();
+	end
+
+	SetCVar("rotateMinimap", "1", "ROTATE_MINIMAP");
 
 	SetPlayerDotTexture(true);
 	AreaBorder_Update(true);
 
+	FarmHud_SetScales();
+
 	if (GatherMate2) and (FarmHudDB.support_gathermate==true) then
 		GatherMate2:GetModule("Display"):ReparentMinimapPins(FarmHudCluster);
 	end
-
 	if (Routes) and (Routes.ReparentMinimap) and (FarmHudDB.support_routes==true) then
 		Routes:ReparentMinimap(FarmHudCluster);
 	end
-
 	if (NPCScan) and (NPCScan.SetMinimapFrame) and (FarmHudDB.support_npcscan==true) then
 		NPCScan:SetMinimapFrame(FarmHudCluster);
 	end
@@ -239,7 +257,7 @@ function FarmHud_OnShow(self)
 			if(not HereBeDragonsPins)then
 				HereBeDragonsPins = LibStub("HereBeDragons-Pins-1.0");
 			end
-			HereBeDragonsPins:SetMinimapObject(FarmHudMinimap);
+			HereBeDragonsPins:SetMinimapObject(FarmHudCluster);
 		end
 		if (DongleStub) and (not Astrolabe) then
 			_, Astrolabe = pcall(DongleStub,"Astrolabe-1.0");
@@ -259,40 +277,59 @@ function FarmHud_OnShow(self)
 	end
 
 	if (LibHijackMinimap)then
-		LibHijackMinimap:HijackMinimap(LibHijackMinimap_Token,FarmHudCluster);
+		LibHijackMinimap:HijackMinimap(LibHijackMinimap_Token,FarmHudMinimap);
 	end
-
-	FarmHud:SetScript("OnUpdate", FarmHud_OnUpdate);
-	Minimap:Hide();
 end
 
 function FarmHud_OnHide(self, force)
-	SetCVar("rotateMinimap", fh_mapRotation, "ROTATE_MINIMAP");
+	MinimapBackdrop:Show();
+	if _G.Minimap==FarmHudMinimap then
+		FarmHudMinimap:SetAlpha(1);
+		FarmHudMinimap:SetScale(mps.scale);
+		FarmHudMinimap:SetSize(140,140);
+		FarmHudMinimap:SetFrameLevel(mps.level);
+		FarmHudMinimap:SetParent(mps.parent);
+		FarmHudMinimap:ClearAllPoints();
+		for i=1, #mps.anchors do
+			FarmHudMinimap:SetPoint(unpack(mps.anchors[i]));
+		end
+		local childs = {Minimap:GetChildren()};
+		for i=1, #childs do
+			if childs[i].fh_prev~=nil then
+				childs[i]:SetShown(childs[i].fh_prev[1]);
+				childs[i]:SetAlpha(childs[i].fh_prev[2]);
+			end
+		end
+	else
+		_G.Minimap:Show();
+	end
 
-	local maxLevels = FarmHudMinimap:GetZoomLevels();
-	if fh_mapZoom>maxLevels then fh_mapZoom = maxLevels; end
-	FarmHudMinimap.zoomLocked = true;
-	FarmHudMinimap:SetZoom(fh_mapZoom);
+	SetCVar("rotateMinimap", mps.rotation, "ROTATE_MINIMAP");
+
+	FarmHudMinimap:EnableMouse(true);
+
+	local maxLevels = Minimap:GetZoomLevels();
+	if mps.zoom>maxLevels then mps.zoom = maxLevels; end
+	FarmHudMinimap:SetZoom(mps.zoom);
+	_G.Minimap.zoomLocked = true;
+
+	mps = false;
 
 	SetPlayerDotTexture(false);
 	AreaBorder_Update(false);
 
 	if (GatherMate2) then
-		GatherMate2:GetModule("Display"):ReparentMinimapPins(Minimap);
+		GatherMate2:GetModule("Display"):ReparentMinimapPins(_G.Minimap);
 	end
-
 	if (Routes) and (Routes.ReparentMinimap) then
-		Routes:ReparentMinimap(Minimap);
+		Routes:ReparentMinimap(_G.Minimap);
 	end
-
 	if (NPCScan) and (NPCScan.SetMinimapFrame) then
-		NPCScan:SetMinimapFrame(Minimap);
+		NPCScan:SetMinimapFrame(_G.Minimap);
 	end
-
 	if (Bloodhound2) and (Bloodhound2.ReparentMinimap) then
 		Bloodhound2.ReparentMinimap(_G.Minimap,"Minimap");
 	end
-
 	if (TomTom) then
 		if (HereBeDragonsPins) then
 			HereBeDragonsPins:SetMinimapObject(_G.Minimap);
@@ -304,74 +341,11 @@ function FarmHud_OnHide(self, force)
 			TomTom:ReparentMinimap(_G.Minimap);
 		end
 	end
-
 	if (LibHijackMinimap)then
 		LibHijackMinimap:ReleaseMinimap(LibHijackMinimap_Token);
 	end
 
-	FarmHud:SetScript("OnUpdate", nil);
-	Minimap:Show();
 	playerDot_updateLock = false;
-end
-
-function FarmHud_OnUpdate(self, elapse)
-	if not FarmHud.coords:IsShown() then return end
-	if self.elapse==nil then self.elapse=0; end
-
-	self.elapse = self.elapse + elapse;
-
-	if (self.elapse >= 0.02) then
-		if Minimap:IsShown() then
-			Minimap:Hide();
-		end
-
-		local bearing = GetPlayerFacing();
-		for k, v in ipairs(FarmHud.cardinalPoints) do
-			local x, y = math.sin(v.rad + bearing), math.cos(v.rad + bearing);
-			v:ClearAllPoints();
-			v:SetPoint("CENTER", FarmHud, "CENTER", x * FarmHud.cardinalPoints_radius, y * FarmHud.cardinalPoints_radius);
-		end
-
-		local x,y=GetPlayerMapPosition("player");
-		FarmHud.coords:SetFormattedText("%.1f, %.1f",x*100,y*100);
-
-		self.elapse=0;
-	end
-end
-
-function FarmHud_SetScales()
-	--FarmHudMinimap:ClearAllPoints();
-	--FarmHudMinimap:SetPoint("CENTER", UIParent, "CENTER");
-
-	FarmHud:ClearAllPoints();
-	FarmHud:SetPoint("CENTER");
-	FarmHud:SetScale(fh_scale);
-
-	local size = UIParent:GetHeight() / fh_scale;
-
-	FarmHudMinimap:SetSize(size, size);
-	FarmHud:SetSize(size, size);
-
-	local _size = size * 0.435;
-	FarmHud.gatherCircle:SetSize(_size, _size);
-
-	FarmHud.cardinalPoints_radius = size * 0.214;
-
-	local y = size * 0.260;
-	if (FarmHudDB.buttons_bottom) then
-		FarmHud.onScreenButtons:SetPoint("CENTER", FarmHud, "CENTER", 0, -y);
-	else
-		FarmHud.onScreenButtons:SetPoint("CENTER", FarmHud, "CENTER", 0, y);
-	end
-
-	local y = size * 0.235;
-	if (FarmHudDB.coords_bottom) then
-		FarmHud.coords:SetPoint("CENTER", FarmHud, "CENTER", 0, -y);
-	else
-		FarmHud.coords:SetPoint("CENTER", FarmHud, "CENTER", 0, y);
-	end
-
-	FarmHud.mouseWarn:SetPoint("CENTER",FarmHud,"CENTER",0,-16);
 end
 
 -- Toggle FarmHud display
@@ -381,12 +355,10 @@ function FarmHud_Toggle(flag)
 			FarmHud:Hide();
 		else
 			FarmHud:Show();
-			FarmHud_SetScales();
 		end
 	else
 		if (flag) then
 			FarmHud:Show();
-			FarmHud_SetScales();
 		else
 			FarmHud:Hide();
 		end
@@ -395,17 +367,21 @@ end
 
 -- Toggle the mouse to check out herb / ore tooltips
 function FarmHud_ToggleMouse()
-	if (FarmHudMinimap:IsMouseEnabled()) then
-		FarmHudMinimap:EnableMouse(false);
-		FarmHud.mouseWarn:Hide();
-	else
-		FarmHudMinimap:EnableMouse(true);
-		FarmHud.mouseWarn:Show();
+	if FarmHudMinimap:GetParent()==FarmHud then
+		if (FarmHudMinimap:IsMouseEnabled()) then
+			FarmHudMinimap:EnableMouse(false);
+			FarmHud.TextFrame.mouseWarn:Hide();
+		else
+			FarmHudMinimap:EnableMouse(true);
+			FarmHud.TextFrame.mouseWarn:Show();
+		end
 	end
 end
 
 function FarmHud_ToggleBackground()
-	FarmHudMinimap:SetAlpha(FarmHudMinimap:GetAlpha()==0 and FarmHudDB.background_alpha or 0);
+	if FarmHudMinimap:GetParent()==FarmHud then
+		FarmHudMinimap:SetAlpha(FarmHudMinimap:GetAlpha()==0 and FarmHudDB.background_alpha or 0);
+	end
 end
 
 function FarmHudCloseButton_OnClick()
@@ -486,12 +462,10 @@ function FarmHud_OnEvent(self,event,arg1,...)
 		end
 
 		fh_font = {SystemFont_Small2:GetFont()};
-		--fh_font[3] = "MONOCHROME";
 
-		FarmHudMinimap:SetFrameLevel(1);
 		FarmHud:SetFrameLevel(2);
 		FarmHudCluster:SetFrameLevel(3);
-		setmetatable(FarmHudCluster, { __index = FarmHudMinimap });
+		setmetatable(FarmHudCluster,getmetatable(_G.Minimap));
 
 		FarmHud._GetScale = FarmHud.GetScale;
 		FarmHud.GetScale = function() return 1; end
@@ -503,7 +477,7 @@ function FarmHud_OnEvent(self,event,arg1,...)
 		FarmHud.gatherCircle:SetVertexColor(unpack(FarmHudDB.gathercircle_color));
 
 		local radius = FarmHudMinimap:GetWidth() * 0.214;
-		for i, v in ipairs(FarmHud.cardinalPoints) do
+		for i, v in ipairs(FarmHud.TextFrame.cardinalPoints) do
 			local label = v:GetText();
 			local rot = (0.785398163 * (i-1));
 			local x, y = math.sin(rot), math.cos(rot);
@@ -511,6 +485,9 @@ function FarmHud_OnEvent(self,event,arg1,...)
 			v:SetText(L[label]);
 			v:SetTextColor(1.0,0.82,0);
 			v:SetFont(unpack(fh_font));
+			if v.SetScale then
+				v:SetScale(1.4);
+			end
 			v.rad = rot;
 			v.radius = radius;
 			v.NWSE = strlen(label)==1;
@@ -525,23 +502,19 @@ function FarmHud_OnEvent(self,event,arg1,...)
 		end
 
 		if (FarmHudDB.coords_show) then
-			FarmHud.coords:Show();
+			FarmHud.TextFrame.coords:Show();
 		end
-		FarmHud.coords:SetFont(unpack(fh_font));
-		FarmHud.coords:SetTextColor(unpack(FarmHudDB.coords_color));
+		FarmHud.TextFrame.coords:SetFont(unpack(fh_font));
+		FarmHud.TextFrame.coords:SetTextColor(unpack(FarmHudDB.coords_color));
 
 		if (FarmHudDB.buttons_show) then
 			FarmHud.onScreenButtons:Show();
 		end
 		FarmHud.onScreenButtons:SetAlpha(FarmHudDB.buttons_alpha);
 
-		FarmHudMinimap:EnableMouse(false);
-
-		FarmHud.mouseWarn:SetText(L["MOUSE ON"]);
-		FarmHud.mouseWarn:SetFont(unpack(fh_font));
-		FarmHud.mouseWarn:SetTextColor(unpack(FarmHudDB.mouseoverinfo_color));
-
-		FarmHud_SetScales();
+		FarmHud.TextFrame.mouseWarn:SetText(L["MOUSE ON"]);
+		FarmHud.TextFrame.mouseWarn:SetFont(unpack(fh_font));
+		FarmHud.TextFrame.mouseWarn:SetTextColor(unpack(FarmHudDB.mouseoverinfo_color));
 
 		if(LibStub.libs['LibHijackMinimap-1.0'])then
 			LibHijackMinimap = LibStub('LibHijackMinimap-1.0');
@@ -555,19 +528,24 @@ end
 function FarmHud_OnLoad()
 	FarmHud.Toggle=FarmHud_Toggle;
 
-	hooksecurefunc(FarmHudMinimap,"SetPlayerTexture",function(self,texture)
+	if FarmHudMinimap==nil then
+		FarmHudMinimap = _G.Minimap;
+	end
+
+	hooksecurefunc(Minimap,"SetPlayerTexture",function(self,texture)
 		if not playerDot_updateLock then
 			playerDot_custom = texture;
 		end
 	end);
 
 	hooksecurefunc(Minimap,"SetZoom",function(self,level)
-		if not self.zoomLocked and FarmHudMinimap:IsShown() and FarmHudMinimap:IsVisible() then
+		if not self.zoomLocked and Minimap:IsShown() and Minimap:IsVisible() then
 			self.zoomLocked = true;
 			self:SetZoom(0);
 			self.zoomLocked = nil;
 		end
 	end);
+
 	FarmHud:RegisterEvent("ADDON_LOADED");
 	FarmHud:RegisterEvent("PLAYER_LOGIN");
 	FarmHud:RegisterEvent("PLAYER_LOGOUT");
@@ -579,6 +557,7 @@ end
 local options = {
 	type = "group",
 	name = "FarmHud",
+	childGroups = "tree",
 	args = {
 		hud = {
 			type = "group",
@@ -593,8 +572,46 @@ local options = {
 						if (v) then LDBIcon:Show(addon) else LDBIcon:Hide(addon); end
 					end,
 				},
+				hud_scale = {
+					type = "range", order = 2,
+					name = L["HUD symbol scale"],
+					desc = L["Scale the symbols on HUD"],
+					min = 1, max = 2.5, step = 0.1, isPercent = true,
+					get = function() return FarmHudDB.hud_scale; end,
+					set = function(_,v)
+						FarmHudDB.hud_scale = v;
+						if FarmHud:IsShown() then
+							FarmHud_SetScales();
+						end
+					end
+				},
+				text_scale = {
+					type = "range", order = 2,
+					name = L["Text scale"],
+					desc = L["Scale text on HUD for cardinal points, mouse on and coordinations"],
+					min = 1, max = 2.5, step = 0.1, isPercent = true,
+					get = function() return FarmHudDB.text_scale; end,
+					set = function(_,v)
+						FarmHudDB.text_scale = v;
+						if FarmHud:IsShown() then
+							FarmHud_SetScales();
+						end
+					end
+				},
+				background_alpha = {
+					type = "range", order = 3,
+					name = L["Background transparency"],
+					min = 0.1, max = 1, step = 0.1, isPercent = true,
+					get = function() return FarmHudDB.background_alpha; end,
+					set = function(_,v)
+						FarmHudDB.background_alpha = v;
+						if FarmHud:IsShown() then
+							Minimap:SetAlpha(v);
+						end
+					end
+				},
 				playerdot = {
-					type = "select", order = 2,
+					type = "select", order = 4,
 					name = L["Player arrow or dot"],
 					desc = L["Change the look of your player dot/arrow on opened FarmHud"],
 					values = playerDot_textures,
@@ -606,36 +623,24 @@ local options = {
 						end
 					end,
 				},
-				background_alpha = {
-					type = "range", order = 3,
-					name = L["Background transparency"],
-					min = 0.1, max = 1, step = 0.1, isPercent = true,
-					get = function() return FarmHudDB.background_alpha; end,
-					set = function(_,v)
-						FarmHudDB.background_alpha = v;
-						if FarmHud:IsShown() then
-							FarmHudMinimap:SetAlpha(v);
-						end
-					end
-				},
 				mouseoverinfo_color = {
-					type = "color", order = 4, width = "double",
+					type = "color", order = 5, width = "double",
 					name = L["Mouse over info color"],
 					hasAlpha = true,
 					get = function() return unpack(FarmHudDB.mouseoverinfo_color); end,
 					set = function(_,...) FarmHudDB.mouseoverinfo_color = {...};
-						FarmHud.mouseWarn:SetTextColor(...);
+						FarmHud.TextFrame.mouseWarn:SetTextColor(...);
 					end
 				},
 				mouseoverinfo_resetcolor = {
-					type = "execute", order = 5,
+					type = "execute", order = 6,
 					name = L["Reset color"],
 					func = function()
 						FarmHudDB.mouseoverinfo_color = dbDefaults.mouseoverinfo_color;
-						FarmHud.mouseWarn:SetVertexColor(unpack(FarmHudDB.mouseoverinfo_color));
+						FarmHud.TextFrame.mouseWarn:SetVertexColor(unpack(FarmHudDB.mouseoverinfo_color));
 					end
 				},
-		----------------------------------------------
+				----------------------------------------------
 				gathercircle = {
 					type = "group", order = 1,
 					name = L["Garther circle"],
@@ -680,57 +685,61 @@ local options = {
 							get = function() return FarmHudDB.cardinalpoints_show; end,
 							set = function(_,v)
 								FarmHudDB.cardinalpoints_show = v;
-								if (v) then
-									for i,e in ipairs(FarmHud.cardinalPoints) do e:Show(); end
-								else
-									for i,e in ipairs(FarmHud.cardinalPoints) do e:Hide(); end
-								end
+								for i,e in ipairs(FarmHud.TextFrame.cardinalPoints) do e:SetShown(v); end
 							end
 						},
+						cardinalpoints_radius = {
+							type = "range", order = 2,
+							name = L["Distance from center"],
+							desc = L["Change the distance from center"],
+							min = 0.1, max = 0.9, step=0.005, isPercent=true,
+							get = function() return FarmHudDB.cardinalpoints_radius; end,
+							set = function(_,v) FarmHudDB.cardinalpoints_radius = v; end
+						},
 						cardinalpoints_header1 = {
-							type = "header", order = 2,
+							type = "header", order = 3,
 							name = L["N, W, S, E"]
 						},
 						cardinalpoints_color1 = {
-							type = "color", order = 3, width = "double",
+							type = "color", order = 4, width = "double",
 							name = L["Color"],
 							desc = L["Adjust color and transparency of cardinal points N, W, S, E"],
 							hasAlpha = true,
 							get = function() return unpack(FarmHudDB.cardinalpoints_color1); end,
 							set = function(_,...) FarmHudDB.cardinalpoints_color1 = {...};
-								for i,e in ipairs(FarmHud.cardinalPoints) do if e.NWSE then e:SetTextColor(...); end end
+								for i,e in ipairs(FarmHud.TextFrame.cardinalPoints) do if e.NWSE then e:SetTextColor(...); end end
 							end
 						},
 						cardinalpoints_resetcolor1 = {
-							type = "execute", order = 4,
+							type = "execute", order = 5,
 							name = L["Reset color"],
 							desc = L["Reset color and transparency of cardinal points N, W, S, E"],
 							func = function()
 								FarmHudDB.cardinalpoints_color1 = dbDefaults.cardinalpoints_color1;
-								for i,e in ipairs(FarmHud.cardinalPoints) do if e.NWSE then e:SetTextColor(unpack(FarmHudDB.cardinalpoints_color1)); end end
+								for i,e in ipairs(FarmHud.TextFrame.cardinalPoints) do if e.NWSE then e:SetTextColor(unpack(FarmHudDB.cardinalpoints_color1)); end end
 							end
 						},
 						cardinalpoints_header2 = {
-							type = "header", order = 5,
+							type = "header", order = 6,
 							name = L["NW, NE, SW, SE"]
 						},
 						cardinalpoints_color2 = {
-							type = "color", order = 6, width = "double",
+							type = "color", order = 7, width = "double",
 							name = L["Color"],
 							desc = L["Adjust color and transparency of cardinal points NW, NE, SW, SE"],
 							hasAlpha = true,
 							get = function() return unpack(FarmHudDB.cardinalpoints_color2); end,
 							set = function(_,...) FarmHudDB.cardinalpoints_color2 = {...};
-								for i,e in ipairs(FarmHud.cardinalPoints) do if not e.NWSE then e:SetTextColor(...); end end
+								for i,e in ipairs(FarmHud.TextFrame.cardinalPoints) do if not e.NWSE then e:SetTextColor(...); end end
 							end
 						},
 						cardinalpoints_resetcolor2 = {
-							type = "execute", order = 7,
+							type = "execute", order = 8,
 							name = L["Reset color"],
 							desc = L["Reset color and transparency of cardinal points NW, NE, SW, SE"],
 							func = function()
 								FarmHudDB.cardinalpoints_color2 = dbDefaults.cardinalpoints_color2;
-								for i,e in ipairs(FarmHud.cardinalPoints) do if not e.NWSE then e:SetTextColor(unpack(FarmHudDB.cardinalpoints_color2)); end end
+								for i,e in ipairs(FarmHud.TextFrame.cardinalPoints) do if not e.NWSE then e:SetTextColor(unpack(FarmHudDB.cardinalpoints_color2)); end end
 							end
 						}
 					}
@@ -745,35 +754,46 @@ local options = {
 							desc = L["Show or hide player coordinations"],
 							get = function() return FarmHudDB.coords_show; end,
 							set = function(_,v) FarmHudDB.coords_show = v;
-								FarmHud.coords:SetShown(v);
+								FarmHud.TextFrame.coords:SetShown(v);
+							end
+						},
+						coords_radius = {
+							type = "range", order = 2,
+							name = L["Distance from center"],
+							desc = L["Change the distance from center"],
+							min = 0.1, max = 0.9, step=0.005, isPercent=true,
+							get = function() return FarmHudDB.coords_radius; end,
+							set = function(_,v)
+								FarmHudDB.coords_radius = v;
+								if FarmHud:IsShown() then
+									FarmHud_SetScales();
+								end
 							end
 						},
 						coords_bottom = {
-							type = "toggle", order = 2, width = "double",
+							type = "toggle", order = 3, width = "double",
 							name = L["Coordinations on bottom"],
 							desc = L["Display player coordinations on bottom"],
 							get = function() return FarmHudDB.coords_bottom; end,
 							set = function(_,v)
 								FarmHudDB.coords_bottom = v;
-								if (v) then
-									FarmHud.coords:SetPoint("CENTER", FarmHud, "CENTER", 0, -FarmHud:GetWidth()*.23);
-								else
-									FarmHud.coords:SetPoint("CENTER", FarmHud, "CENTER", 0, FarmHud:GetWidth()*.23);
+								if FarmHud:IsShown() then
+									FarmHud_SetScales();
 								end
 							end
 						},
 						coords_color = {
-							type = "color", order = 3,
+							type = "color", order = 4,
 							name = L["Color"],
 							desc = L["Adjust color and transparency of coordations"],
 							hasAlpha = true,
 							get = function() return unpack(FarmHudDB.coords_color); end,
 							set = function(_,...) FarmHudDB.coords_color = {...};
-								FarmHud.coords:SetTextColor(...);
+								FarmHud.TextFrame.coords:SetTextColor(...);
 							end
 						},
 						coords_resetcolor = {
-							type = "execute", order = 4,
+							type = "execute", order = 5,
 							name = L["Reset color"],
 							desc = L["Reset color and transparency of coordations"],
 							func = function()
@@ -810,8 +830,21 @@ local options = {
 								end
 							end
 						},
-						buttons_alpha = {
+						buttons_radius = {
 							type = "range", order = 3,
+							name = L["Distance from center"],
+							desc = L["Change the distance from center"],
+							min = 0.1, max = 0.9, step=0.005, isPercent=true,
+							get = function() return FarmHudDB.buttons_radius; end,
+							set = function(_,v)
+								FarmHudDB.buttons_radius = v;
+								if FarmHud:IsShown() then
+									FarmHud_SetScales();
+								end
+							end
+						},
+						buttons_alpha = {
+							type = "range", order = 4,
 							name = L["Transparency"],
 							min = 0,
 							max = 1,
@@ -849,22 +882,6 @@ local options = {
 								if FarmHud:IsShown() then AreaBorder_Update(true); end
 							end,
 						},
-						--[[areaborder_arch_alpha = {
-							type = "range", order = 12,
-							name = L["Transparency"],
-							min = 0,
-							max = 1,
-							step = 0.1,
-							isPercent = true,
-							get = function() return FarmHudDB.areaborder_arch_alpha; end,
-							set = function(_,v)
-								FarmHudDB.areaborder_arch_alpha = v;
-								if FarmHud:IsShown() then AreaBorder_Update(true); end
-							end,
-						}, --]]
-						--areaborder_arch_texture = {
-						--	type = "select", order = 13, width = "double",
-						--},
 						areaborder_quest_header = {
 							type = "header", order = 20,
 							name = TRACKING.." > "..MINIMAP_TRACKING_QUEST_POIS,
@@ -883,62 +900,6 @@ local options = {
 								if FarmHud:IsShown() then AreaBorder_Update(true); end
 							end,
 						},
-						--[[areaborder_quest_alpha = {
-							type = "range", order = 22,
-							name = L["Transparency"],
-							min = 0,
-							max = 1,
-							step = 0.1,
-							isPercent = true,
-							get = function() return FarmHudDB.areaborder_quest_alpha; end,
-							set = function(_,v)
-								FarmHudDB.areaborder_quest_alpha = v;
-								if FarmHud:IsShown() then AreaBorder_Update(true); end
-							end,
-						}, --]]
-						--areaborder_quest_texture = {
-						--	type = "select", order = 23, width = "double",
-						--},
-						--[[
-						areaborder_task_header = {
-							type = "header", order = 30,
-							name = L["Bonus objectives"],
-						},
-						areaborder_info = {
-							type = "description", order = 31,
-							name = L["This option has no own entry in blizzards tracking menu.|nMaybe Blizzard using \"Track Quest POIs\"."],
-						},
-						areaborder_task_show = {
-							type = "toggle", order = 32, width = "double",
-							name = L["Show %s area border"]:format(L["bonus objective"]),
-							--desc = L["Show or hide %s area border.|n|n|cffaaaaaaSilver checkmark: Show if tracking option enabled|r"]:format(L["bonus objective"]),
-							--tristate = true,
-							get = function()
-								if FarmHudDB.areaborder_task_show=="blizz" then return nil; end
-								return FarmHudDB.areaborder_task_show;
-							end,
-							set = function(_,v)
-								FarmHudDB.areaborder_task_show = v==nil and "blizz" or v;
-								if FarmHud:IsShown() then AreaBorder_Update(true); end
-							end,
-						},
-						areaborder_tasks_alpha = {
-							type = "range", order = 33,
-							name = L["Transparency"],
-							min = 0,
-							max = 1,
-							step = 0.1,
-							isPercent = true,
-							get = function() return FarmHudDB.areaborder_task_alpha; end,
-							set = function(_,v)
-								FarmHudDB.areaborder_task_alpha = v;
-								if FarmHud:IsShown() then AreaBorder_Update(true); end
-							end,
-						},
-						--]]
-						--areaborder_tasks_texture = {
-						--	type = "select", order = 33, width = "double",
-						--},
 					}
 				},
 				keybindings = {
@@ -1027,42 +988,3 @@ local options = {
 LibStub("AceConfig-3.0"):RegisterOptionsTable("FarmHud", options)
 LibStub("AceConfigDialog-3.0"):AddToBlizOptions("FarmHud")
 
---[[
-
-NEW:
-- removed blackborderblobs to add area border options
-- tomtom support restored
-- added keybind to toggle minimap background
-- added onscreen button to toggle minimap background
-- added minimap zoom change on show/hide farmhud
-- added player arrow customization
-- added color (+transparency) option for gathercircle
-- added color (+transparency) option for cardinalpoints
-- added color (+transparency) option for coordinations
-- added transparency option for onscreen buttons
-
----------------------------
-
-TODO:
--- cardinal points radius (maybe)
--- added transparency option for areaborder
-
--- area borders
-	-- archaeology
-		set texture (inside/ouside/ring)
-		set alpha
-	-- quests
-		set texture (inside/ouside/selected/ring)
-		set alpha
-	-- tasks (bonus objective)
-		set texture (inside/ouside/ring)
-		set alpha
-
--- LibShareMedia support (fonts/textures)
-	-- player arrow by LSM
-	-- blobs by LSM
-	-- coords font by LSM
-	-- cardinalpoints font 1 by LSM
-	-- cardinalpoints font 2 by LSM
-
-]]
