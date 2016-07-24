@@ -10,8 +10,8 @@ BINDING_NAME_TOGGLEFARMHUDBACKGROUND = L["Toggle FarmHud's minimap background"];
 local LibHijackMinimap_Token,AreaBorderStates,LibHijackMinimap,NPCScan = {},{};
 local media, media_blizz = "Interface\\AddOns\\"..addon.."\\media\\", "Interface\\Minimap\\";
 local mps = {}; -- minimap_prev_state
-local fh_scale, fh_font, updateRotations, Astrolabe, HereBeDragonsPins, _ = 1.4;
-local playerDot_updateLock, playerDot_orig, playerDot_textures, playerDot_custom = false,"Interface\\Minimap\\MinimapArrow", {
+local fh_scale, fh_font, updateRotations, HereBeDragonsPins, _ = 1.4;
+local playerDot_updateLock, zoomLocked, playerDot_orig, playerDot_textures, playerDot_custom = false,false,"Interface\\Minimap\\MinimapArrow", {
 	["blizz"]         = L["Blizzards player arrow"],
 	["blizz-smaller"] = L["Blizzards player arrow (smaller)"],
 	["gold"]          = L["Golden player dot"],
@@ -194,6 +194,7 @@ end
 
 function FarmHud_OnShow(self)
 	playerDot_updateLock = true;
+	zoomLocked = true;
 	mps = {
 		zoom = FarmHudMinimap:GetZoom(),
 		rotation = GetCVar("rotateMinimap"),
@@ -225,7 +226,6 @@ function FarmHud_OnShow(self)
 		FarmHudMinimap:SetZoom(0);
 		FarmHudMinimap:SetAlpha(0);
 		FarmHudMinimap:EnableMouse(false);
-		_G.Minimap.zoomLocked = nil;
 	else
 		FarmHudMinimap:EnableMouse(false);
 		_G.Minimap:Hide();
@@ -258,10 +258,10 @@ function FarmHud_OnShow(self)
 			if(not HereBeDragonsPins)then
 				HereBeDragonsPins = LibStub("HereBeDragons-Pins-1.0");
 			end
-			HereBeDragonsPins:SetMinimapObject(FarmHudCluster);
+			--HereBeDragonsPins:SetMinimapObject(FarmHudCluster);
 		end
 		if(TomTom.ReparentMinimap) then
-			TomTom:ReparentMinimap(FarmHudCluster);
+			--TomTom:ReparentMinimap(FarmHudCluster);
 		end
 	end
 	--]]
@@ -298,10 +298,10 @@ function FarmHud_OnHide(self, force)
 
 	FarmHudMinimap:EnableMouse(true);
 
+	zoomLocked = false;
 	local maxLevels = Minimap:GetZoomLevels();
 	if mps.zoom>maxLevels then mps.zoom = maxLevels; end
 	FarmHudMinimap:SetZoom(mps.zoom);
-	_G.Minimap.zoomLocked = true;
 
 	mps = false;
 
@@ -527,12 +527,8 @@ function FarmHud_OnLoad()
 		end
 	end);
 
-	hooksecurefunc(Minimap,"SetZoom",function(self,level)
-		if not self.zoomLocked and Minimap:IsShown() and Minimap:IsVisible() then
-			self.zoomLocked = true;
-			self:SetZoom(0);
-			self.zoomLocked = nil;
-		end
+	hooksecurefunc(FarmHudMinimap,"SetZoom",function(self,level)
+		if zoomLocked then FarmHudMinimap:SetZoom(0); end
 	end);
 
 	FarmHud:RegisterEvent("ADDON_LOADED");
@@ -964,7 +960,7 @@ local options = {
 						support_tomtom = {
 							type = "toggle", order = 5,
 							name = "TomTom", desc = L["Enable TomTom support"],
-							get = function() return FarmHudDB.support_tomtom; end,
+							get = function() FarmHudDB.support_tomtom=false; return false; end,
 							set = function(_,v) FarmHudDB.support_tomtom = v; end,
 							disabled = true
 						}
@@ -977,4 +973,3 @@ local options = {
 
 LibStub("AceConfig-3.0"):RegisterOptionsTable("FarmHud", options)
 LibStub("AceConfigDialog-3.0"):AddToBlizOptions("FarmHud")
-
