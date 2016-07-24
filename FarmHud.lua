@@ -252,6 +252,7 @@ function FarmHud_OnShow(self)
 		Bloodhound2.ReparentMinimap(FarmHudCluster,"FarmHud");
 	end
 
+	--[[
 	if (TomTom) and (FarmHudDB.support_tomtom==true) then
 		if (LibStub.libs["HereBeDragons-Pins-1.0"]) then
 			if(not HereBeDragonsPins)then
@@ -259,22 +260,11 @@ function FarmHud_OnShow(self)
 			end
 			HereBeDragonsPins:SetMinimapObject(FarmHudCluster);
 		end
-		if (DongleStub) and (not Astrolabe) then
-			_, Astrolabe = pcall(DongleStub,"Astrolabe-1.0");
-			if(type(Astrolabe)~="table")then
-				_, Astrolabe = pcall(DongleStub,"Astrolabe-TomTom-1.0");
-			end
-			if type(Astrolabe)~="table" then
-				Astrolabe=nil;
-			end
-		end
-		if (Astrolabe) and (Astrolabe.SetTargetMinimap) then
-			Astrolabe:SetTargetMinimap(FarmHudCluster);
-		end
 		if(TomTom.ReparentMinimap) then
 			TomTom:ReparentMinimap(FarmHudCluster);
 		end
 	end
+	--]]
 
 	if (LibHijackMinimap)then
 		LibHijackMinimap:HijackMinimap(LibHijackMinimap_Token,FarmHudMinimap);
@@ -330,17 +320,16 @@ function FarmHud_OnHide(self, force)
 	if (Bloodhound2) and (Bloodhound2.ReparentMinimap) then
 		Bloodhound2.ReparentMinimap(_G.Minimap,"Minimap");
 	end
+	--[[
 	if (TomTom) then
 		if (HereBeDragonsPins) then
 			HereBeDragonsPins:SetMinimapObject(_G.Minimap);
-		end
-		if (Astrolabe and Astrolabe.SetTargetMinimap) then
-			Astrolabe:SetTargetMinimap(_G.Minimap);
 		end
 		if(TomTom.ReparentMinimap) then
 			TomTom:ReparentMinimap(_G.Minimap);
 		end
 	end
+	--]]
 	if (LibHijackMinimap)then
 		LibHijackMinimap:ReleaseMinimap(LibHijackMinimap_Token);
 	end
@@ -976,7 +965,8 @@ local options = {
 							type = "toggle", order = 5,
 							name = "TomTom", desc = L["Enable TomTom support"],
 							get = function() return FarmHudDB.support_tomtom; end,
-							set = function(_,v) FarmHudDB.support_tomtom = v; end
+							set = function(_,v) FarmHudDB.support_tomtom = v; end,
+							disabled = true
 						}
 					}
 				}
