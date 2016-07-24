@@ -111,6 +111,13 @@ local function AreaBorder_SetTexture(Type,Inside,Outside,Ring,Selected)
 end
 
 local function AreaBorder_Update(bool)
+	--[[
+	local opts = {
+		Arch  = {media_blizz.."UI-ArchBlobMinimap-Inside",    media_blizz.."UI-ArchBlobMinimap-Outside",    media_blizz.."UI-QuestBlob-MinimapRing"};
+		Quest = {media_blizz.."UI-QuestBlobMinimap-Inside",   media_blizz.."UI-QuestBlobMinimap-Outside",   media_blizz.."UI-QuestBlob-MinimapRing", media_blizz.."UI-QuestBlobMinimap-OutsideSelected"};
+		Task  = {media_blizz.."UI-BonusObjectiveBlob-Inside", media_blizz.."UI-BonusObjectiveBlob-Outside", media_blizz.."UI-BonusObjectiveBlob-MinimapRing"};
+	}
+	--]]
 	if bool==true then
 		for i=1, GetNumTrackingTypes() do
 			local name, texture, active, category, nested  = GetTrackingInfo(i);
@@ -125,6 +132,49 @@ local function AreaBorder_Update(bool)
 			end
 			-- Bonus Objective is not present in list... maybe using QuestBlog as toggle
 		end
+
+		--[[
+		if FarmHudDB.areaborder_arch_alpha<1 then
+			AreaBorderStates.ArchAlpha = FarmHudDB.areaborder_arch_alpha;
+		end
+		if FarmHudDB.areaborder_quest_alpha<1 then
+			AreaBorderStates.QuestAlpha = FarmHudDB.areaborder_quest_alpha;
+		end
+		if FarmHudDB.areaborder_task_alpha<1 then
+			AreaBorderStates.TaskAlpha = FarmHudDB.areaborder_task_alpha;
+		end
+		]]
+
+		--[[
+		if FarmHudDB.areaborder_arch_texture then
+			opts.Arch.Textures = {
+				FarmHudDB.areaborder_arch_texture.."Inside",
+				FarmHudDB.areaborder_arch_texture.."Outside",
+				FarmHudDB.areaborder_arch_texture.."Ring"
+			};
+			AreaBorderStates.ArchTexture=true;
+		end
+
+
+		if FarmHudDB.areaborder_quest_texture then
+			opts.Quest.Textures = {
+				FarmHudDB.areaborder_quest_texture.."Inside";
+				FarmHudDB.areaborder_quest_texture.."Outside";
+				FarmHudDB.areaborder_quest_texture.."Ring";
+				FarmHudDB.areaborder_quest_texture.."Selected";
+			}
+			AreaBorderStates.QuestTexture=true;
+		end
+
+		if FarmHudDB.areaborder_task_texture then
+			opts.Task.Textures = {
+				FarmHudDB.areaborder_task_texture.."Inside";
+				FarmHudDB.areaborder_task_texture.."Outside";
+				FarmHudDB.areaborder_task_texture.."Ring";
+			}
+			AreaBorderStates.TaskTexture=true;
+		end
+		--]]
 	else
 		if AreaBorderStates.Arch~=nil then
 			SetTracking(TrackingIndex["ArchBlob"],AreaBorderStates.Arch);
@@ -133,6 +183,25 @@ local function AreaBorder_Update(bool)
 			SetTracking(TrackingIndex["QuestBlob"],AreaBorderStates.Quest);
 		end
 	end
+
+	--[[
+	for _,Type in ipairs({"Arch","Quest","Task"})do
+		if AreaBorderStates[Type.."Alpha"] then
+			if bool and type(AreaBorderStates[Type.."Alpha"])=="number" then
+				AreaBorder_SetAlpha(i,AreaBorderStates[Type.."Alpha"]);
+				--print("AreaBorder changed",AreaBorderStates[Type.."Alpha"]);
+				AreaBorderStates[Type.."Alpha"]=true;
+			else
+				AreaBorder_SetAlpha(i,1);
+				AreaBorderStates[Type.."Alpha"]=nil;
+				--print("AreaBorder changed",1);
+			end
+		end
+		if AreaBorderStates[Type.."Texture"] then
+			--AreaBorder_SetTexture(Type,unpack(opts[i].Textures));
+		end
+	end
+	--]]
 end
 
 
@@ -367,6 +436,12 @@ function FarmHud_ToggleMouse()
 	end
 end
 
+function FarmHud_ToggleResizer()
+end
+
+function FarmHud_Mover()
+end
+
 function FarmHud_ToggleBackground()
 	if FarmHudMinimap:GetParent()==FarmHud then
 		FarmHudMinimap:SetAlpha(FarmHudMinimap:GetAlpha()==0 and FarmHudDB.background_alpha or 0);
@@ -528,7 +603,7 @@ function FarmHud_OnLoad()
 	end);
 
 	hooksecurefunc(FarmHudMinimap,"SetZoom",function(self,level)
-		if zoomLocked then FarmHudMinimap:SetZoom(0); end
+		if zoomLocked and level~=0 then FarmHudMinimap:SetZoom(0); end
 	end);
 
 	FarmHud:RegisterEvent("ADDON_LOADED");
@@ -867,6 +942,22 @@ local options = {
 								if FarmHud:IsShown() then AreaBorder_Update(true); end
 							end,
 						},
+						--[[areaborder_arch_alpha = {
+							type = "range", order = 12,
+							name = L["Transparency"],
+							min = 0,
+							max = 1,
+							step = 0.1,
+							isPercent = true,
+							get = function() return FarmHudDB.areaborder_arch_alpha; end,
+							set = function(_,v)
+								FarmHudDB.areaborder_arch_alpha = v;
+								if FarmHud:IsShown() then AreaBorder_Update(true); end
+							end,
+						}, --]]
+						--areaborder_arch_texture = {
+						--	type = "select", order = 13, width = "double",
+						--},
 						areaborder_quest_header = {
 							type = "header", order = 20,
 							name = TRACKING.." > "..MINIMAP_TRACKING_QUEST_POIS,
@@ -885,6 +976,62 @@ local options = {
 								if FarmHud:IsShown() then AreaBorder_Update(true); end
 							end,
 						},
+						--[[areaborder_quest_alpha = {
+							type = "range", order = 22,
+							name = L["Transparency"],
+							min = 0,
+							max = 1,
+							step = 0.1,
+							isPercent = true,
+							get = function() return FarmHudDB.areaborder_quest_alpha; end,
+							set = function(_,v)
+								FarmHudDB.areaborder_quest_alpha = v;
+								if FarmHud:IsShown() then AreaBorder_Update(true); end
+							end,
+						}, --]]
+						--areaborder_quest_texture = {
+						--	type = "select", order = 23, width = "double",
+						--},
+						--[[
+						areaborder_task_header = {
+							type = "header", order = 30,
+							name = L["Bonus objectives"],
+						},
+						areaborder_info = {
+							type = "description", order = 31,
+							name = L["This option has no own entry in blizzards tracking menu.|nMaybe Blizzard using \"Track Quest POIs\"."],
+						},
+						areaborder_task_show = {
+							type = "toggle", order = 32, width = "double",
+							name = L["Show %s area border"]:format(L["bonus objective"]),
+							--desc = L["Show or hide %s area border.|n|n|cffaaaaaaSilver checkmark: Show if tracking option enabled|r"]:format(L["bonus objective"]),
+							--tristate = true,
+							get = function()
+								if FarmHudDB.areaborder_task_show=="blizz" then return nil; end
+								return FarmHudDB.areaborder_task_show;
+							end,
+							set = function(_,v)
+								FarmHudDB.areaborder_task_show = v==nil and "blizz" or v;
+								if FarmHud:IsShown() then AreaBorder_Update(true); end
+							end,
+						},
+						areaborder_tasks_alpha = {
+							type = "range", order = 33,
+							name = L["Transparency"],
+							min = 0,
+							max = 1,
+							step = 0.1,
+							isPercent = true,
+							get = function() return FarmHudDB.areaborder_task_alpha; end,
+							set = function(_,v)
+								FarmHudDB.areaborder_task_alpha = v;
+								if FarmHud:IsShown() then AreaBorder_Update(true); end
+							end,
+						},
+						--]]
+						--areaborder_tasks_texture = {
+						--	type = "select", order = 33, width = "double",
+						--},
 					}
 				},
 				keybindings = {
