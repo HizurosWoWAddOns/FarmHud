@@ -11,6 +11,7 @@ local LibHijackMinimap_Token,AreaBorderStates,LibHijackMinimap,NPCScan = {},{};
 local media, media_blizz = "Interface\\AddOns\\"..addon.."\\media\\", "Interface\\Minimap\\";
 local mps = {}; -- minimap_prev_state
 local fh_scale, fh_font, updateRotations, HereBeDragonsPins, _ = 1.4;
+local minimapScripts = {"OnMouseUp","OnMouseDown","OnDragStart"};
 local playerDot_updateLock, zoomLocked, playerDot_orig, playerDot_textures, playerDot_custom = false,false,"Interface\\Minimap\\MinimapArrow", {
 	["blizz"]         = L["Blizzards player arrow"],
 	["blizz-smaller"] = L["Blizzards player arrow (smaller)"],
@@ -276,6 +277,14 @@ function FarmHud_OnShow(self)
 		mps.scale = FarmHudMinimap:GetScale();
 		mps.level = FarmHudMinimap:GetFrameLevel();
 
+		for _,action in ipairs(minimapScripts)do
+			local fnc = FarmHudMinimap:GetScript(action);
+			if fnc then
+				mps[action] = fnc;
+				FarmHudMinimap:SetScript(action,nil);
+			end
+		end
+
 		for i=1, FarmHudMinimap:GetNumPoints() do
 			mps.anchors[i] = {FarmHudMinimap:GetPoint(i)};
 		end
@@ -349,6 +358,13 @@ function FarmHud_OnHide(self, force)
 		FarmHudMinimap:SetFrameLevel(mps.level);
 		FarmHudMinimap:SetParent(mps.parent);
 		FarmHudMinimap:ClearAllPoints();
+
+		for _,action in ipairs(minimapScripts)do
+			if type(mps[action])=="function" then
+				FarmHudMinimap:SetScript(action,mps[action]);
+			end
+		end
+
 		for i=1, #mps.anchors do
 			FarmHudMinimap:SetPoint(unpack(mps.anchors[i]));
 		end
