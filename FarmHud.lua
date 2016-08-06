@@ -8,7 +8,7 @@ BINDING_NAME_TOGGLEFARMHUDMOUSE	= L["Toggle FarmHud's tooltips (Can't click thro
 BINDING_NAME_TOGGLEFARMHUDBACKGROUND = L["Toggle FarmHud's minimap background"];
 
 local LibHijackMinimap_Token,AreaBorderStates,LibHijackMinimap,NPCScan = {},{};
-local media, media_blizz = "Interface\\AddOns\\"..addon.."\\media\\", "Interface\\Minimap\\";
+local media, media_blizz, enableMouseTaintedOnLoad = "Interface\\AddOns\\"..addon.."\\media\\", "Interface\\Minimap\\";
 local mps = {}; -- minimap_prev_state
 local fh_scale, fh_font, updateRotations, HereBeDragonsPins, _ = 1.4;
 local minimapScripts = {"OnMouseUp","OnMouseDown","OnDragStart"};
@@ -205,6 +205,22 @@ local function AreaBorder_Update(bool)
 	--]]
 end
 
+local function CheckEnableMouse()
+	
+	local enableMouseTainted = issecurevariable(_G.Minimap,"EnableMouse");
+
+	if enableMouseFunc and FarmHudMinimap.EnableMouse~=enableMouseFunc then
+		FarmHudMinimap.EnableMouse = enableMouseFunc;
+	elseif enableMouseTaintedOnLoad then
+		ns.print(
+			"Oops...\n",
+			L["Someone has replaced a necessary function."].."\n",
+			L["Please disable %s and try again"]:format(enableMouseTaintedOnLoad).."\n",
+			L["and let me know if you see this message"].."\n",
+			L["Greetings Hizuro"]
+		);
+	end
+end
 
 -------------------------------------------------
 -- global functions
@@ -303,8 +319,11 @@ function FarmHud_OnShow(self)
 		FarmHudMinimap:SetAllPoints();
 		FarmHudMinimap:SetZoom(0);
 		FarmHudMinimap:SetAlpha(0);
+
+		CheckEnableMouse();
 		FarmHudMinimap:EnableMouse(false);
 	else
+		CheckEnableMouse();
 		FarmHudMinimap:EnableMouse(false);
 		_G.Minimap:Hide();
 	end
@@ -443,6 +462,7 @@ end
 function FarmHud_ToggleMouse()
 	if FarmHudMinimap:GetParent()==FarmHud then
 		if (FarmHudMinimap:IsMouseEnabled()) then
+			CheckEnableMouse();
 			FarmHudMinimap:EnableMouse(false);
 			FarmHud.TextFrame.mouseWarn:Hide();
 		else
@@ -606,7 +626,15 @@ function FarmHud_OnEvent(self,event,arg1,...)
 end
 
 function FarmHud_OnLoad()
+	local _
+
 	FarmHud.Toggle=FarmHud_Toggle;
+
+	_, enableMouseTaintedOnLoad = issecurevariable(_G.Minimap,"EnableMouse");
+
+	if not enableMouseTaintedOnLoad then
+		enableMouseFunc = Minimap.EnableMouse; -- reference to original function
+	end
 
 	if FarmHudMinimap==nil then
 		FarmHudMinimap = _G.Minimap;
