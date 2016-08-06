@@ -206,12 +206,11 @@ local function AreaBorder_Update(bool)
 end
 
 local function CheckEnableMouse()
-	
 	local enableMouseTainted = issecurevariable(_G.Minimap,"EnableMouse");
-
 	if enableMouseFunc and FarmHudMinimap.EnableMouse~=enableMouseFunc then
 		FarmHudMinimap.EnableMouse = enableMouseFunc;
 	elseif enableMouseTaintedOnLoad then
+		--[[
 		ns.print(
 			"Oops...\n",
 			L["Someone has replaced a necessary function."].."\n",
@@ -219,6 +218,7 @@ local function CheckEnableMouse()
 			L["and let me know if you see this message"].."\n",
 			L["Greetings Hizuro"]
 		);
+		--]]
 	end
 end
 
@@ -291,7 +291,17 @@ function FarmHud_OnShow(self)
 		mps.childs = {};
 		mps.parent = FarmHudMinimap:GetParent();
 		mps.scale = FarmHudMinimap:GetScale();
+		mps.size = {FarmHudMinimap:GetSize()};
 		mps.level = FarmHudMinimap:GetFrameLevel();
+
+		-- Yeah... trouble maker ElvUI... TroubleUI :P
+		local mc_points = {MinimapCluster:GetPoint(i)};
+		if mc_points[2]==Minimap then
+			mps.mc_IsMouseEnabled = MinimapCluster:IsMouseEnabled();
+			if mps.mc_IsMouseEnabled then
+				MinimapCluster:EnableMouse(false);
+			end
+		end
 
 		for _,action in ipairs(minimapScripts)do
 			local fnc = FarmHudMinimap:GetScript(action);
@@ -373,7 +383,7 @@ function FarmHud_OnHide(self, force)
 	if _G.Minimap==FarmHudMinimap then
 		FarmHudMinimap:SetAlpha(1);
 		FarmHudMinimap:SetScale(mps.scale);
-		FarmHudMinimap:SetSize(140,140);
+		FarmHudMinimap:SetSize(unpack(mps.size));
 		FarmHudMinimap:SetFrameLevel(mps.level);
 		FarmHudMinimap:SetParent(mps.parent);
 		FarmHudMinimap:ClearAllPoints();
@@ -382,6 +392,10 @@ function FarmHud_OnHide(self, force)
 			if type(mps[action])=="function" then
 				FarmHudMinimap:SetScript(action,mps[action]);
 			end
+		end
+
+		if mps.mc_IsMouseEnabled then
+			MinimapCluster:EnableMouse(true);
 		end
 
 		for i=1, #mps.anchors do
