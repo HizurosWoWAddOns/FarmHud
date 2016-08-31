@@ -308,6 +308,7 @@ function FarmHud_OnShow(self)
 		mps.mouse = FarmHudMinimap:IsMouseEnabled();
 		mps.mousewheel = FarmHudMinimap:IsMouseWheelEnabled();
 
+
 		if mps.mouse then
 			FarmHudMinimap:EnableMouse(false);
 		end
@@ -327,6 +328,12 @@ function FarmHud_OnShow(self)
 			if mps.mc_mousewheel then
 				MinimapCluster:EnableMouseWheel(false);
 			end
+		end
+
+		local onmouseup = FarmHudMinimap:GetScript("OnMouseUp");
+		if onmouseup~=Minimap_OnClick then
+			mps.ommouseup = onmouseup;
+			FarmHudMinimap:SetScript("OnMouseUp",Minimap_OnClick);
 		end
 
 		for _,action in ipairs(minimapScripts)do
@@ -415,6 +422,10 @@ function FarmHud_OnHide(self, force)
 		FarmHudMinimap:ClearAllPoints();
 		FarmHudMinimap:EnableMouse(mps.mouse);
 		FarmHudMinimap:EnableMouseWheel(mps.mousewheel);
+
+		if mps.ommouseup then
+			FarmHudMinimap:SetScript("OnMouseUp",mps.ommouseup);
+		end
 
 		for _,action in ipairs(minimapScripts)do
 			if type(mps[action])=="function" then
