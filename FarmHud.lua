@@ -9,9 +9,9 @@ BINDING_NAME_TOGGLEFARMHUDBACKGROUND = L["Toggle FarmHud's minimap background"];
 
 local LibHijackMinimap_Token,AreaBorderStates,LibHijackMinimap,NPCScan = {},{};
 local media, media_blizz, enableMouseTaintedOnLoad = "Interface\\AddOns\\"..addon.."\\media\\", "Interface\\Minimap\\";
-local mps = {}; -- minimap_prev_state
+local mps,mouseOnKeybind = {}; -- minimap_prev_state
 local fh_scale, fh_font, updateRotations, HereBeDragonsPins, _ = 1.4;
-local minimapScripts = {"OnMouseUp","OnMouseDown","OnDragStart"};
+local minimapScripts = {--[["OnMouseUp",]]"OnMouseDown","OnDragStart"};
 local playerDot_updateLock, zoomLocked, playerDot_orig, playerDot_textures, playerDot_custom = false,false,"Interface\\Minimap\\MinimapArrow", {
 	["blizz"]         = L["Blizzards player arrow"],
 	["blizz-smaller"] = L["Blizzards player arrow (smaller)"],
@@ -32,10 +32,22 @@ local dbDefaults = {
 	areaborder_arch_show="blizz",areaborder_arch_texture=false,areaborder_arch_alpha=1,
 	areaborder_quest_show="blizz",areaborder_quest_texture=false,areaborder_quest_alpha=1,
 	areaborder_tasks_show="blizz",areaborder_task_texture=false,areaborder_task_alpha=1,
-	player_dot="blizz", background_alpha=0.8,
+	player_dot="blizz", background_alpha=0.8, holdKeyForMouseOn = "_none",
 	support_gathermate=true,support_routes=true,support_npcscan=true,support_bloodhound2=true,support_tomtom=true,
 }
 local TrackingIndex={};
+local modifiers = {
+	A  = {LALT=1,RALT=1},
+	AL = {LALT=1},
+	AR = {RALT=1},
+	C  = {LCTRL=1,RCTRL=1},
+	CL = {LCTRL=1},
+	CR = {RCTRL=1},
+	S  = {LSHIFT=1,RSHIFT=1},
+	SL = {LSHIFT=1},
+	SR = {RSHIFT=1},
+};
+
 
 -------------------------------------------------
 -- LibDataBroker & Icon
@@ -494,15 +506,21 @@ function FarmHud_Toggle(flag)
 end
 
 -- Toggle the mouse to check out herb / ore tooltips
-function FarmHud_ToggleMouse()
+function FarmHud_ToggleMouse(force)
 	if FarmHudMinimap:GetParent()==FarmHud then
-		if (FarmHudMinimap:IsMouseEnabled()) then
+		if (force==nil and FarmHudMinimap:IsMouseEnabled()) or force then
 			CheckEnableMouse();
 			FarmHudMinimap:EnableMouse(false);
 			FarmHud.TextFrame.mouseWarn:Hide();
+			if not force then
+				mouseOnKeybind = true;
+			end
 		else
 			FarmHudMinimap:EnableMouse(true);
 			FarmHud.TextFrame.mouseWarn:Show();
+			if not force then
+				mouseOnKeybind = false;
+			end
 		end
 	end
 end
@@ -657,6 +675,12 @@ function FarmHud_OnEvent(self,event,arg1,...)
 		end
 	elseif event=="PLAYER_LOGOUT" then
 		FarmHud_Toggle(false);
+	elseif event=="MODIFIER_STATE_CHANGED" then
+		local key, down = arg1,...;
+		--ns.print(tostring(modifiers[FarmHudDB.holdKeyForMouseOn]),arg1,...);
+		if not mouseOnKeybind and modifiers[FarmHudDB.holdKeyForMouseOn] and modifiers[FarmHudDB.holdKeyForMouseOn][key]==1 then
+			FarmHud_ToggleMouse(down==0)
+		end
 	end
 end
 
@@ -688,6 +712,7 @@ function FarmHud_OnLoad()
 	FarmHud:RegisterEvent("ADDON_LOADED");
 	FarmHud:RegisterEvent("PLAYER_LOGIN");
 	FarmHud:RegisterEvent("PLAYER_LOGOUT");
+	FarmHud:RegisterEvent("MODIFIER_STATE_CHANGED");
 end
 
 -------------------------------------------------
@@ -703,13 +728,17 @@ local options = {
 			name = "Options",
 			args = {
 				minimapicon_show = {
-					type = "toggle", order = 1, width="double",
+					type = "toggle", order = 0,
 					name = L["Minimap Icon"],
 					desc = L["Show or hide the minimap icon."],
 					get = function() return FarmHudDB.MinimapIcon.show; end,
 					set = function(_,v) FarmHudDB.MinimapIcon.show = v;
 						if (v) then LDBIcon:Show(addon) else LDBIcon:Hide(addon); end
 					end,
+				},
+				spacer0 =  {
+					type = "description", order = 1,
+					name = " ", fontSize = "medium"
 				},
 				hud_scale = {
 					type = "range", order = 2,
@@ -762,8 +791,12 @@ local options = {
 						end
 					end,
 				},
+				spacer1 =  {
+					type = "description", order = 5,
+					name = " ", fontSize = "medium"
+				},
 				mouseoverinfo_color = {
-					type = "color", order = 5, width = "double",
+					type = "color", order = 6,
 					name = L["Mouse over info color"],
 					hasAlpha = true,
 					get = function() return unpack(FarmHudDB.mouseoverinfo_color); end,
@@ -772,12 +805,34 @@ local options = {
 					end
 				},
 				mouseoverinfo_resetcolor = {
-					type = "execute", order = 6,
+					type = "execute", order = 7,
 					name = L["Reset color"],
 					func = function()
 						FarmHudDB.mouseoverinfo_color = dbDefaults.mouseoverinfo_color;
 						FarmHud.TextFrame.mouseWarn:SetVertexColor(unpack(FarmHudDB.mouseoverinfo_color));
 					end
+				},
+				spacer2 =  {
+					type = "description", order = 8,
+					name = " ", fontSize = "medium"
+				},
+				mouseoverinfo_onholdkey = {
+					type = "select", order = 9,
+					name = L["Hold key for mouseover"],
+					values = {
+						["_NONE"] = NONE.."/"..ADDON_DISABLED,
+						A  = L["Alt"],
+						AL = L["Left alt"],
+						AR = L["Right alt"],
+						C  = L["Control"],
+						CL = L["Left control"],
+						CR = L["Right control"],
+						S  = L["Shift"],
+						SL = L["Left shift"],
+						SR = L["Right shift"],
+					},
+					get = function() return FarmHudDB.holdKeyForMouseOn; end,
+					set = function(_,v) FarmHudDB.holdKeyForMouseOn = v; end
 				},
 				----------------------------------------------
 				gathercircle = {
