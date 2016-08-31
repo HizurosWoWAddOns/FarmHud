@@ -293,13 +293,27 @@ function FarmHud_OnShow(self)
 		mps.scale = FarmHudMinimap:GetScale();
 		mps.size = {FarmHudMinimap:GetSize()};
 		mps.level = FarmHudMinimap:GetFrameLevel();
+		mps.mouse = FarmHudMinimap:IsMouseEnabled();
+		mps.mousewheel = FarmHudMinimap:IsMouseWheelEnabled();
+
+		if mps.mouse then
+			FarmHudMinimap:EnableMouse(false);
+		end
+
+		if mps.mousewheel then
+			FarmHudMinimap:EnableMouseWheel(false);
+		end
 
 		-- Yeah... trouble maker ElvUI... TroubleUI :P
 		local mc_points = {MinimapCluster:GetPoint(i)};
 		if mc_points[2]==Minimap then
-			mps.mc_IsMouseEnabled = MinimapCluster:IsMouseEnabled();
-			if mps.mc_IsMouseEnabled then
+			mps.mc_mouse = MinimapCluster:IsMouseEnabled();
+			mps.mc_mousewheel = MinimapCluster:IsMouseWheelEnabled();
+			if mps.mc_mouse then
 				MinimapCluster:EnableMouse(false);
+			end
+			if mps.mc_mousewheel then
+				MinimapCluster:EnableMouseWheel(false);
 			end
 		end
 
@@ -387,6 +401,8 @@ function FarmHud_OnHide(self, force)
 		FarmHudMinimap:SetFrameLevel(mps.level);
 		FarmHudMinimap:SetParent(mps.parent);
 		FarmHudMinimap:ClearAllPoints();
+		FarmHudMinimap:EnableMouse(mps.mouse);
+		FarmHudMinimap:EnableMouseWheel(mps.mousewheel);
 
 		for _,action in ipairs(minimapScripts)do
 			if type(mps[action])=="function" then
@@ -394,8 +410,12 @@ function FarmHud_OnHide(self, force)
 			end
 		end
 
-		if mps.mc_IsMouseEnabled then
+		if mps.mc_mouse then
 			MinimapCluster:EnableMouse(true);
+		end
+
+		if mps.mc_mousewheel then
+			MinimapCluster:EnableMouseWheel(true);
 		end
 
 		for i=1, #mps.anchors do
@@ -408,6 +428,7 @@ function FarmHud_OnHide(self, force)
 				childs[i]:SetAlpha(childs[i].fh_prev[2]);
 			end
 		end
+
 	else
 		_G.Minimap:Show();
 	end
