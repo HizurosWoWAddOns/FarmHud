@@ -17,6 +17,7 @@ local playerDot_updateLock, zoomLocked, playerDot_orig, playerDot_textures, play
 	["blizz-smaller"] = L["Blizzards player arrow (smaller)"],
 	["gold"]          = L["Golden player dot"],
 	["white"]         = L["White player dot"],
+	["black"]         = L["Black player dot"],
 	["hide"]          = L["Hide player arrow"],
 };
 local blobSets = {
@@ -134,11 +135,11 @@ local function AreaBorder_Update(bool)
 	if bool==true then
 		for i=1, GetNumTrackingTypes() do
 			local name, texture, active, category, nested  = GetTrackingInfo(i);
-			if texture:find("ArchBlob") and FarmHudDB.areaborder_arch_show~="blizz" and FarmHudDB.areaborder_arch_show~=active then
+			if texture:find("ArchBlob") and FarmHudDB.areaborder_arch_show~="blizz" and FarmHudDB.areaborder_arch_show~=tostring(active) then
 				AreaBorderStates.Arch = active;
 				SetTracking(i,FarmHudDB.areaborder_arch_show);
 				TrackingIndex["ArchBlob"] = i;
-			elseif texture:find("QuestBlob") and FarmHudDB.areaborder_quest_show~="blizz" and FarmHudDB.areaborder_quest_show~=active then
+			elseif texture:find("QuestBlob") and FarmHudDB.areaborder_quest_show~="blizz" and FarmHudDB.areaborder_quest_show~=tostring(active) then
 				AreaBorderStates.Quest = active;
 				SetTracking(i,FarmHudDB.areaborder_quest_show);
 				TrackingIndex["QuestBlob"] = i;
@@ -241,14 +242,24 @@ end
 C_Timer.NewTicker(1/31, function()
 	if FarmHud:IsShown() then
 		local bearing = GetPlayerFacing();
-		for k, v in ipairs(FarmHud.TextFrame.cardinalPoints) do
-			local x, y = math.sin(v.rad + bearing), math.cos(v.rad + bearing);
-			v:ClearAllPoints();
-			v:SetPoint("CENTER", FarmHud, "CENTER", x * (FarmHud.textScaledHeight * FarmHudDB.cardinalpoints_radius), y * (FarmHud.textScaledHeight * FarmHudDB.cardinalpoints_radius));
+		if bearing then
+			for k, v in ipairs(FarmHud.TextFrame.cardinalPoints) do
+				local x, y = math.sin(v.rad + bearing), math.cos(v.rad + bearing);
+				v:ClearAllPoints();
+				v:SetPoint("CENTER", FarmHud, "CENTER", x * (FarmHud.textScaledHeight * FarmHudDB.cardinalpoints_radius), y * (FarmHud.textScaledHeight * FarmHudDB.cardinalpoints_radius));
+			end
+		else
+			for k, v in ipairs(FarmHud.TextFrame.cardinalPoints) do
+				v:ClearAllPoints();
+			end
 		end
 		if FarmHud.TextFrame.coords:IsShown() then
 			local x,y=GetPlayerMapPosition("player");
-			FarmHud.TextFrame.coords:SetFormattedText("%.1f, %.1f",x*100,y*100);
+			if x and x>0 then
+				FarmHud.TextFrame.coords:SetFormattedText("%.1f, %.1f",x*100,y*100);
+			else
+				FarmHud.TextFrame.coords:SetText("");
+			end
 		end
 	end
 end);
@@ -1074,18 +1085,15 @@ local options = {
 							name = TRACKING.." > "..MINIMAP_TRACKING_DIGSITES,
 						},
 						areaborder_arch_show = {
-							type = "toggle", order = 11, width = "double",
-							name = L["Show %s area border in HUD"]:format(L["archaeology"]),
-							desc = L["Previous state will be restored on closing HUD|n|n|cffaaaaaaSilver checkmark: Don't change tracking option|r"]:format(L["archaeology"]),
-							tristate = true,
-							get = function()
-								if FarmHudDB.areaborder_arch_show=="blizz" then return nil; end
-								return FarmHudDB.areaborder_arch_show;
-							end,
-							set = function(_,v)
-								FarmHudDB.areaborder_arch_show = v==nil and "blizz" or v;
-								if FarmHud:IsShown() then AreaBorder_Update(true); end
-							end,
+							type = "select", order = 11, width = "double",
+							name = L["%s area border in HUD"]:format(L["Archaeology"]),
+							values = {
+								["true"] = L["Show"],
+								["false"] = L["Hide"],
+								["blizz"] = L["Use tracking option from game client"]
+							},
+							get = function() return FarmHudDB.areaborder_arch_show; end,
+							set = function(_,v) FarmHudDB.areaborder_arch_show = v; end
 						},
 						--[[areaborder_arch_alpha = {
 							type = "range", order = 12,
@@ -1108,18 +1116,15 @@ local options = {
 							name = TRACKING.." > "..MINIMAP_TRACKING_QUEST_POIS,
 						},
 						areaborder_quest_show = {
-							type = "toggle", order = 21, width = "double",
-							name = L["Show %s area border in HUD"]:format(L["quest"]),
-							desc = L["Previous state will be restored on closing HUD|n|n|cffaaaaaaSilver checkmark: Don't change tracking option|r"]:format(L["quest"]),
-							tristate = true,
-							get = function()
-								if FarmHudDB.areaborder_quest_show=="blizz" then return nil; end
-								return FarmHudDB.areaborder_quest_show;
-							end,
-							set = function(_,v)
-								FarmHudDB.areaborder_quest_show = v==nil and "blizz" or v;
-								if FarmHud:IsShown() then AreaBorder_Update(true); end
-							end,
+							type = "select", order = 21, width = "double",
+							name = L["%s area border in HUD"]:format(L["Quest"]),
+							values = {
+								["true"] = L["Show"],
+								["false"] = L["Hide"],
+								["blizz"] = L["Use tracking option from game client"]
+							},
+							get = function() return FarmHudDB.areaborder_quest_show; end,
+							set = function(_,v) FarmHudDB.areaborder_quest_show = v; end
 						},
 						--[[areaborder_quest_alpha = {
 							type = "range", order = 22,
