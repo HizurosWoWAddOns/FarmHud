@@ -135,14 +135,16 @@ local function AreaBorder_Update(bool)
 	if bool==true then
 		for i=1, GetNumTrackingTypes() do
 			local name, texture, active, category, nested  = GetTrackingInfo(i);
-			if texture:find("ArchBlob") and FarmHudDB.areaborder_arch_show~="blizz" and FarmHudDB.areaborder_arch_show~=tostring(active) then
-				AreaBorderStates.Arch = active;
-				SetTracking(i,FarmHudDB.areaborder_arch_show);
-				TrackingIndex["ArchBlob"] = i;
-			elseif texture:find("QuestBlob") and FarmHudDB.areaborder_quest_show~="blizz" and FarmHudDB.areaborder_quest_show~=tostring(active) then
-				AreaBorderStates.Quest = active;
-				SetTracking(i,FarmHudDB.areaborder_quest_show);
-				TrackingIndex["QuestBlob"] = i;
+			if type(texture)=="string" then
+				if texture:find("ArchBlob") and FarmHudDB.areaborder_arch_show~="blizz" and FarmHudDB.areaborder_arch_show~=tostring(active) then
+					AreaBorderStates.Arch = active;
+					SetTracking(i,FarmHudDB.areaborder_arch_show);
+					TrackingIndex["ArchBlob"] = i;
+				elseif texture:find("QuestBlob") and FarmHudDB.areaborder_quest_show~="blizz" and FarmHudDB.areaborder_quest_show~=tostring(active) then
+					AreaBorderStates.Quest = active;
+					SetTracking(i,FarmHudDB.areaborder_quest_show);
+					TrackingIndex["QuestBlob"] = i;
+				end
 			end
 			-- Bonus Objective is not present in list... maybe using QuestBlog as toggle
 		end
