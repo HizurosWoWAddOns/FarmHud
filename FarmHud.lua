@@ -233,7 +233,7 @@ function FarmHud_OnShow(self)
 		mps.level = FarmHudMinimap:GetFrameLevel();
 		mps.mouse = FarmHudMinimap:IsMouseEnabled();
 		mps.mousewheel = FarmHudMinimap:IsMouseWheelEnabled();
-
+		mps.alpha = FarmHudMinimap:GetAlpha();
 
 		if mps.mouse then
 			FarmHudMinimap:EnableMouse(false);
@@ -330,7 +330,7 @@ end
 function FarmHud_OnHide(self, force)
 	MinimapBackdrop:Show();
 	if _G.Minimap==FarmHudMinimap then
-		FarmHudMinimap:SetAlpha(1);
+		FarmHudMinimap:SetAlpha(mps.alpha);
 		FarmHudMinimap:SetScale(mps.scale);
 		FarmHudMinimap:SetSize(unpack(mps.size));
 		FarmHudMinimap:SetFrameLevel(mps.level);
@@ -498,7 +498,6 @@ function FarmHud_OnEvent(self,event,arg1,...)
 
 		FarmHud:SetFrameLevel(2);
 		FarmHudCluster:SetFrameLevel(3);
-		setmetatable(FarmHudCluster,getmetatable(_G.Minimap));
 
 		FarmHud._GetScale = FarmHud.GetScale;
 		FarmHud.GetScale = function() return 1; end
