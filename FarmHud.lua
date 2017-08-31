@@ -528,11 +528,13 @@ function FarmHud_OnEvent(self,event,arg1,...)
 			end
 		end
 
+		if FarmHudDB.MinimapIcon.show~=nil then
+			FarmHudDB.MinimapIcon.hide = not FarmHudDB.MinimapIcon.show;
+			FarmHudDB.MinimapIcon.show = nil;
+		end
+
 		if (LDBIcon) then
 			LDBIcon:Register(addon, LDB, FarmHudDB.MinimapIcon);
-			if not FarmHudDB.MinimapIcon.show then
-				LDBIcon:Hide(addon);
-			end
 		end
 
 		fh_font = {SystemFont_Small2:GetFont()};
@@ -653,9 +655,7 @@ local options = {
 					name = L["Minimap Icon"],
 					desc = L["Show or hide the minimap icon."],
 					get = function() return FarmHudDB.MinimapIcon.show; end,
-					set = function(_,v) FarmHudDB.MinimapIcon.show = v;
-						if (v) then LDBIcon:Show(addon) else LDBIcon:Hide(addon); end
-					end,
+					set = function(_,v) FarmHudDB.MinimapIcon.hide = not v; if LDBIcon then LDBIcon:Refresh(addon); end end,
 				},
 				spacer0 =  {
 					type = "description", order = 1,
