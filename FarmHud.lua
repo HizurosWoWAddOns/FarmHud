@@ -33,8 +33,7 @@ local dbDefaults = {
 	areaborder_arch_show="blizz",areaborder_arch_texture=false,areaborder_arch_alpha=1,
 	areaborder_quest_show="blizz",areaborder_quest_texture=false,areaborder_quest_alpha=1,
 	areaborder_tasks_show="blizz",areaborder_task_texture=false,areaborder_task_alpha=1,
-	player_dot="blizz", background_alpha=0.8, holdKeyForMouseOn = "_none",
-	support_gathermate=true,support_routes=true,support_npcscan=true,support_bloodhound2=true,support_tomtom=true,
+	player_dot="blizz", background_alpha=0.8, holdKeyForMouseOn = "_none"
 }
 local TrackingIndex={};
 local modifiers = {
@@ -478,48 +477,6 @@ function FarmHud_OnEvent(self,event,arg1,...)
 				minimapPos = 220,
 				radius = 80
 			};
-		end
-
-		-- little migration of options
-		if FarmHudDB.MinimapIcon.hide~=nil then
-			FarmHudDB.MinimapIcon.show = not FarmHudDB.MinimapIcon.hide;
-			FarmHudDB.MinimapIcon.hide = nil;
-		end
-		if FarmHudDB.hide_gathercircle~=nil then
-			FarmHudDB.gathercircle_show = not FarmHudDB.hide_gathercircle;
-			FarmHudDB.hide_gathercircle = nil;
-		end
-		if FarmHudDB.hide_indicators~=nil then
-			FarmHudDB.cardinalpoints_show = not FarmHudDB.hide_indicators;
-			FarmHudDB.hide_indicators = nil;
-		end
-		if FarmHudDB.hide_coords~=nil then
-			FarmHudDB.coords_show = not FarmHudDB.hide_coords;
-			FarmHudDB.hide_coords = nil;
-		end
-		if FarmHudDB.hide_buttons~=nil then
-			FarmHudDB.buttons_show = not FarmHudDB.hide_buttons;
-			FarmHudDB.hide_buttons = nil;
-		end
-		if FarmHudDB.show_gathermate~=nil then
-			FarmHudDB.support_gathermate = FarmHudDB.show_gathermate;
-			FarmHudDB.show_gathermate = nil;
-		end
-		if FarmHudDB.show_routes~=nil then
-			FarmHudDB.support_routes = FarmHudDB.show_routes;
-			FarmHudDB.show_routes = nil;
-		end
-		if FarmHudDB.show_npcscan~=nil then
-			FarmHudDB.support_npcscan = FarmHudDB.show_npcscan;
-			FarmHudDB.show_npcscan = nil;
-		end
-		if FarmHudDB.show_bloodhound2~=nil then
-			FarmHudDB.support_bloodhound2 = FarmHudDB.show_bloodhound2;
-			FarmHudDB.show_bloodhound2 = nil;
-		end
-		if FarmHudDB.show_tomtom~=nil then
-			FarmHudDB.support_tomtom = FarmHudDB.show_tomtom;
-			FarmHudDB.show_tomtom = nil;
 		end
 
 		for k,v in pairs(dbDefaults)do
