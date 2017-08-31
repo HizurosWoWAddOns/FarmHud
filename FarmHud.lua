@@ -2,7 +2,7 @@
 local addon,ns=...;
 local L=ns.L;
 
-BINDING_HEADER_FARMHUD = "FarmHud";
+BINDING_HEADER_FARMHUD = addon;
 BINDING_NAME_TOGGLEFARMHUD = L["Toggle FarmHud's Display"];
 BINDING_NAME_TOGGLEFARMHUDMOUSE	= L["Toggle FarmHud's tooltips (Can't click through Hud)"];
 BINDING_NAME_TOGGLEFARMHUDBACKGROUND = L["Toggle FarmHud's minimap background"];
@@ -277,9 +277,12 @@ function FarmHud_OnShow(self)
 
 		local childs = {FarmHudMinimap:GetChildren()};
 		for i=1, #childs do
-			childs[i].fh_prev = {childs[i]:IsShown(),childs[i]:GetAlpha()};
-			childs[i]:Hide();
-			childs[i]:SetAlpha(0);
+			-- ignore HereBeDragonPins
+			if not (childs[i].arrow and childs[i].point) then
+				childs[i].fh_prev = {childs[i]:IsShown(),childs[i]:GetAlpha()};
+				childs[i]:Hide();
+				childs[i]:SetAlpha(0);
+			end
 		end
 
 		FarmHudMinimap:SetFrameLevel(1);
@@ -305,35 +308,22 @@ function FarmHud_OnShow(self)
 
 	FarmHud_SetScales();
 
-	if (GatherMate2) and (FarmHudDB.support_gathermate==true) then
+	if (GatherMate2) then
 		GatherMate2:GetModule("Display"):ReparentMinimapPins(FarmHudCluster);
 	end
-	if (Routes) and (Routes.ReparentMinimap) and (FarmHudDB.support_routes==true) then
+	if (Routes) and (Routes.ReparentMinimap) then
 		Routes:ReparentMinimap(FarmHudCluster);
 	end
-	if (NPCScan) and (NPCScan.SetMinimapFrame) and (FarmHudDB.support_npcscan==true) then
+	if (NPCScan) and (NPCScan.SetMinimapFrame) then
 		NPCScan:SetMinimapFrame(FarmHudCluster);
 	end
-
-	if (Bloodhound2) and (Bloodhound2.ReparentMinimap) and (FarmHudDB.support_bloodhound2==true) then
+	if (Bloodhound2) and (Bloodhound2.ReparentMinimap) then
 		Bloodhound2.ReparentMinimap(FarmHudCluster,"FarmHud");
 	end
-
-	--[[
-	if (TomTom) and (FarmHudDB.support_tomtom==true) then
-		if (LibStub.libs["HereBeDragons-Pins-1.0"]) then
-			if(not HereBeDragonsPins)then
-				HereBeDragonsPins = LibStub("HereBeDragons-Pins-1.0");
-			end
-			--HereBeDragonsPins:SetMinimapObject(FarmHudCluster);
-		end
-		if(TomTom.ReparentMinimap) then
-			--TomTom:ReparentMinimap(FarmHudCluster);
-		end
+	if LibStub.libs["HereBeDragons-Pins-1.0"] then
+		LibStub("HereBeDragons-Pins-1.0"):SetMinimapObject(FarmHudCluster);
 	end
-	--]]
-
-	if (LibHijackMinimap)then
+	if (LibHijackMinimap) then
 		LibHijackMinimap:HijackMinimap(LibHijackMinimap_Token,FarmHudMinimap);
 	end
 end
@@ -409,17 +399,10 @@ function FarmHud_OnHide(self, force)
 	if (Bloodhound2) and (Bloodhound2.ReparentMinimap) then
 		Bloodhound2.ReparentMinimap(_G.Minimap,"Minimap");
 	end
-	--[[
-	if (TomTom) then
-		if (HereBeDragonsPins) then
-			HereBeDragonsPins:SetMinimapObject(_G.Minimap);
-		end
-		if(TomTom.ReparentMinimap) then
-			TomTom:ReparentMinimap(_G.Minimap);
-		end
+	if LibStub.libs["HereBeDragons-Pins-1.0"] then
+		LibStub("HereBeDragons-Pins-1.0"):SetMinimapObject();
 	end
-	--]]
-	if (LibHijackMinimap)then
+	if (LibHijackMinimap) then
 		LibHijackMinimap:ReleaseMinimap(LibHijackMinimap_Token);
 	end
 
@@ -496,7 +479,7 @@ function FarmHud_OnEvent(self,event,arg1,...)
 				radius = 80
 			};
 		end
-		
+
 		-- little migration of options
 		if FarmHudDB.MinimapIcon.hide~=nil then
 			FarmHudDB.MinimapIcon.show = not FarmHudDB.MinimapIcon.hide;
@@ -1074,35 +1057,48 @@ local options = {
 					type = "group", order = 7,
 					name = L["Support Options"],
 					args = {
+						desc = {
+							type = "description", order = 0, fontSize = "medium",
+							name = L["Blizzard have made a background change that makes useless to offer optional support of single addons or libraries."]
+						},
+						desc2 = {
+							type = "description", order = 99, fontSize = "small",
+							name = L["Tomtom and HandyNotes are supported through the library HereBeDragon but HandyNotes have a problem with Hud toggling. All icons around you position will be disappear by toggling FarmHud. But you can walk or fly with opened FarmHud and the nodes come back."]
+						},
 						support_gathermate = {
 							type = "toggle", order = 1,
 							name = "GatherMate2", desc = L["Enable GatherMate2 support"],
-							get = function() return FarmHudDB.support_gathermate; end,
-							set = function(_,v) FarmHudDB.support_gathermate = v; end,
+							get = function() return true; end,
+							disabled = true
 						},
 						support_routes = {
 							type = "toggle", order = 2,
 							name = "Routes", desc = L["Enable Routes support"],
-							get = function() return FarmHudDB.support_routes; end,
-							set = function(_,v) FarmHudDB.support_routes = v; end,
+							get = function() return true; end,
+							disabled = true
 						},
 						support_npcscan = {
 							type = "toggle", order = 3,
 							name = "NPCScan", desc = L["Enable NPCScan support"],
-							get = function() return FarmHudDB.support_npcscan; end,
-							set = function(_,v) FarmHudDB.support_npcscan = v; end,
+							get = function() return true; end,
+							disabled = true
 						},
 						support_bloodhound2 = {
 							type = "toggle", order = 4,
 							name = "BloodHound2", desc = L["Enable Bloodhound2 support"],
-							get = function() return FarmHudDB.support_bloodhound2; end,
-							set = function(_,v) FarmHudDB.support_bloodhound2 = v; end
+							get = function() return true; end,
+							disabled = true
 						},
 						support_tomtom = {
 							type = "toggle", order = 5,
 							name = "TomTom", desc = L["Enable TomTom support"],
-							get = function() FarmHudDB.support_tomtom=false; return false; end,
-							set = function(_,v) FarmHudDB.support_tomtom = v; end,
+							get = function() return true; end,
+							disabled = true
+						},
+						support_handynotes = {
+							type = "toggle", order = 5,
+							name = "HandyNotes", desc = L["Enable HandyNotes support"],
+							get = function() return true; end,
 							disabled = true
 						}
 					}
