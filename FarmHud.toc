@@ -1,4 +1,4 @@
-## Interface: 70200
+## Interface: 70300
 ## Title: FarmHud
 ## Version: @project-version@
 ## Notes: Turns your minimap into a hud for gathering resources!
@@ -7,13 +7,13 @@
 ## SavedVariables: FarmHudDB
 
 #@no-lib-strip@
-lib\LibStub\LibStub.lua
-lib\CallbackHandler-1.0\CallbackHandler-1.0.xml
-lib\AceGUI-3.0\AceGUI-3.0.xml
-lib\AceConfig-3.0\AceConfig-3.0.xml
-lib\LibQTip-1.0\lib.xml
-lib\LibDataBroker-1.1\LibDataBroker-1.1.lua
-lib\LibDBIcon-1.0\LibDBIcon-1.0.lua
+libs\LibStub\LibStub.lua
+libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+libs\AceGUI-3.0\AceGUI-3.0.xml
+libs\AceConfig-3.0\AceConfig-3.0.xml
+libs\LibQTip-1.0\lib.xml
+libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+libs\LibDBIcon-1.0\LibDBIcon-1.0.lua
 #@end-no-lib-strip@
 
 FarmHud.xml

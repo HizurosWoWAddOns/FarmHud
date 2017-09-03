@@ -1,25 +1,37 @@
 package-as: FarmHud
+
 externals:
-	lib/LibStub:
-		url: svn://svn.wowace.com/wow/libstub/mainline/trunk
+	libs/LibStub:
+		url: https://repos.wowace.com/wow/libstub/trunk
 		tag: latest
-	lib/CallbackHandler-1.0:
-		url: svn://svn.wowace.com/wow/callbackhandler/mainline/trunk/CallbackHandler-1.0
+
+	libs/CallbackHandler-1.0:
+		url: https://repos.wowace.com/wow/callbackhandler/trunk/CallbackHandler-1.0
 		tag: latest
-	lib/LibDataBroker-1.1:
-		url: git://github.com/tekkub/libdatabroker-1-1.git
+
+	libs/AceGUI-3.0:
+		url: https://repos.wowace.com/wow/ace3/trunk/AceGUI-3.0
 		tag: latest
-	lib/AceConfig-3.0:
-		url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceConfig-3.0
+
+	libs/AceConfig-3.0:
+		url: https://repos.wowace.com/wow/ace3/trunk/AceConfig-3.0
 		tag: latest
-	lib/AceGUI-3.0:
-		url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceGUI-3.0
+
+	libs/LibDataBroker-1.1:
+		url: https://repos.wowace.com/wow/libdatabroker-1-1
 		tag: latest
-	lib/LibDBIcon-1.0:
-		url: svn://svn.wowace.com/wow/libdbicon-1-0/mainline/trunk/LibDBIcon-1.0
+
+	libs/LibDBIcon-1.0:
+		url: https://repos.wowace.com/wow/libdbicon-1-0/trunk/LibDBIcon-1.0
 		tag: latest
 
 enable-nolib-creation: yes
 
 ignore:
-	- .pkgmeta
+	- libs/LibStub/tests
+	- libs/LibStub/LibStub.toc
+	- libs/CallbackHandler-1.0/CallbackHandler-1.0.xml
+	- libs/LibDataBroker-1.0/README.textile
+	- libs/LibDBIcon-1.0/lib.xml
+
+license-output: LICENSE.txt
