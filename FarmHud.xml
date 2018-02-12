@@ -2,9 +2,8 @@
 ..\FrameXML\UI.xsd">
 
 	<Script file="Localization.lua"/>
-	<Script file="Localization_de.lua"/>
-	<!--<Script file="Localization_<languageCode>.lua"/>-->
 	<Script file="FarmHud.lua"/>
+	<Script file="FarmHud_Options.lua"/>
 
 	<FontString name="FarmHudFont" inherits="SystemFont_Shadow_Med1" outline="THICK" hidden="true" virtual="true">
 		<Shadow>
