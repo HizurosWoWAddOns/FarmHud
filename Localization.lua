@@ -1,14 +1,17 @@
 
 local addon, ns = ...
 
-ns.L = setmetatable({},{__index=function(t,k)
+local L = {};
+ns.L = setmetatable(L,{__index=function(t,k)
 	local v = tostring(k)
 	rawset(t,k,v)
 	return v
-end})
+end});
 
 -- Do you want to help localize this addon?
 -- https://wow.curseforge.com/projects/farmhud/localization
+
+--@localization(locale="enUS", format="lua_additive_table", handle-subnamespaces="none", handle-unlocalized="ignore")@
 
 if LOCALE_deDE then
 --@localization(locale="deDE", format="lua_additive_table", handle-subnamespaces="none", handle-unlocalized="ignore")@
