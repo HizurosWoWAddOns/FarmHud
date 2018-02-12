@@ -41,37 +41,6 @@ local modifiers = {
 	SR = {RSHIFT=1},
 };
 
-
--------------------------------------------------
--- LibDataBroker & Icon
--------------------------------------------------
-local LDB = LibStub("LibDataBroker-1.1"):NewDataObject("FarmHud",{
-	type	= "launcher",
-	icon	= "Interface\\Icons\\INV_Misc_Herb_MountainSilverSage.png",
-	label	= "FarmHud",
-	text	= "FarmHud",
-	OnTooltipShow = function(tt)
-		tt:AddLine("FarmHud");
-		tt:AddLine(("|cffffff00%s|r %s"):format(L["Click"],L["to toggle FarmHud"]));
-		tt:AddLine(("|cffffff00%s|r %s"):format(L["Right click"],L["to config"]));
-		tt:AddLine(L["Or macro with /script FarmHud_Toggle()"]);
-	end,
-	OnClick = function(_, button)
-		if (button=="LeftButton") then
-			FarmHud_Toggle();
-		else
-			local Lib = LibStub("AceConfigDialog-3.0");
-			if Lib.OpenFrames["FarmHud"]~=nil then
-				Lib:Close("FarmHud");
-			else
-				Lib:Open("FarmHud");
-				Lib.OpenFrames["FarmHud"]:SetStatusText(GAME_VERSION_LABEL..": "..GetAddOnMetadata(addon,"Version"));
-			end
-		end
-	end
-});
-local LDBIcon = LDB and LibStub("LibDBIcon-1.0", true);
-
 function ns.print(...)
 	local a,colors,t,c,v = {...},{"0099ff","00ff00","ff6060","44ffff","ffff00","ff8800","ff44ff","ffffff"},{},1;
 	for i=1, #a do
@@ -478,6 +447,8 @@ function FarmHud_OnEvent(self,event,arg1,...)
 		if (LDBIcon) then
 			LDBIcon:Register(addon, LDB, FarmHudDB.MinimapIcon);
 		end
+
+		ns.RegisterDataBroker()
 
 		fh_font = {SystemFont_Small2:GetFont()};
 
