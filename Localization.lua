@@ -66,7 +66,7 @@ if LOCALE_koKR then
 --@localization(locale="koKR", format="lua_additive_table", handle-subnamespaces="none", handle-unlocalized="ignore")@
 end
 
-if LOCALE_ptBR then
+if LOCALE_ptBR or LOCALE_ptPT then
 --@localization(locale="ptBR", format="lua_additive_table", handle-subnamespaces="none", handle-unlocalized="ignore")@
 end
 
