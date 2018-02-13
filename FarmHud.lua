@@ -311,10 +311,10 @@ function FarmHudMixin:OnShow()
 	SetPlayerDotTexture(true);
 	AreaBorder_Update(true);
 
-	FarmHud:SetScales();
-	FarmHud:UpdateCardinalPoints(FarmHudDB.cardinalpoints_show);
-	FarmHud:UpdateCoords(FarmHudDB.coords_show);
-	FarmHud:UpdateForeignAddOns(true);
+	self:SetScales();
+	self:UpdateCardinalPoints(FarmHudDB.cardinalpoints_show);
+	self:UpdateCoords(FarmHudDB.coords_show);
+	self:UpdateForeignAddOns(true);
 end
 
 function FarmHudMixin:OnHide(force)
