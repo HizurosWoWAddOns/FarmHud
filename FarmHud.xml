@@ -6,14 +6,14 @@
 	<Script file="FarmHud_Options.lua"/>
 	<Script file="FarmHud_DataBroker.lua"/>
 
-	<FontString name="FarmHudFont" inherits="SystemFont_Shadow_Med1" outline="THICK" hidden="true" virtual="true">
+	<FontString name="FarmHudFont" inherits="SystemFont_Small2" outline="THICK" hidden="true" virtual="true">
 		<Shadow>
 			<Offset x=".2" y="-.2"/>
 			<Color r="0" g="0" b="0"/>
 		</Shadow>
 	</FontString>
 
-	<Frame name="FarmHud" parent="UIParent" frameStrata="BACKGROUND" alpha="1" hidden="true">
+	<Frame name="FarmHud" parent="UIParent" mixin="FarmHudMixin" frameStrata="BACKGROUND" alpha="1" hidden="true">
 		<Size x="140" y="140"/>
 		<Anchors>
 			<Anchor point="CENTER" relativePoint="CENTER" />
@@ -29,7 +29,6 @@
 			</Layer>
 		</Layers>
 		<Frames>
-			<Minimap name="FarmHudMinimap" enableMouse="false" setallpoints="true" alpha="0" />
 			<Frame name="FarmHudCluster" setallpoints="true" />
 			<Frame parentKey="TextFrame" setallpoints="true">
 				<Layers>
@@ -64,7 +63,7 @@
 						<HighlightTexture file="Interface\Buttons\UI-Panel-MinimizeButton-Highlight" alphaMode="ADD"/>
 						<PushedTexture file="Interface\AddOns\FarmHud\media\Mouse-Pushed"/>
 						<Scripts>
-							<OnClick function="FarmHud_ToggleMouse"/>
+							<OnClick>FarmHud:ToggleMouse()</OnClick>
 						</Scripts>
 					</Button>
 					<Button parentKey="backgroundButton">
@@ -73,7 +72,7 @@
 							<Anchor point="CENTER" x="-12"/>
 						</Anchors>
 						<Scripts>
-							<OnClick function="FarmHud_ToggleBackground"/>
+							<OnClick>FarmHud:ToggleBackground()</OnClick>
 						</Scripts>
 						<NormalTexture file="Interface\WorldMap\WorldMap-Icon" />
 						<PushedTexture file="Interface\WorldMap\WorldMap-Icon" desaturated="true" />
@@ -85,14 +84,7 @@
 							<Anchor point="CENTER" x="12"/>
 						</Anchors>
 						<Scripts>
-							<OnClick>
-								local Lib = LibStub("AceConfigDialog-3.0");
-								if Lib.OpenFrames["FarmHud"]~=nil then
-									Lib:Close("FarmHud");
-								else
-									Lib:Open("FarmHud");
-								end
-							</OnClick>
+							<OnClick>FarmHud:ToggleOptions()</OnClick>
 						</Scripts>
 						<NormalTexture file="Interface\AddOns\FarmHud\media\options" />
 						<PushedTexture file="Interface\AddOns\FarmHud\media\options" desaturated="true" />
@@ -107,17 +99,17 @@
 						<HighlightTexture file="Interface\Buttons\UI-Panel-MinimizeButton-Highlight" alphaMode="ADD"/>
 						<PushedTexture file="Interface\Buttons\UI-Panel-MinimizeButton-Down"/>
 						<Scripts>
-							<OnClick function="FarmHudCloseButton_OnClick"/>
+							<OnClick>FarmHud:Toggle(false)</OnClick>
 						</Scripts>
 					</Button>
 				</Frames>
 			</Frame>
 		</Frames>
 		<Scripts>
-			<OnLoad function="FarmHud_OnLoad" />
-			<OnEvent function="FarmHud_OnEvent" />
-			<OnShow function="FarmHud_OnShow" />
-			<OnHide function="FarmHud_OnHide"/>
+			<OnLoad method="OnLoad" />
+			<OnEvent method="OnEvent" />
+			<OnShow method="OnShow" />
+			<OnHide method="OnHide"/>
 		</Scripts>
 	</Frame>
 

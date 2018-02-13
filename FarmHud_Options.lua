@@ -11,6 +11,19 @@ local playerDot_textures = {
 	["hide"]          = L["Hide player arrow"],
 };
 
+local dbDefaults = {
+	hud_scale=1.4, text_scale=1.4,
+	gathercircle_show=true,gathercircle_color={0,1,0,0.5},
+	cardinalpoints_show=true,cardinalpoints_color1={1,0.82,0,0.7},cardinalpoints_color2={1,0.82,0,0.7},cardinalpoints_radius=0.47,
+	coords_show=true,coords_bottom=false,coords_color={1,0.82,0,0.7},coords_radius=0.51,
+	buttons_show=false,buttons_buttom=false,buttons_alpha=0.6,buttons_radius=0.56,
+	mouseoverinfo_color={1,0.82,0,0.7},
+	areaborder_arch_show="blizz",areaborder_arch_texture=false,areaborder_arch_alpha=1,
+	areaborder_quest_show="blizz",areaborder_quest_texture=false,areaborder_quest_alpha=1,
+	areaborder_tasks_show="blizz",areaborder_task_texture=false,areaborder_task_alpha=1,
+	player_dot="blizz", background_alpha=0.8, holdKeyForMouseOn = "_none"
+}
+
 local function opt(info,value,...)
 	local key,reset = info[#info],info[#info]:gsub("reset","");
 	if key~=reset then
@@ -342,5 +355,30 @@ local options = {
 	}
 };
 
-LibStub("AceConfig-3.0"):RegisterOptionsTable(addon, options);
-LibStub("AceConfigDialog-3.0"):AddToBlizOptions(addon);
+function ns.RegisterOptions()
+	if (FarmHudDB==nil) then
+		FarmHudDB={};
+	end
+
+	if (FarmHudDB.MinimapIcon==nil) then
+		FarmHudDB.MinimapIcon = {
+			hide = false,
+			minimapPos = 220,
+			radius = 80
+		};
+	end
+
+	for k,v in pairs(dbDefaults)do
+		if (FarmHudDB[k]==nil) then
+			FarmHudDB[k]=v;
+		end
+	end
+
+	if FarmHudDB.MinimapIcon.show~=nil then
+		FarmHudDB.MinimapIcon.hide = not FarmHudDB.MinimapIcon.show;
+		FarmHudDB.MinimapIcon.show = nil;
+	end
+
+	LibStub("AceConfig-3.0"):RegisterOptionsTable(addon, options);
+	LibStub("AceConfigDialog-3.0"):AddToBlizOptions(addon);
+end
