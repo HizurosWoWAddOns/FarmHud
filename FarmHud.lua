@@ -5,16 +5,11 @@ local ACD = LibStub("AceConfigDialog-3.0");
 
 FarmHudMixin = {};
 
-local LibHijackMinimap_Token,AreaBorderStates,LibHijackMinimap,NPCScan = {},{};
+local LibHijackMinimap_Token,AreaBorderStates,TrackingIndex,LibHijackMinimap,_ = {},{},{};
 local media, media_blizz = "Interface\\AddOns\\"..addon.."\\media\\", "Interface\\Minimap\\";
-local mps,mouseOnKeybind,MinimapEnableMouse = {}; -- minimap_prev_state
-local fh_scale, updateRotations, HereBeDragonsPins, _ = 1.4;
+local mps,mouseOnKeybind,MinimapEnableMouse,MinimapSetAlpha = {}; -- minimap_prev_state
 local minimapScripts,cardinalTicker,coordsTicker = {--[["OnMouseUp",]]"OnMouseDown","OnDragStart"};
 local playerDot_orig, playerDot_custom = "Interface\\Minimap\\MinimapArrow";
-local blobSets = {
-	black = {"Interface\\glues\\credits\\bloodelf_priestess_master6","Interface\\common\\ShadowOverlay-Top","Interface\\glues\\credits\\bloodelf_priestess_master6","Interface\\common\\ShadowOverlay-Top"}
-}
-
 local TrackingIndex={};
 local modifiers = {
 	A  = {LALT=1,RALT=1},
@@ -129,7 +124,15 @@ function FarmHudMixin:UpdateCardinalPoints(state)
 end
 
 local function CoordsUpdate_TickerFunc()
-	local x,y=GetPlayerMapPosition("player");
+	local x, y = 1,1;
+	if GetPlayerMapPosition then
+		x,y = GetPlayerMapPosition("player");
+	elseif C_Map and C_Map.GetPlayerMapPosition then
+		local obj = C_Map.GetPlayerMapPosition(C_Map.GetBestMapForUnit("player"),"player");
+		if obj and obj.GetXY then
+			x,y = obj:GetXY();
+		end
+	end
 	if x and x>0 then
 		FarmHud.TextFrame.coords:SetFormattedText("%.1f, %.1f",x*100,y*100);
 	else
@@ -138,9 +141,9 @@ local function CoordsUpdate_TickerFunc()
 end
 
 function FarmHudMixin:UpdateCoords(state)
-	if not coordsTicker and state~=false then
+	if state==true and coordsTicker==nil then
 		coordsTicker = C_Timer.NewTicker(1/30,CoordsUpdate_TickerFunc);
-	elseif state==false then
+	elseif state==false and coordsTicker then
 		coordsTicker:Cancel();
 		coordsTicker=nil;
 	end
@@ -186,9 +189,6 @@ function FarmHudMixin:UpdateForeignAddOns(state)
 	end
 	if Routes and Routes.ReparentMinimap then
 		Routes:ReparentMinimap(Map);
-	end
-	if NPCScan and NPCScan.SetMinimapFrame then
-		NPCScan:SetMinimapFrame(Map);
 	end
 	if Bloodhound2 and Bloodhound2.ReparentMinimap then
 		Bloodhound2.ReparentMinimap(Map,"Minimap");
@@ -279,7 +279,8 @@ function FarmHudMixin:OnShow()
 	for i=1, #childs do
 		-- ignore HereBeDragonPins
 		if not (childs[i].arrow and childs[i].point) then
-			childs[i].fh_prev = {childs[i]:IsShown(),childs[i]:GetAlpha()};
+			mps.childs[i] = {childs[i]:IsShown(),childs[i]:GetAlpha()};
+			--childs[i].fh_prev = {childs[i]:IsShown(),childs[i]:GetAlpha()};
 			childs[i]:Hide();
 			childs[i]:SetAlpha(0);
 		end
@@ -291,13 +292,17 @@ function FarmHudMixin:OnShow()
 	_G.Minimap:SetFrameLevel(1);
 	_G.Minimap:SetScale(1);
 	_G.Minimap:SetZoom(0);
+
+	if _G.Minimap.SetAlpha~=MinimapSetAlpha then
+		mps.custom_SetAlpha=_G.Minimap.SetAlpha;
+		_G.Minimap.SetAlpha=MinimapSetAlpha;
+	end
 	_G.Minimap:SetAlpha(0);
 
 	CheckEnableMouse();
 	_G.Minimap:EnableMouse(false);
 	_G.Minimap:EnableMouseWheel(false);
 
-	-- Yeah... trouble maker ElvUI... TroubleUI :P
 	local mc_points = {MinimapCluster:GetPoint(i)};
 	if mc_points[2]==Minimap then
 		mps.mc_mouse = MinimapCluster:IsMouseEnabled();
@@ -326,9 +331,13 @@ function FarmHudMixin:OnHide(force)
 	_G.Minimap:SetParent(mps.parent);
 	_G.Minimap:ClearAllPoints();
 
-	_G.Minimap:SetAlpha(mps.alpha);
 	_G.Minimap:EnableMouse(mps.mouse);
 	_G.Minimap:EnableMouseWheel(mps.mousewheel);
+
+	_G.Minimap:SetAlpha(mps.alpha);
+	if mps.custom_SetAlpha then
+		_G.Minimap.SetAlpha = mps.custom_SetAlpha;
+	end
 
 	if mps.ommouseup then
 		_G.Minimap:SetScript("OnMouseUp",mps.ommouseup);
@@ -343,15 +352,14 @@ function FarmHudMixin:OnHide(force)
 	for i=1, #mps.anchors do
 		_G.Minimap:SetPoint(unpack(mps.anchors[i]));
 	end
-	local childs = {Minimap:GetChildren()};
+	local childs = {_G.Minimap:GetChildren()};
 	for i=1, #childs do
-		if childs[i].fh_prev~=nil then
-			childs[i]:SetShown(childs[i].fh_prev[1]);
-			childs[i]:SetAlpha(childs[i].fh_prev[2]);
+		if mps.childs[i]~=nil then
+			childs[i]:SetShown(mps.childs[i][1]);
+			childs[i]:SetAlpha(mps.childs[i][2]);
 		end
 	end
 
-	_G.Minimap:EnableMouse(true);
 	if mps.mc_mouse then
 		MinimapCluster:EnableMouse(true);
 	end
@@ -437,8 +445,6 @@ function FarmHudMixin:OnEvent(event,...)
 			ns.print(L["AddOn loaded..."]);
 		end
 	elseif event=="PLAYER_LOGIN" then
-		NPCScan = (_NPCScan) and (_NPCScan.Overlay) and _NPCScan.Overlay.Modules.List[ "Minimap" ];
-
 		self:SetFrameLevel(2);
 
 		if (FarmHudDB.gathercircle_show) then
@@ -454,9 +460,6 @@ function FarmHudMixin:OnEvent(event,...)
 			v.rot = (0.785398163 * (i-1));
 			v:SetText(L[label]);
 			v:SetTextColor(1.0,0.82,0);
-			if v.SetScale then
-				v:SetScale(1.4);
-			end
 			if v.NWSE then
 				v:SetTextColor(unpack(FarmHudDB.cardinalpoints_color1));
 			else
@@ -492,7 +495,9 @@ function FarmHudMixin:OnEvent(event,...)
 end
 
 function FarmHudMixin:OnLoad()
-	MinimapEnableMouse = getmetatable(_G.Minimap).__index.EnableMouse; -- original EnableMouse function
+	local minimapMeta = getmetatable(_G.Minimap).__index;
+	MinimapEnableMouse = minimapMeta.EnableMouse; -- original EnableMouse function
+	MinimapSetAlpha = minimapMeta.SetAlpha; -- original SetAlpha function
 
 	hooksecurefunc(_G.Minimap,"SetPlayerTexture",function(_,texture)
 		if not self.PlayerDotLock then
