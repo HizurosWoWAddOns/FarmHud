@@ -10,6 +10,11 @@ local playerDot_textures = {
 	["black"]         = L["Black player dot"],
 	["hide"]          = L["Hide player arrow"],
 };
+local AreaBorderValues = {
+	["true"] = SHOW,
+	["false"] = HIDE,
+	["blizz"] = L["AreaBorderByClient"]
+};
 
 local dbDefaults = {
 	hud_scale=1.4, text_scale=1.4,
@@ -77,94 +82,85 @@ local options = {
 	args = {
 		general = {
 			type = "group", order = 0,
-			name = L["General"],
+			name = COMPACT_UNIT_FRAME_PROFILE_SUBTYPE_ALL,
 			args = {
 				MinimapIcon = {
 					type = "toggle", order = 1,
-					name = L["Minimap Icon"],
-					desc = L["Show or hide the minimap icon."]
+					name = L.MinimapIcon, desc = L.MinimapIconDesc
 				},
 				AddOnLoaded = {
 					type = "toggle", order = 2,
-					name = L["AddOn loaded..."],
-					desc = L["Show 'AddOn loaded...' message on login"] -- new
+					name = L.AddOnLoaded, desc = L.AddOnLoadedDesc
 				},
-				spacer0 =  {
-					type = "description", order = 10,
-					name = " ", fontSize = "medium"
-				},
+				spacer0 =  {type="description", order=10, name=" ", fontSize="medium"},
 				hud_scale = {
 					type = "range", order = 11,
-					name = L["HUD symbol scale"],
-					desc = L["Scale the symbols on HUD"],
+					name = L.HudSymbolScale, desc = L.HudSymbolScaleDesc,
 					min = 1, max = 2.5, step = 0.1, isPercent = true
 				},
 				text_scale = {
 					type = "range", order = 12,
-					name = L["Text scale"],
-					desc = L["Scale text on HUD for cardinal points, mouse on and coordinations"],
+					name = L.TextScale, desc = L.TextScaleDesc,
 					min = 1, max = 2.5, step = 0.1, isPercent = true
 				},
 				background_alpha = {
 					type = "range", order = 13,
-					name = L["Background transparency"],
+					name = L.BgTransparency, --desc = L.BgTransparencyDesc
 					min = 0.1, max = 1, step = 0.1, isPercent = true
 				},
 				player_dot = {
 					type = "select", order = 14,
-					name = L["Player arrow or dot"],
-					desc = L["Change the look of your player dot/arrow on opened FarmHud"],
+					name = L.PlayerDot, desc = L.PlayerDotDesc,
 					values = playerDot_textures
 				},
-				spacer1 =  {
-					type = "description", order = 20,
-					name = " ", fontSize = "medium"
-				},
-				mouseoverinfo_color = {
-					type = "color", order = 21,
-					name = L["Mouse over info color"],
-					hasAlpha = true
-				},
-				mouseoverinfo_resetcolor = {
-					type = "execute", order = 22,
-					name = L["Reset color"]
-				},
-				spacer2 =  {
-					type = "description", order = 23,
-					name = " ", fontSize = "medium"
-				},
-				holdKeyForMouseOn = {
-					type = "select", order = 24,
-					name = L["Hold key for mouseover"],
-					values = {
-						["_NONE"] = NONE.."/"..ADDON_DISABLED,
-						A  = L["Alt"],
-						AL = L["Left alt"],
-						AR = L["Right alt"],
-						C  = L["Control"],
-						CL = L["Left control"],
-						CR = L["Right control"],
-						S  = L["Shift"],
-						SL = L["Left shift"],
-						SR = L["Right shift"],
+				mouseover = {
+					type = "group", order = 20, inline=true,
+					name = L.MouseOver,
+					args = {
+						holdKeyForMouseOn = {
+							type = "select", order = 3, width="double";
+							name = L.MouseOverOnHold,
+							desc = L.MouseOverOnHoldDesc,
+							values = {
+								["_NONE"] = NONE.."/"..ADDON_DISABLED,
+								A  = ALT_KEY_TEXT,
+								AL = LALT_KEY_TEXT,
+								AR = RALT_KEY_TEXT,
+								C  = CTRL_KEY_TEXT,
+								CL = LCTRL_KEY_TEXT,
+								CR = RCTRL_KEY_TEXT,
+								S  = SHIFT_KEY_TEXT,
+								SL = LSHIFT_KEY_TEXT,
+								SR = RSHIFT_KEY_TEXT,
+							}
+						},
+						mouseoverinfo_color = {
+							type = "color", order = 1,
+							name = COLOR, desc = L.MouseOverInfoColorDesc,
+							hasAlpha = true
+						},
+						mouseoverinfo_resetcolor = {
+							type = "execute", order = 2,
+							name = L.ResetColor, --desc = L.ResetColorDesc
+						},
 					}
 				},
+
 				supports = {
 					type = "group", order = 25, inline=true,
-					name = L["Support Options"],
+					name = L.SupportOptions,
 					get = function() return true; end,
 					args = {
 						desc = {
 							type = "description", order = 0, fontSize = "medium",
-							name = L["Blizzard have made a background change that makes useless to offer optional support of single addons or libraries."]
+							name = L.SupportBlizzard
 						},
 						desc2 = {
-							type = "description", order = 99, fontSize = "small",
-							name = L["Tomtom and HandyNotes are supported through the library HereBeDragon but HandyNotes have a problem with Hud toggling. All icons around you position will be disappear by toggling FarmHud. But you can walk or fly with opened FarmHud and the nodes come back."]
+							type = "description", order = 99, fontSize = "medium",
+							name = L.SupportHereBeDragon
 						},
 						gathermate  = {type="toggle", order=1, disabled=true, name="GatherMate2"},
 						routes      = {type="toggle", order=1, disabled=true, name="Routes"},
-						npcscan     = {type="toggle", order=1, disabled=true, name="NPCScan"},
 						bloodhound2 = {type="toggle", order=1, disabled=true, name="BloodHound2"},
 						tomtom      = {type="toggle", order=1, disabled=true, name="TomTom"},
 						handynotes  = {type="toggle", order=1, disabled=true, name="HandyNotes"}
@@ -175,131 +171,120 @@ local options = {
 		----------------------------------------------
 		gathercircle = {
 			type = "group", order = 1,
-			name = L["Garther circle"],
+			name = L.GartherCircle,
 			args = {
+				gathercircle_desc = {
+					type = "description", order = 0, fontSize = "medium",
+					name = L.GatherCircleDesc
+				},
 				gathercircle_show = {
 					type = "toggle", order = 1, width = "double",
-					name = L["Show gather circle"],
-					desc = L["Show or hide the gather circle"]
+					name = L.GatherCircleShow, desc = L.GatherCircleShowDesc
 				},
 				gathercircle_color = {
 					type = "color", order = 2,
-					name = L["Color"],
+					name = COLOR, desc = L.GatherCircleColorDesc,
 					hasAlpha = true
 				},
 				gathercircle_resetcolor = {
 					type = "execute", order = 3,
-					name = L["Reset color"]
+					name = L.ResetColor, --desc = L.ResetColorDesc
 				}
 			}
 		},
 		cardinalpoints = {
 			type = "group", order = 2,
-			name = L["Cardinal points"],
+			name = L.CardinalPoints,
 			args = {
 				cardinalpoints_show = {
 					type = "toggle", order = 1, width = "double",
-					name = L["Show cardinal points"],
-					desc = L["Show or hide the direction indicators"],
+					name = L.CardinalPointsShow, desc = L.CardinalPointsShowDesc,
 				},
 				cardinalpoints_radius = {
 					type = "range", order = 2,
-					name = L["Distance from center"],
-					desc = L["Change the distance from center"],
+					name = L.ChangeRadius, desc = L.ChangeRadiusDesc,
 					min = 0.1, max = 0.9, step=0.005, isPercent=true
 				},
 				cardinalpoints_header1 = {
 					type = "header", order = 3,
-					name = L["N, W, S, E"]
+					name = L.CardinalPointsGroup1
 				},
 				cardinalpoints_color1 = {
 					type = "color", order = 4, hasAlpha = true,
-					name = L["Color"],
-					desc = L["Adjust color and transparency of cardinal points N, W, S, E"]
+					name = COLOR, desc = L.CardinalPointsColorDesc.." "..L.CardinalPointsGroup1
 				},
 				cardinalpoints_resetcolor1 = {
 					type = "execute", order = 5,
-					name = L["Reset color"],
-					desc = L["Reset color and transparency of cardinal points N, W, S, E"]
+					name = L.ResetColor, desc = L.CardinalPointsColorResetDesc.." "..L.CardinalPointsGroup1
 				},
 				cardinalpoints_header2 = {
 					type = "header", order = 6,
-					name = L["NW, NE, SW, SE"]
+					name = L.CardinalPointsGroup2
 				},
 				cardinalpoints_color2 = {
 					type = "color", order = 7, hasAlpha = true,
-					name = L["Color"],
-					desc = L["Adjust color and transparency of cardinal points NW, NE, SW, SE"]
+					name = COLOR, desc = L.CardinalPointsColorDesc.." "..L.CardinalPointsGroup2
 				},
 				cardinalpoints_resetcolor2 = {
 					type = "execute", order = 8,
-					name = L["Reset color"],
-					desc = L["Reset color and transparency of cardinal points NW, NE, SW, SE"]
+					name = L.ResetColor, desc = L.CardinalPointsColorResetDesc.." "..L.CardinalPointsGroup2
 				}
 			}
 		},
 		coords = {
 			type = "group", order = 3,
-			name = L["Coordinations"],
+			name = L.Coords,
 			args = {
 				coords_show = {
 					type = "toggle", order = 1,
-					name = L["Player coordinations"],
-					desc = L["Show or hide player coordinations"]
+					name = L.CoordsShow, desc = L.CoordsShowDesc
 				},
 				coords_radius = {
 					type = "range", order = 2,
-					name = L["Distance from center"],
-					desc = L["Change the distance from center"],
+					name = L.ChangeRadius, desc = L.ChangeRadiusDesc,
 					min = 0.1, max = 0.9, step=0.005, isPercent=true
 				},
 				coords_bottom = {
 					type = "toggle", order = 3, width = "double",
-					name = L["Coordinations on bottom"],
-					desc = L["Display player coordinations on bottom"]
+					name = L.CoordsBottom, desc = L.CoordsBottomDesc
 				},
 				coords_color = {
 					type = "color", order = 4, hasAlpha = true,
-					name = L["Color"],
-					desc = L["Adjust color and transparency of coordations"]
+					name = COLOR, desc = L.CoordsColorDest
 				},
 				coords_resetcolor = {
 					type = "execute", order = 5,
-					name = L["Reset color"],
-					desc = L["Reset color and transparency of coordations"]
+					name = L.ResetColor, desc = L.CoordsColorResetDesc
 				}
 			}
 		},
 		onscreenbuttons = {
 			type = "group", order = 4,
-			name = L["OnScreen buttons"],
+			name = L.OnScreen,
 			args = {
 				buttons_show = {
 					type = "toggle", order = 1, width = "double",
-					name = L["Show OnScreen buttons"],
-					desc = L["Show or hide OnScreen buttons (mouse mode and close hud button)"]
+					name = L.OnScreenShow, desc = L.OnScreenShowDesc
 				},
 				buttons_bottom = {
 					type = "toggle", order = 2, width = "double",
-					name = L["OnScreen buttons on bottom"],
-					desc = L["Display toggle buttons on bottom"],
+					name = L.OnScreenBottom, desc = L.OnScreenBottomDesc,
 				},
 				buttons_radius = {
 					type = "range", order = 3,
-					name = L["Distance from center"],
-					desc = L["Change the distance from center"],
+					name = L.ChangeRadius, desc = L.ChangeRadiusDesc,
 					min = 0.1, max = 0.9, step=0.005, isPercent=true
 				},
 				buttons_alpha = {
 					type = "range", order = 4,
-					name = L["Transparency"],
+					name = OPACITY, desc = L.OnScreenAlphaDesc,
 					min = 0, max = 1, step = 0.1, isPercent = true
 				}
 			}
 		},
 		areaborder = {
 			type = "group", order = 5,
-			name = L["Area border"],
+			name = L.AreaBorder,
 			args = {
 				areaborder_arch_header = {
 					type = "header", order = 10,
@@ -307,12 +292,8 @@ local options = {
 				},
 				areaborder_arch_show = {
 					type = "select", order = 11, width = "double",
-					name = L["%s area border in HUD"]:format(L["Archaeology"]),
-					values = {
-						["true"] = L["Show"],
-						["false"] = L["Hide"],
-						["blizz"] = L["Use tracking option from game client"]
-					}
+					name = L.AreaBorderOnHUD:format(PROFESSIONS_ARCHAEOLOGY),
+					values = AreaBorderValues
 				},
 				areaborder_quest_header = {
 					type = "header", order = 20,
@@ -320,35 +301,28 @@ local options = {
 				},
 				areaborder_quest_show = {
 					type = "select", order = 21, width = "double",
-					name = L["%s area border in HUD"]:format(L["Quest"]),
-					values = {
-						["true"] = L["Show"],
-						["false"] = L["Hide"],
-						["blizz"] = L["Use tracking option from game client"]
-					}
+					name = L.AreaBorderOnHUD:format(LOOT_JOURNAL_LEGENDARIES_SOURCE_QUEST),
+					values = AreaBorderValues
 				},
 			}
 		},
 		keybindings = {
 			type = "group", order = 6,
-			name = L["Keybind Options"],
+			name = KEY_BINDINGS,
 			get = optKeyBind,
 			set = optKeyBind,
 			args = {
 				TOGGLEFARMHUD = {
 					type = "keybinding", order = 1, width = "double",
-					name = L["Toggle FarmHud's Display"],
-					desc = L["Set the keybinding to show FarmHud."]
+					name = L.KeyBindToggle, desc = L.KeyBindToggleDesc
 				},
 				TOGGLEFARMHUDMOUSE = {
 					type = "keybinding", order = 2, width = "double",
-					name = L["Toggle FarmHud's tooltips (Can't click through Hud)"],
-					desc = L["Set the keybinding to allow mouse over tooltips."]
+					name = L.KeyBindMouse, desc = L.KeyBindMouseDesc
 				},
 				TOGGLEFARMHUDBACKGROUND = {
 					type = "keybinding", order = 3, width = "double",
-					name = L["Toggle FarmHud's minimap background"],
-					desc = L["Set the keybinding to show minimap background."]
+					name = L.KeyBindBackground, desc = L.KeyBindBackgroundDesc
 				},
 			}
 		},

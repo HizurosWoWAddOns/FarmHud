@@ -10,9 +10,8 @@ function ns.RegisterDataBroker()
 		text	= addon,
 		OnTooltipShow = function(tt)
 			tt:AddLine(addon);
-			tt:AddLine(("|cffffff00%s|r %s"):format(L["Click"],L["to toggle FarmHud"]));
-			tt:AddLine(("|cffffff00%s|r %s"):format(L["Right click"],L["to config"]));
-			tt:AddLine(L["Or macro with /script FarmHud_Toggle()"]);
+			tt:AddLine(("|cffffff00%s|r %s"):format(KEY_BUTTON1,L["DataBrokerToggle"]));
+			tt:AddLine(("|cffffff00%s|r %s"):format(KEY_BUTTON2,L["DataBrokerOptions"]));
 		end,
 		OnClick = function(_, button)
 			if button=="LeftButton" then

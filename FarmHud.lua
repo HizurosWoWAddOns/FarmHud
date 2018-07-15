@@ -125,7 +125,7 @@ end
 
 local function CoordsUpdate_TickerFunc()
 	local x, y = 1,1;
-	if GetPlayerMapPosition then
+	if GetPlayerMapPosition then -- removed in bfa
 		x,y = GetPlayerMapPosition("player");
 	elseif C_Map and C_Map.GetPlayerMapPosition then
 		local obj = C_Map.GetPlayerMapPosition(C_Map.GetBestMapForUnit("player"),"player");
@@ -442,7 +442,7 @@ function FarmHudMixin:OnEvent(event,...)
 		ns.RegisterOptions();
 		ns.RegisterDataBroker();
 		if FarmHudDB.AddOnLoaded then
-			ns.print(L["AddOn loaded..."]);
+			ns.print(L.AddOnLoaded);
 		end
 	elseif event=="PLAYER_LOGIN" then
 		self:SetFrameLevel(2);
@@ -477,7 +477,7 @@ function FarmHudMixin:OnEvent(event,...)
 		end
 		self.onScreenButtons:SetAlpha(FarmHudDB.buttons_alpha);
 
-		self.TextFrame.mouseWarn:SetText(L["MOUSE ON"]);
+		self.TextFrame.mouseWarn:SetText(L.MouseOn);
 		self.TextFrame.mouseWarn:SetTextColor(unpack(FarmHudDB.mouseoverinfo_color));
 
 		if(LibStub.libs['LibHijackMinimap-1.0'])then
