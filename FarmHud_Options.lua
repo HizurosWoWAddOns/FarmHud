@@ -123,13 +123,13 @@ local options = {
 							desc = L.MouseOverOnHoldDesc,
 							values = {
 								["_NONE"] = NONE.."/"..ADDON_DISABLED,
-								A  = ALT_KEY_TEXT,
+								A  = ALT_KEY,
 								AL = LALT_KEY_TEXT,
 								AR = RALT_KEY_TEXT,
-								C  = CTRL_KEY_TEXT,
+								C  = CTRL_KEY,
 								CL = LCTRL_KEY_TEXT,
 								CR = RCTRL_KEY_TEXT,
-								S  = SHIFT_KEY_TEXT,
+								S  = SHIFT_KEY,
 								SL = LSHIFT_KEY_TEXT,
 								SR = RSHIFT_KEY_TEXT,
 							}
@@ -211,11 +211,11 @@ local options = {
 				},
 				cardinalpoints_color1 = {
 					type = "color", order = 4, hasAlpha = true,
-					name = COLOR, desc = L.CardinalPointsColorDesc.." "..L.CardinalPointsGroup1
+					name = COLOR, desc = L.CardinalPointsColorDesc:format(L.CardinalPointsGroup1)
 				},
 				cardinalpoints_resetcolor1 = {
 					type = "execute", order = 5,
-					name = L.ResetColor, desc = L.CardinalPointsColorResetDesc.." "..L.CardinalPointsGroup1
+					name = L.ResetColor, desc = L.CardinalPointsColorResetDesc:format(L.CardinalPointsGroup1)
 				},
 				cardinalpoints_header2 = {
 					type = "header", order = 6,
@@ -223,11 +223,11 @@ local options = {
 				},
 				cardinalpoints_color2 = {
 					type = "color", order = 7, hasAlpha = true,
-					name = COLOR, desc = L.CardinalPointsColorDesc.." "..L.CardinalPointsGroup2
+					name = COLOR, desc = L.CardinalPointsColorDesc:format(L.CardinalPointsGroup2)
 				},
 				cardinalpoints_resetcolor2 = {
 					type = "execute", order = 8,
-					name = L.ResetColor, desc = L.CardinalPointsColorResetDesc.." "..L.CardinalPointsGroup2
+					name = L.ResetColor, desc = L.CardinalPointsColorResetDesc:format(L.CardinalPointsGroup2)
 				}
 			}
 		},
