@@ -10,7 +10,7 @@ local media, media_blizz = "Interface\\AddOns\\"..addon.."\\media\\", "Interface
 local mps,mouseOnKeybind,MinimapEnableMouse,MinimapSetAlpha = {}; -- minimap_prev_state
 local minimapScripts,cardinalTicker,coordsTicker = {--[["OnMouseUp",]]"OnMouseDown","OnDragStart"};
 local playerDot_orig, playerDot_custom = "Interface\\Minimap\\MinimapArrow";
-local TrackingIndex={};
+local TrackingIndex,setAlphaToken={},{};
 local modifiers = {
 	A  = {LALT=1,RALT=1},
 	AL = {LALT=1},
@@ -94,6 +94,11 @@ local function CheckEnableMouse()
 	if MinimapEnableMouse and _G.Minimap.EnableMouse~=MinimapEnableMouse then
 		_G.Minimap.EnableMouse = MinimapEnableMouse;
 	end
+end
+
+local function SetAlpha(self,alpha,lockedToken)
+	if lockedToken~=setAlphaToken then return end
+	MinimapSetAlpha(self,alpha);
 end
 
 local function CardinalPointsUpdate_TickerFunc()
@@ -293,11 +298,9 @@ function FarmHudMixin:OnShow()
 	_G.Minimap:SetScale(1);
 	_G.Minimap:SetZoom(0);
 
-	if _G.Minimap.SetAlpha~=MinimapSetAlpha then
-		mps.custom_SetAlpha=_G.Minimap.SetAlpha;
-		_G.Minimap.SetAlpha=MinimapSetAlpha;
-	end
-	_G.Minimap:SetAlpha(0);
+	mps.setAlphaFunc=_G.Minimap.SetAlpha;
+	_G.Minimap.SetAlpha = SetAlpha;
+	_G.Minimap:SetAlpha(0,setAlphaToken);
 
 	CheckEnableMouse();
 	_G.Minimap:EnableMouse(false);
@@ -334,10 +337,8 @@ function FarmHudMixin:OnHide(force)
 	_G.Minimap:EnableMouse(mps.mouse);
 	_G.Minimap:EnableMouseWheel(mps.mousewheel);
 
-	_G.Minimap:SetAlpha(mps.alpha);
-	if mps.custom_SetAlpha then
-		_G.Minimap.SetAlpha = mps.custom_SetAlpha;
-	end
+	_G.Minimap:SetAlpha(mps.alpha,setAlphaToken);
+	_G.Minimap.SetAlpha = mps.setAlphaFunc;
 
 	if mps.ommouseup then
 		_G.Minimap:SetScript("OnMouseUp",mps.ommouseup);
@@ -424,7 +425,7 @@ end
 
 function FarmHudMixin:ToggleBackground()
 	if _G.Minimap:GetParent()==self then
-		_G.Minimap:SetAlpha(_G.Minimap:GetAlpha()==0 and FarmHudDB.background_alpha or 0);
+		_G.Minimap:SetAlpha(_G.Minimap:GetAlpha()==0 and FarmHudDB.background_alpha or 0,setAlphaToken);
 	end
 end
 
