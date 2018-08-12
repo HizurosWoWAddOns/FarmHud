@@ -253,7 +253,6 @@ function FarmHudMixin:OnShow()
 	mps.anchors = {};
 	mps.childs = {};
 	mps.zoom = _G.Minimap:GetZoom();
-	mps.rotation = GetCVar("rotateMinimap");
 	mps.parent = _G.Minimap:GetParent();
 	mps.scale = _G.Minimap:GetScale();
 	mps.size = {_G.Minimap:GetSize()};
@@ -317,7 +316,11 @@ function FarmHudMixin:OnShow()
 		MinimapCluster:EnableMouseWheel(false);
 	end
 
-	SetCVar("rotateMinimap", "1", "ROTATE_MINIMAP");
+	if FarmHudDB.rotation then
+		mps.rotation = GetCVar("rotateMinimap");
+		ns.rotation = mps.rotation;
+		SetCVar("rotateMinimap", "1", "ROTATE_MINIMAP");
+	end
 
 	SetPlayerDotTexture(true);
 	AreaBorder_Update(true);
@@ -329,7 +332,10 @@ function FarmHudMixin:OnShow()
 end
 
 function FarmHudMixin:OnHide(force)
-	SetCVar("rotateMinimap", mps.rotation, "ROTATE_MINIMAP");
+	if mps.rotation=="0" then
+		SetCVar("rotateMinimap", mps.rotation, "ROTATE_MINIMAP");
+		ns.rotation = nil;
+	end
 
 	_G.Minimap:SetScale(mps.scale);
 	_G.Minimap:SetSize(unpack(mps.size));

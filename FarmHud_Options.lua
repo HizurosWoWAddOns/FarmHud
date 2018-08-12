@@ -26,7 +26,8 @@ local dbDefaults = {
 	areaborder_arch_show="blizz",areaborder_arch_texture=false,areaborder_arch_alpha=1,
 	areaborder_quest_show="blizz",areaborder_quest_texture=false,areaborder_quest_alpha=1,
 	areaborder_tasks_show="blizz",areaborder_task_texture=false,areaborder_task_alpha=1,
-	player_dot="blizz", background_alpha=0.8, holdKeyForMouseOn = "_none"
+	player_dot="blizz", background_alpha=0.8, holdKeyForMouseOn = "_none",
+	rotation=true
 }
 
 local function opt(info,value,...)
@@ -41,6 +42,11 @@ local function opt(info,value,...)
 		if key=="MinimapIcon" then
 			FarmHudDB[key].hide = not value;
 			LibStub("LibDBIcon-1.0", true):Refresh(addon);
+		elseif key=="rotation" then
+			FarmHudDB[key] = value;
+			if FarmHud:IsShown() and ns.rotation=="0" then
+				SetCVar("rotateMinimap", value and "1" or "0", "ROTATE_MINIMAP");
+			end
 		else
 			if (...) then
 				value = {value,...}; -- color table
@@ -91,6 +97,10 @@ local options = {
 				AddOnLoaded = {
 					type = "toggle", order = 2,
 					name = L.AddOnLoaded, desc = L.AddOnLoadedDesc
+				},
+				rotation = {
+					type = "toggle", order = 3,
+					name = L.Rotation, desc = L.RotationDesc
 				},
 				spacer0 =  {type="description", order=10, name=" ", fontSize="medium"},
 				hud_scale = {
