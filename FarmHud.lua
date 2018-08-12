@@ -10,7 +10,7 @@ local media, media_blizz = "Interface\\AddOns\\"..addon.."\\media\\", "Interface
 local mps,mouseOnKeybind,MinimapEnableMouse,MinimapSetAlpha = {}; -- minimap_prev_state
 local minimapScripts,cardinalTicker,coordsTicker = {--[["OnMouseUp",]]"OnMouseDown","OnDragStart"};
 local playerDot_orig, playerDot_custom = "Interface\\Minimap\\MinimapArrow";
-local TrackingIndex,setAlphaToken={},{};
+local TrackingIndex,setAlphaToken,timeTicker={},{};
 local modifiers = {
 	A  = {LALT=1,RALT=1},
 	AL = {LALT=1},
@@ -155,6 +155,26 @@ function FarmHudMixin:UpdateCoords(state)
 	self.TextFrame.coords:SetShown(state);
 end
 
+local function TimeUpdate_TickerFunc()
+	if FarmHudDB.time_server then
+		local h,m = GetGameTime();
+		FarmHud.TextFrame.time:SetText(h..":"..m);
+	else
+		FarmHud.TextFrame.time:SetText(date("%H:%M"));
+	end
+end
+
+function FarmHudMixin:UpdateTime(state)
+	if state==true and timeTicker==nil then
+		timeTicker = C_Timer.NewTicker(1,TimeUpdate_TickerFunc);
+		TimeUpdate_TickerFunc();
+	elseif state==false and timeTicker then
+		timeTicker:Cancel();
+		timeTicker=nil;
+	end
+	self.TextFrame.time:SetShown(state);
+end
+
 function FarmHudMixin:SetScales()
 	self:SetPoint("CENTER");
 
@@ -175,10 +195,13 @@ function FarmHudMixin:SetScales()
 	self.TextFrame:SetScale(FarmHudDB.text_scale);
 	self.TextFrame.ScaledHeight = ((self:GetHeight()*self:GetScale()) / FarmHudDB.text_scale) * 0.5;
 
-	local y = self.TextFrame.ScaledHeight * FarmHudDB.coords_radius;
-	if (FarmHudDB.coords_bottom) then y = -y; end
+	local coords_y = self.TextFrame.ScaledHeight * FarmHudDB.coords_radius;
+	local time_y = self.TextFrame.ScaledHeight * FarmHudDB.time_radius;
+	if (FarmHudDB.coords_bottom) then coords_y = -coords_y; end
+	if (FarmHudDB.time_bottom) then time_y = -time_y; end
 
-	self.TextFrame.coords:SetPoint("CENTER", self, "CENTER", 0, y);
+	self.TextFrame.coords:SetPoint("CENTER", self, "CENTER", 0, coords_y);
+	self.TextFrame.time:SetPoint("CENTER",self,"CENTER",0, time_y);
 	self.TextFrame.mouseWarn:SetPoint("CENTER",self,"CENTER",0,-16);
 end
 
@@ -238,6 +261,10 @@ do
 			self.TextFrame.coords:SetShown(FarmHudDB.coords_show);
 		elseif IsKey(key,"coords_color") then
 			self.TextFrame.coords:SetTextColor(unpack(FarmHudDB.coords_color));
+		elseif IsKey(key,"time_show") then
+			self.TextFrame.time:SetShown(FarmHudDB.time_show);
+		elseif IsKey(key,"time_color") then
+			self.TextFrame.time:SetTextColor(unpack(FarmHudDB.time_color));
 		elseif IsKey(key,"buttons_show") then
 			self.onScreenButtons:SetShown(FarmHudDB.buttons_show);
 		elseif IsKey(key,"buttons_alpha") then
@@ -328,6 +355,7 @@ function FarmHudMixin:OnShow()
 	self:SetScales();
 	self:UpdateCardinalPoints(FarmHudDB.cardinalpoints_show);
 	self:UpdateCoords(FarmHudDB.coords_show);
+	self:UpdateTime(FarmHudDB.time_show);
 	self:UpdateForeignAddOns(true);
 end
 
@@ -342,7 +370,6 @@ function FarmHudMixin:OnHide(force)
 	_G.Minimap:SetFrameLevel(mps.level);
 	_G.Minimap:SetParent(mps.parent);
 	_G.Minimap:ClearAllPoints();
-
 	_G.Minimap:EnableMouse(mps.mouse);
 	_G.Minimap:EnableMouseWheel(mps.mousewheel);
 
@@ -396,6 +423,7 @@ function FarmHudMixin:OnHide(force)
 
 	self:UpdateCardinalPoints(false);
 	self:UpdateCoords(false);
+	self:UpdateTime(false);
 	self:UpdateForeignAddOns(false);
 
 	MinimapBackdrop:Show();
@@ -486,6 +514,8 @@ function FarmHudMixin:OnEvent(event,...)
 			self.TextFrame.coords:Show();
 		end
 		self.TextFrame.coords:SetTextColor(unpack(FarmHudDB.coords_color));
+
+		self.TextFrame.time:SetTextColor(unpack(FarmHudDB.time_color));
 
 		if (FarmHudDB.buttons_show) then
 			self.onScreenButtons:Show();

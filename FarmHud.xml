@@ -35,6 +35,7 @@
 					<Layer level="ARTWORK">
 						<FontString parentKey="mouseWarn" inherits="FarmHudFont" text="MOUSE ON" hidden="true" />
 						<FontString parentKey="coords" inherits="FarmHudFont" hidden="true" />
+						<FontString parentKey="time" inherits="FarmHudFont" hidden="true" />
 						<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="N" />
 						<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="NE" />
 						<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="E" />
