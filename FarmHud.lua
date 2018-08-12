@@ -280,10 +280,13 @@ function FarmHudMixin:OnShow()
 		mps.anchors[i] = {_G.Minimap:GetPoint(i)};
 	end
 
+	if SexyMapCustomBackdrop then
+		SexyMapCustomBackdrop:SetParent(_G.MinimapCluster);
+	end
+
 	local childs = {_G.Minimap:GetChildren()};
 	for i=1, #childs do
-		-- ignore HereBeDragonPins
-		if not (childs[i].arrow and childs[i].point) then
+		if not (childs[i].arrow and childs[i].point) then -- try to ignore HereBeDragonPins
 			mps.childs[i] = {childs[i]:IsShown(),childs[i]:GetAlpha()};
 			--childs[i].fh_prev = {childs[i]:IsShown(),childs[i]:GetAlpha()};
 			childs[i]:Hide();
@@ -353,6 +356,11 @@ function FarmHudMixin:OnHide(force)
 	for i=1, #mps.anchors do
 		_G.Minimap:SetPoint(unpack(mps.anchors[i]));
 	end
+
+	if SexyMapCustomBackdrop then
+		SexyMapCustomBackdrop:SetParent(_G.Minimap);
+	end
+
 	local childs = {_G.Minimap:GetChildren()};
 	for i=1, #childs do
 		if mps.childs[i]~=nil then
