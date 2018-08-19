@@ -307,7 +307,7 @@ function FarmHudMixin:OnShow()
 	end
 
 	if SexyMapCustomBackdrop then
-		SexyMapCustomBackdrop:SetParent(_G.MinimapCluster);
+		SexyMapCustomBackdrop:SetParent(FarmHud.HideElements);
 	end
 
 	local childs = {_G.Minimap:GetChildren()};
