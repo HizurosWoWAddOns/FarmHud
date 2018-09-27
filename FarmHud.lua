@@ -11,6 +11,7 @@ local mps,mouseOnKeybind,MinimapEnableMouse,MinimapSetAlpha = {}; -- minimap_pre
 local minimapScripts,cardinalTicker,coordsTicker = {--[["OnMouseUp",]]"OnMouseDown","OnDragStart"};
 local playerDot_orig, playerDot_custom = "Interface\\Minimap\\MinimapArrow";
 local TrackingIndex,setAlphaToken,timeTicker={},{};
+ns.SuperTrackedQuestID = 0;
 local modifiers = {
 	A  = {LALT=1,RALT=1},
 	AL = {LALT=1},
@@ -349,6 +350,11 @@ function FarmHudMixin:OnShow()
 		SetCVar("rotateMinimap", "1", "ROTATE_MINIMAP");
 	end
 
+	if not FarmHudDB.SuperTrackedQuest then
+		ns.SuperTrackedQuestID = GetSuperTrackedQuestID();
+		SetSuperTrackedQuestID(0);
+	end
+
 	SetPlayerDotTexture(true);
 	AreaBorder_Update(true);
 
@@ -413,6 +419,10 @@ function FarmHudMixin:OnHide(force)
 	local maxLevels = Minimap:GetZoomLevels();
 	if mps.zoom>maxLevels then mps.zoom = maxLevels; end
 	_G.Minimap:SetZoom(mps.zoom);
+
+	if not FarmHudDB.SuperTrackedQuest and ns.SuperTrackedQuestID~=0 then
+		SetSuperTrackedQuestID(ns.SuperTrackedQuestID);
+	end
 
 	wipe(mps);
 
@@ -552,6 +562,14 @@ function FarmHudMixin:OnLoad()
 
 	hooksecurefunc(_G.Minimap,"SetZoom",function(_,level)
 		if self.ZoomLock and level~=0 then _G.Minimap:SetZoom(0); end
+	end);
+
+	hooksecurefunc("SetSuperTrackedQuestID",function(questID)
+		questID = tonumber(questID) or 0;
+		if questID~=0 and not FarmHudDB.SuperTrackedQuest and FarmHud:IsVisible() then
+			ns.SuperTrackedQuestID = questID;
+			SetSuperTrackedQuestID(0);
+		end
 	end);
 
 	self:RegisterEvent("ADDON_LOADED");

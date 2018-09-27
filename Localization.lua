@@ -93,6 +93,9 @@ L["TimeColorResetDesc"] = "Reset the color of time"
 --L["MouseOverInfoColorDesc"] = "Adjust color for the text 'MOUSE ON' on the HUD"
 --L["MouseOverInfoKeybind"] =
 --L["ResetColorDesc"] = ""
+
+L["QuestArrow"] = "Quest arrow";
+L["QuestArrowDesc"] = "Display quest arrow on HUD";
 --@end-do-not-package@
 
 --@localization(locale="enUS", format="lua_additive_table", handle-subnamespaces="none", handle-unlocalized="ignore")@

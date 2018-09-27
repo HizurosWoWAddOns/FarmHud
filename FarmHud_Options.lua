@@ -1,7 +1,7 @@
 
 local addon, ns = ...;
 local L = ns.L;
-
+local _SetSuperTrackedQuestID = SetSuperTrackedQuestID;
 local playerDot_textures = {
 	["blizz"]         = L["Blizzards player arrow"],
 	["blizz-smaller"] = L["Blizzards player arrow (smaller)"],
@@ -28,7 +28,7 @@ local dbDefaults = {
 	areaborder_quest_show="blizz",areaborder_quest_texture=false,areaborder_quest_alpha=1,
 	areaborder_tasks_show="blizz",areaborder_task_texture=false,areaborder_task_alpha=1,
 	player_dot="blizz", background_alpha=0.8, holdKeyForMouseOn = "_none",
-	rotation=true
+	rotation=true, SuperTrackedQuest = true
 }
 
 local function opt(info,value,...)
@@ -43,16 +43,25 @@ local function opt(info,value,...)
 		if key=="MinimapIcon" then
 			FarmHudDB[key].hide = not value;
 			LibStub("LibDBIcon-1.0", true):Refresh(addon);
-		elseif key=="rotation" then
-			FarmHudDB[key] = value;
-			if FarmHud:IsShown() and ns.rotation=="0" then
-				SetCVar("rotateMinimap", value and "1" or "0", "ROTATE_MINIMAP");
-			end
 		else
 			if (...) then
 				value = {value,...}; -- color table
 			end
 			FarmHudDB[key] = value;
+			if key=="rotation" then
+				if FarmHud:IsShown() and ns.rotation=="0" then
+					SetCVar("rotateMinimap", value and "1" or "0", "ROTATE_MINIMAP");
+				end
+			elseif key=="SuperTrackedQuest" then
+				if FarmHud:IsVisible() then
+					if value and ns.SuperTrackedQuestID~=0 then
+						_SetSuperTrackedQuestID(ns.SuperTrackedQuestID);
+					elseif not value then
+						ns.SuperTrackedQuestID = GetSuperTrackedQuestID() or 0;
+						_SetSuperTrackedQuestID(0);
+					end
+				end
+			end
 		end
 		FarmHud:UpdateOptions(key);
 		return;
@@ -123,6 +132,10 @@ local options = {
 					type = "select", order = 14,
 					name = L.PlayerDot, desc = L.PlayerDotDesc,
 					values = playerDot_textures
+				},
+				SuperTrackedQuest = { -- quest_arrow
+					type = "toggle", order = 15,
+					name = L.QuestArrow, desc = L.QuestArrowDesc
 				},
 				mouseover = {
 					type = "group", order = 20, inline=true,
