@@ -13,6 +13,16 @@
 		</Shadow>
 	</FontString>
 
+	<Frame name="FarmHudMinimapDummy" hidden="false">
+		<Layers>
+			<Layer level="BACKGROUND" textureSubLevel="-2">
+				<Texture file="interface/GLUES/CREDITS/Pandaria/Sha_SizeProgression_011" setallpoints="true" hidden="true" parentKey="bg" mask="interface/CHARACTERFRAME/TempPortraitAlphaMask" alpha="0.6">
+					<Color r="0" g="0" b="0" a="1" />
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+
 	<Frame name="FarmHud" parent="UIParent" mixin="FarmHudMixin" frameStrata="BACKGROUND" alpha="1" hidden="true">
 		<Size x="140" y="140"/>
 		<Anchors>
