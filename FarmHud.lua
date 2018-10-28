@@ -180,15 +180,21 @@ function FarmHudMixin:UpdateTime(state)
 	self.TextFrame.time:SetShown(state);
 end
 
-function FarmHudMixin:SetScales()
+function FarmHudMixin:SetScales(enabled)
 	self:SetPoint("CENTER");
 
 	local size = UIParent:GetHeight();
 	self:SetSize(size,size);
 
-	local MinimalScaledSize = size / FarmHudDB.hud_scale;
+	local MinimapSize = size * FarmHudDB.hud_size;
+	local MinimapScaledSize =  MinimapSize / FarmHudDB.hud_scale;
 	MinimapMT.SetScale(_G.Minimap,FarmHudDB.hud_scale);
-	MinimapMT.SetSize(_G.Minimap,MinimalScaledSize, MinimalScaledSize);
+	MinimapMT.SetSize(_G.Minimap,MinimapScaledSize, MinimapScaledSize);
+
+	self.cluster:SetScale(FarmHudDB.hud_scale);
+	self.cluster:SetSize(MinimapScaledSize, MinimapScaledSize);
+	self.cluster:SetFrameStrata(_G.Minimap:GetFrameStrata());
+	self.cluster:SetFrameLevel(_G.Minimap:GetFrameLevel());
 
 	local gcSize = MinimapSize * 0.432;
 	self.gatherCircle:SetSize(gcSize, gcSize);
@@ -208,6 +214,10 @@ function FarmHudMixin:SetScales()
 	self.TextFrame.coords:SetPoint("CENTER", self, "CENTER", 0, coords_y);
 	self.TextFrame.time:SetPoint("CENTER",self,"CENTER",0, time_y);
 	self.TextFrame.mouseWarn:SetPoint("CENTER",self,"CENTER",0,-16);
+
+	if enabled then
+		self:UpdateForeignAddOns(true)
+	end
 end
 
 function FarmHudMixin:UpdateScale()
@@ -215,7 +225,7 @@ function FarmHudMixin:UpdateScale()
 end
 
 function FarmHudMixin:UpdateForeignAddOns(state)
-	local Map = state and self or _G.Minimap;
+	local Map = state and self.cluster or _G.Minimap;
 
 	if GatherMate2 then
 		GatherMate2:GetModule("Display"):ReparentMinimapPins(Map);
@@ -241,7 +251,7 @@ do
 	function FarmHudMixin:UpdateOptions(key)
 		if not self:IsVisible() then return end
 
-		self:SetScales();
+		self:SetScales(true);
 
 		if IsKey(key,"background_alpha") then
 			MinimapMT.SetAlpha(_G.Minimap,FarmHudDB.background_alpha);
@@ -279,6 +289,8 @@ do
 end
 
 function FarmHudMixin:OnShow()
+	self.cluster:Show();
+
 	mps.anchors = {};
 	mps.childs = {};
 	mps.zoom = _G.Minimap:GetZoom();
@@ -357,11 +369,10 @@ function FarmHudMixin:OnShow()
 	SetPlayerDotTexture(true);
 	AreaBorder_Update(true);
 
-	self:SetScales();
+	self:SetScales(true);
 	self:UpdateCardinalPoints(FarmHudDB.cardinalpoints_show);
 	self:UpdateCoords(FarmHudDB.coords_show);
 	self:UpdateTime(FarmHudDB.time_show);
-	self:UpdateForeignAddOns(true);
 end
 
 function FarmHudMixin:OnHide(force)
@@ -381,6 +392,8 @@ function FarmHudMixin:OnHide(force)
 	MinimapMT.EnableMouseWheel(_G.Minimap,mps.mousewheel);
 
 	MinimapMT.SetAlpha(_G.Minimap,mps.alpha);
+
+	self.cluster:Hide();
 
 	if mps.ommouseup then
 		MinimapMT.SetScript(_G.Minimap,"OnMouseUp",mps.ommouseup);
@@ -463,14 +476,6 @@ function FarmHudMixin:ToggleMouse(force)
 	end
 end
 
-function FarmHudMixin:GetZoom()
-	return _G.Minimap:GetZoom();
-end
-
-function FarmHudMixin:SetZoom()
-	-- dummy
-end
-
 function FarmHudMixin:ToggleBackground()
 	if _G.Minimap:GetParent()==self then
 		MinimapMT.SetAlpha(_G.Minimap,_G.Minimap:GetAlpha()==0 and FarmHudDB.background_alpha or 0);
@@ -547,7 +552,6 @@ function FarmHudMixin:OnEvent(event,...)
 end
 
 function FarmHudMixin:OnLoad()
-	MinimapMT = getmetatable(_G.Minimap).__index;
 
 	hooksecurefunc(_G.Minimap,"SetPlayerTexture",function(_,texture)
 		if FarmHud:IsVisible() then
@@ -575,6 +579,14 @@ function FarmHudMixin:OnLoad()
 			SetSuperTrackedQuestID(0);
 		end
 	end);
+
+	function self.cluster:GetZoom()
+		return _G.Minimap:GetZoom();
+	end
+
+	function self.cluster:SetZoom()
+		-- dummy
+	end
 
 	self:RegisterEvent("ADDON_LOADED");
 	self:RegisterEvent("PLAYER_LOGIN");

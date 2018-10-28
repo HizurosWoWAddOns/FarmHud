@@ -17,7 +17,7 @@ local AreaBorderValues = {
 };
 
 local dbDefaults = {
-	hud_scale=1.4, text_scale=1.4,
+	hud_scale=1.4, text_scale=1.4, hud_size=0,
 	gathercircle_show=true,gathercircle_color={0,1,0,0.5},
 	cardinalpoints_show=true,cardinalpoints_color1={1,0.82,0,0.7},cardinalpoints_color2={1,0.82,0,0.7},cardinalpoints_radius=0.47,
 	coords_show=true,coords_bottom=false,coords_color={1,0.82,0,0.7},coords_radius=0.51,
@@ -48,18 +48,20 @@ local function opt(info,value,...)
 				value = {value,...}; -- color table
 			end
 			FarmHudDB[key] = value;
-			if key=="rotation" then
-				if FarmHud:IsShown() and ns.rotation=="0" then
-					SetCVar("rotateMinimap", value and "1" or "0", "ROTATE_MINIMAP");
-				end
-			elseif key=="SuperTrackedQuest" then
-				if FarmHud:IsVisible() then
+			if FarmHud:IsVisible() then
+				if key=="rotation" then
+					if ns.rotation=="0" then
+						SetCVar("rotateMinimap", value and "1" or "0", "ROTATE_MINIMAP");
+					end
+				elseif key=="SuperTrackedQuest" then
 					if value and ns.SuperTrackedQuestID~=0 then
 						_SetSuperTrackedQuestID(ns.SuperTrackedQuestID);
 					elseif not value then
 						ns.SuperTrackedQuestID = GetSuperTrackedQuestID() or 0;
 						_SetSuperTrackedQuestID(0);
 					end
+				elseif key=="hud_size" then
+					FarmHud:SetScales();
 				end
 			end
 		end
@@ -118,23 +120,28 @@ local options = {
 					name = L.HudSymbolScale, desc = L.HudSymbolScaleDesc,
 					min = 1, max = 2.5, step = 0.1, isPercent = true
 				},
-				text_scale = {
+				hud_size = {
 					type = "range", order = 12,
+					name = L.HudSize, desc = L.HudSizeDesc,
+					min = 0.4, max = 1, step = 0.1, isPercent = true
+				},
+				text_scale = {
+					type = "range", order = 13,
 					name = L.TextScale, desc = L.TextScaleDesc,
 					min = 1, max = 2.5, step = 0.1, isPercent = true
 				},
 				background_alpha = {
-					type = "range", order = 13,
+					type = "range", order = 14,
 					name = L.BgTransparency, --desc = L.BgTransparencyDesc
-					min = 0.1, max = 1, step = 0.1, isPercent = true
+					min = 0.0, max = 1, step = 0.1, isPercent = true
 				},
 				player_dot = {
-					type = "select", order = 14,
+					type = "select", order = 15,
 					name = L.PlayerDot, desc = L.PlayerDotDesc,
 					values = playerDot_textures
 				},
 				SuperTrackedQuest = { -- quest_arrow
-					type = "toggle", order = 15,
+					type = "toggle", order = 16,
 					name = L.QuestArrow, desc = L.QuestArrowDesc
 				},
 				mouseover = {

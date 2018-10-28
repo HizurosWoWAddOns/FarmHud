@@ -29,7 +29,11 @@
 			</Layer>
 		</Layers>
 		<Frames>
-			<Frame name="FarmHudCluster" setallpoints="true" />
+			<Frame parentKey="cluster">
+				<Anchors>
+					<Anchor point="CENTER" relativePoint="CENTER" />
+				</Anchors>
+			</Frame>
 			<Frame parentKey="TextFrame" setallpoints="true">
 				<Layers>
 					<Layer level="ARTWORK">
