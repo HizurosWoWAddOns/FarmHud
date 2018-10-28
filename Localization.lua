@@ -95,7 +95,7 @@ L["TimeColorResetDesc"] = "Reset the color of time"
 --L["ResetColorDesc"] = ""
 
 L["QuestArrow"] = "Quest arrow";
-L["QuestArrowDesc"] = "Display quest arrow on HUD";
+L["QuestArrowDesc"] = "Display quest arrow on opened HUD";
 --@end-do-not-package@
 
 --@localization(locale="enUS", format="lua_additive_table", handle-subnamespaces="none", handle-unlocalized="ignore")@
