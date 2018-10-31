@@ -329,6 +329,9 @@ function FarmHudMixin:UpdateForeignAddOns(state)
 	if LibStub.libs["HereBeDragons-Pins-1.0"] then
 		LibStub("HereBeDragons-Pins-1.0"):SetMinimapObject(state and Map or nil);
 	end
+	if LibStub.libs["HereBeDragons-Pins-2.0"] then
+		LibStub("HereBeDragons-Pins-2.0"):SetMinimapObject(state and Map or nil);
+	end
 	if LibHijackMinimap then
 		LibHijackMinimap:ReleaseMinimap(LibHijackMinimap_Token,state and Map or nil);
 	end

@@ -17,7 +17,7 @@ local AreaBorderValues = {
 };
 
 local dbDefaults = {
-	hud_scale=1.4, text_scale=1.4, hud_size=0,
+	hud_scale=1.4, text_scale=1.4, hud_size=1,
 	gathercircle_show=true,gathercircle_color={0,1,0,0.5},
 	cardinalpoints_show=true,cardinalpoints_color1={1,0.82,0,0.7},cardinalpoints_color2={1,0.82,0,0.7},cardinalpoints_radius=0.47,
 	coords_show=true,coords_bottom=false,coords_color={1,0.82,0,0.7},coords_radius=0.51,
@@ -27,7 +27,7 @@ local dbDefaults = {
 	areaborder_arch_show="blizz",areaborder_arch_texture=false,areaborder_arch_alpha=1,
 	areaborder_quest_show="blizz",areaborder_quest_texture=false,areaborder_quest_alpha=1,
 	areaborder_tasks_show="blizz",areaborder_task_texture=false,areaborder_task_alpha=1,
-	player_dot="blizz", background_alpha=0.8, holdKeyForMouseOn = "_none",
+	player_dot="blizz", background_alpha=0, holdKeyForMouseOn = "_none",
 	rotation=true, SuperTrackedQuest = true
 }
 
@@ -408,6 +408,10 @@ function ns.RegisterOptions()
 		if (FarmHudDB[k]==nil) then
 			FarmHudDB[k]=v;
 		end
+	end
+
+	if FarmHudDB.hud_size==0 then
+		FarmHudDB.hud_size=1;
 	end
 
 	if FarmHudDB.MinimapIcon.show~=nil then
