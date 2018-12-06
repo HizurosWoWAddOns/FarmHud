@@ -28,7 +28,7 @@ local dbDefaults = {
 	areaborder_quest_show="blizz",areaborder_quest_texture=false,areaborder_quest_alpha=1,
 	areaborder_tasks_show="blizz",areaborder_task_texture=false,areaborder_task_alpha=1,
 	player_dot="blizz", background_alpha=0, holdKeyForMouseOn = "_none",
-	rotation=true, SuperTrackedQuest = true
+	rotation=true, SuperTrackedQuest = true, showDummy = true, showDummyBg = true
 }
 
 local function opt(info,value,...)
@@ -114,7 +114,10 @@ local options = {
 					type = "toggle", order = 3,
 					name = L.Rotation, desc = L.RotationDesc
 				},
-				spacer0 =  {type="description", order=10, name=" ", fontSize="medium"},
+				SuperTrackedQuest = { -- quest_arrow
+					type = "toggle", order = 4,
+					name = L.QuestArrow, desc = L.QuestArrowDesc
+				},
 				hud_scale = {
 					type = "range", order = 11,
 					name = L.HudSymbolScale, desc = L.HudSymbolScaleDesc,
@@ -140,9 +143,23 @@ local options = {
 					name = L.PlayerDot, desc = L.PlayerDotDesc,
 					values = playerDot_textures
 				},
-				SuperTrackedQuest = { -- quest_arrow
-					type = "toggle", order = 16,
-					name = L.QuestArrow, desc = L.QuestArrowDesc
+				placeholder = {
+					type = "group", order = 19, inline = true,
+					name = L.Placeholder,
+					args = {
+						desc = {
+							type = "description", order = 0, fontSize = "medium",
+							name = L.PlaceholderDesc
+						},
+						showDummy = {
+							type = "toggle", order = 1,
+							name = L.ShowPlaceholder, desc = L.ShowPlaceholderDesc
+						},
+						showDummyBg = {
+							type = "toggle", order = 2,
+							name = L.ShowPlaceholderBg, desc = L.ShowPlaceholderBgDesc
+						}
+					}
 				},
 				mouseover = {
 					type = "group", order = 20, inline=true,
@@ -174,27 +191,6 @@ local options = {
 							type = "execute", order = 2,
 							name = L.ResetColor, --desc = L.ResetColorDesc
 						},
-					}
-				},
-
-				supports = {
-					type = "group", order = 25, inline=true,
-					name = L.SupportOptions,
-					get = function() return true; end,
-					args = {
-						desc = {
-							type = "description", order = 0, fontSize = "medium",
-							name = L.SupportBlizzard
-						},
-						desc2 = {
-							type = "description", order = 99, fontSize = "medium",
-							name = L.SupportHereBeDragon
-						},
-						gathermate  = {type="toggle", order=1, disabled=true, name="GatherMate2"},
-						routes      = {type="toggle", order=1, disabled=true, name="Routes"},
-						bloodhound2 = {type="toggle", order=1, disabled=true, name="BloodHound2"},
-						tomtom      = {type="toggle", order=1, disabled=true, name="TomTom"},
-						handynotes  = {type="toggle", order=1, disabled=true, name="HandyNotes"}
 					}
 				}
 			}

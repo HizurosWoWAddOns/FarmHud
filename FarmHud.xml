@@ -13,7 +13,7 @@
 		</Shadow>
 	</FontString>
 
-	<Frame name="FarmHudMinimapDummy" hidden="false">
+	<Frame name="FarmHudMinimapDummy" hidden="true">
 		<Layers>
 			<Layer level="BACKGROUND" textureSubLevel="-2">
 				<Texture file="interface/GLUES/CREDITS/Pandaria/Sha_SizeProgression_011" setallpoints="true" hidden="true" parentKey="bg" mask="interface/CHARACTERFRAME/TempPortraitAlphaMask" alpha="0.6">

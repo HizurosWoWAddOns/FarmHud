@@ -382,6 +382,10 @@ do
 			self.onScreenButtons:SetShown(FarmHudDB.buttons_show);
 		elseif IsKey(key,"buttons_alpha") then
 			self.onScreenButtons:SetAlpha(FarmHudDB.buttons_alpha);
+		elseif IsKey(key,"showDummy") then
+			Dummy:SetShown(FarmHudDB.showDummy);
+		elseif IsKey(key,"showDummyBg") then
+			Dummy.bg:SetShown(FarmHudDB.showDummyBg);
 		end
 	end
 end
@@ -396,7 +400,8 @@ function FarmHudMixin:OnShow()
 	for i=1, _G.Minimap:GetNumPoints() do
 		Dummy:SetPoint(_G.Minimap:GetPoint(i));
 	end
-	Dummy.bg:Show();
+	Dummy.bg:SetShown(FarmHudDB.showDummyBg);
+	Dummy:SetShown(FarmHudDB.showDummy);
 	self.cluster:Show();
 
 	mps.anchors = {};
@@ -508,6 +513,7 @@ function FarmHudMixin:OnHide(force)
 	MinimapMT.SetAlpha(_G.Minimap,mps.alpha);
 
 	Dummy.bg:Hide();
+	Dummy:Hide();
 	self.cluster:Hide();
 
 	if mps.ommouseup then

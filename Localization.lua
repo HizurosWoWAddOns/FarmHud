@@ -96,6 +96,12 @@ L["TimeColorResetDesc"] = "Reset the color of time"
 
 L["QuestArrow"] = "Quest arrow";
 L["QuestArrowDesc"] = "Display quest arrow on opened HUD";
+
+L["PlaceholderDesc"] = "The placeholder is an element to hold all visible elements of your minimap in place while Farmhud is active.";
+L["ShowPlaceholder"] = "Show elements"
+L["ShowPlaceholderDesc"] = "The elements of your minimap remain visible even when FarmHud is active."
+L["ShowPlaceholderBg"] = "Show Background"
+L["ShowPlaceholderBgDesc"] = "Display a black background instead of the minimap while FarmHud is active."
 --@end-do-not-package@
 
 --@localization(locale="enUS", format="lua_additive_table", handle-subnamespaces="none", handle-unlocalized="ignore")@
