@@ -200,24 +200,19 @@ end
 
 local function CardinalPointsUpdate_TickerFunc()
 	local bearing = GetPlayerFacing();
+	local scaledRadius = FarmHud.TextFrame.ScaledHeight * FarmHudDB.cardinalpoints_radius;
 	for i=1, #FarmHud.TextFrame.cardinalPoints do
 		local v = FarmHud.TextFrame.cardinalPoints[i];
-		v:Hide();
 		v:ClearAllPoints();
 		if bearing then
-			v:SetPoint(
-				"CENTER",FarmHud,"CENTER",
-				math.sin(v.rot + bearing) * (FarmHud.TextFrame.ScaledHeight * FarmHudDB.cardinalpoints_radius),
-				math.cos(v.rot + bearing) * (FarmHud.TextFrame.ScaledHeight * FarmHudDB.cardinalpoints_radius)
-			);
-			v:Show();
+			v:SetPoint("CENTER", FarmHud, "CENTER", math.sin(v.rot+bearing)*scaledRadius, math.cos(v.rot+bearing)*scaledRadius);
 		end
 	end
 end
 
 function FarmHudMixin:UpdateCardinalPoints(state)
 	if not cardinalTicker and state~=false then
-		cardinalTicker = C_Timer.NewTicker(1/30, CardinalPointsUpdate_TickerFunc);
+		cardinalTicker = C_Timer.NewTicker(1/24, CardinalPointsUpdate_TickerFunc);
 	elseif cardinalTicker and state==false then
 		cardinalTicker:Cancel();
 		cardinalTicker = nil;
@@ -247,7 +242,7 @@ end
 
 function FarmHudMixin:UpdateCoords(state)
 	if state==true and coordsTicker==nil then
-		coordsTicker = C_Timer.NewTicker(1/30,CoordsUpdate_TickerFunc);
+		coordsTicker = C_Timer.NewTicker(1/24,CoordsUpdate_TickerFunc);
 	elseif state==false and coordsTicker then
 		coordsTicker:Cancel();
 		coordsTicker=nil;
