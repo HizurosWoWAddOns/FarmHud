@@ -22,7 +22,7 @@ local dbDefaults = {
 	cardinalpoints_show=true,cardinalpoints_color1={1,0.82,0,0.7},cardinalpoints_color2={1,0.82,0,0.7},cardinalpoints_radius=0.47,
 	coords_show=true,coords_bottom=false,coords_color={1,0.82,0,0.7},coords_radius=0.51,
 	buttons_show=false,buttons_buttom=false,buttons_alpha=0.6,buttons_radius=0.56,
-	time_show=true, time_server=true, time_radius = 0.48, time_bottom=false, time_color={1,0.82,0,0.7},
+	time_show=true, time_server=true, time_local=true, time_radius = 0.48, time_bottom=false, time_color={1,0.82,0,0.7},
 	mouseoverinfo_color={1,0.82,0,0.7},
 	areaborder_arch_show="blizz",areaborder_arch_texture=false,areaborder_arch_alpha=1,
 	areaborder_quest_show="blizz",areaborder_quest_texture=false,areaborder_quest_alpha=1,
@@ -297,21 +297,25 @@ local options = {
 					type = "toggle", order = 2,
 					name = L.TimeServer, desc = L.TimeServerDesc
 				},
+				time_local = {
+					type = "toggle", order = 3,
+					name = L.TimeLocal, desc = L.TimeLocalDdesc
+				},
 				time_radius = {
-					type = "range", order = 3,
+					type = "range", order = 4,
 					name = L.ChangeRadius, desc = L.ChangeRadiusDesc,
 					min = 0.1, max = 0.9, step=0.005, isPercent=true
 				},
 				time_bottom = {
-					type = "toggle", order = 4, width = "double",
+					type = "toggle", order = 5, width = "double",
 					name = L.TimeBottom, desc = L.TimeBottomDesc
 				},
 				time_color = {
-					type = "color", order = 5, hasAlpha = true,
+					type = "color", order = 6, hasAlpha = true,
 					name = COLOR, desc = L.TimeColorDesc
 				},
 				time_resetcolor = {
-					type = "execute", order = 6,
+					type = "execute", order = 7,
 					name = L.ResetColor, desc = L.TimeColorResetDesc
 				},
 			}

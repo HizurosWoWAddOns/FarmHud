@@ -251,12 +251,19 @@ function FarmHudMixin:UpdateCoords(state)
 end
 
 local function TimeUpdate_TickerFunc()
+	local timeStr = {};
 	if FarmHudDB.time_server then
 		local h,m = GetGameTime();
-		FarmHud.TextFrame.time:SetFormattedText("%d:%02d",h,m);
-	else
-		FarmHud.TextFrame.time:SetText(date("%H:%M"));
+		tinsert(timeStr,string.format("%d:%02d",h,m)); -- realm time
 	end
+	if FarmHudDB.time_local then
+		tinsert(timeStr,date("%H:%M")); -- local time
+		if #timeStr==2 then
+			timeStr[1] = "R: "..timeStr[1];
+			timeStr[2] = "L: "..timeStr[2];
+		end
+	end
+	FarmHud.TextFrame.time:SetText(table.concat(timeStr," / "));
 end
 
 function FarmHudMixin:UpdateTime(state)
