@@ -84,12 +84,11 @@ do
 	end
 end
 
-ns.IsClassic = IsClassic;
+ns.IsClassic = IsClassic or IsClassicClient;
 if not ns.IsClassic then
 	local version,build,datestr,interface = GetBuildInfo()
-	build = tonumber(build);
 	function ns.IsClassic()
-		return build>30000 and interface<20000;
+		return interface<20000;
 	end
 end
 
@@ -351,6 +350,10 @@ function FarmHudMixin:UpdateForeignAddOns(state)
 	end
 	if LibStub.libs["HereBeDragons-Pins-2.0"] then
 		LibStub("HereBeDragons-Pins-2.0"):SetMinimapObject(state and Map or nil);
+	end
+	if LibStub.libs["HereBeDragonsQuestie-Pins-2.0"] then
+		ns.debug("HereBeDragonsQuestie-Pins-2.0",state);
+		LibStub("HereBeDragonsQuestie-Pins-2.0"):SetMinimapObject(state and Map or nil);
 	end
 	if LibHijackMinimap then
 		LibHijackMinimap:ReleaseMinimap(LibHijackMinimap_Token,state and Map or nil);
