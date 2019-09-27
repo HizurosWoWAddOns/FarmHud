@@ -2,6 +2,7 @@
 local addon, ns = ...;
 local L = ns.L;
 local _SetSuperTrackedQuestID = SetSuperTrackedQuestID;
+local SaveBindings = SaveBindings or AttemptToSaveBindings
 local playerDot_textures = {
 	["blizz"]         = L["Blizzards player arrow"],
 	["blizz-smaller"] = L["Blizzards player arrow (smaller)"],
