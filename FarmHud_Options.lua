@@ -11,11 +11,16 @@ local playerDot_textures = {
 	["black"]         = L["Black player dot"],
 	["hide"]          = L["Hide player arrow"],
 };
-local AreaBorderValues = {
+local AreaBorderValues = { -- deprecated
 	["true"] = SHOW,
 	["false"] = HIDE,
 	["blizz"] = L["AreaBorderByClient"]
 };
+local TrackingValues = {
+	["true"] = SHOW,
+	["false"] = HIDE,
+	["client"] = L["TrackingOptionsLikeMinimap"]
+}
 
 local dbDefaults = {
 	hud_scale=1.4, text_scale=1.4, hud_size=1,
@@ -25,9 +30,9 @@ local dbDefaults = {
 	buttons_show=false,buttons_buttom=false,buttons_alpha=0.6,buttons_radius=0.56,
 	time_show=true, time_server=true, time_local=true, time_radius = 0.48, time_bottom=false, time_color={1,0.82,0,0.7},
 	mouseoverinfo_color={1,0.82,0,0.7},
-	areaborder_arch_show="blizz",areaborder_arch_texture=false,areaborder_arch_alpha=1,
-	areaborder_quest_show="blizz",areaborder_quest_texture=false,areaborder_quest_alpha=1,
-	areaborder_tasks_show="blizz",areaborder_task_texture=false,areaborder_task_alpha=1,
+	--areaborder_arch_show="blizz",areaborder_arch_texture=false,areaborder_arch_alpha=1,
+	--areaborder_quest_show="blizz",areaborder_quest_texture=false,areaborder_quest_alpha=1,
+	--areaborder_tasks_show="blizz",areaborder_task_texture=false,areaborder_task_alpha=1,
 	player_dot="blizz", background_alpha=0, holdKeyForMouseOn = "_none",
 	rotation=true, SuperTrackedQuest = true, showDummy = true, showDummyBg = true
 }
@@ -89,6 +94,18 @@ local function optKeyBind(info,value)
 		SaveBindings(GetCurrentBindingSet());
 	end
 	return GetBindingKey(key);
+end
+
+local function optTracking(info,value)
+	local key = info[#info];
+	if not key:find("^tracking\^%d+$") then return end
+
+	if value~=nil then
+		FarmHudDB[key] = value;
+		FarmHud:UpdateOptions(key);
+		return;
+	end
+	return --[[FarmHudDB[key]==nil and "client" or]] FarmHudDB[key];
 end
 
 local options = {
@@ -199,7 +216,7 @@ local options = {
 		----------------------------------------------
 		gathercircle = {
 			type = "group", order = 1,
-			name = L.GartherCircle,
+			name = L.GatherCircle,
 			args = {
 				gathercircle_desc = {
 					type = "description", order = 0, fontSize = "medium",
@@ -345,32 +362,62 @@ local options = {
 				}
 			}
 		},
-		areaborder = {
-			type = "group", order = 6,
-			name = L.AreaBorder,
+		areaborder = {  -- deprecated
+			type = "group", order = 6, hidden=ns.IsClassic,
+			name = "|cff888888"..L.AreaBorder.."|r",
 			args = {
+				info = {
+					type = "description", order = 0, fontSize = "medium",
+					name = "|cffff9900"..L["AreaBorderRemoved"].."|r"
+				},
 				areaborder_arch_header = {
 					type = "header", order = 10,
-					name = TRACKING.." > "..MINIMAP_TRACKING_DIGSITES,
+					name = "|cff888888"..TRACKING.." > "..MINIMAP_TRACKING_DIGSITES.."|r",
 				},
 				areaborder_arch_show = {
-					type = "select", order = 11, width = "double",
+					type = "select", order = 11, width = "double", disabled=true,
 					name = L.AreaBorderOnHUD:format(PROFESSIONS_ARCHAEOLOGY),
 					values = AreaBorderValues
 				},
 				areaborder_quest_header = {
 					type = "header", order = 20,
-					name = TRACKING.." > "..MINIMAP_TRACKING_QUEST_POIS,
+					name = "|cff888888"..TRACKING.." > "..MINIMAP_TRACKING_QUEST_POIS.."|r",
 				},
 				areaborder_quest_show = {
-					type = "select", order = 21, width = "double",
+					type = "select", order = 21, width = "double", disabled=true,
 					name = L.AreaBorderOnHUD:format(LOOT_JOURNAL_LEGENDARIES_SOURCE_QUEST),
 					values = AreaBorderValues
 				},
 			}
 		},
-		keybindings = {
+		tracking = {
 			type = "group", order = 7,
+			name = L.TrackingOptions,
+			get = optTracking, set = optTracking,
+			childGroups = "tab",
+			args = {
+				desc = {
+					type = "description", order = 1, fontSize = "medium",
+					name = L.TrackingOptionsDesc
+				},
+				misc = {
+					type = "group", order = 2,
+					name = MISCELLANEOUS,
+					args = {
+						-- filled by function updateTrackingOptions
+					}
+				},
+				townsfolk = {
+					type = "group", order = 3,
+					name = TOWNSFOLK_TRACKING_TEXT,
+					args = {
+						-- filled by function updateTrackingOptions
+					}
+				}
+			}
+		},
+		keybindings = {
+			type = "group", order = 99,
 			name = KEY_BINDINGS,
 			get = optKeyBind,
 			set = optKeyBind,
@@ -392,17 +439,57 @@ local options = {
 	}
 };
 
+local trackingTypes,trackingOpts,trackingTemplate = {},{},{
+	type = "select", name = "", values = TrackingValues
+};
+local trackingPattern = "|T%d:26:26:0:0|t %s"
+
+local function sortTrackingTypes(a,b)
+	return a.index<b.index;
+end
+
+local function updateTrackingOptions(info)
+	if info[#info]~="tracking" then return false end
+	if ns.IsClassic() then
+		return true;
+	end
+	wipe(options.args.tracking.args.townsfolk.args);
+	wipe(options.args.tracking.args.misc.args);
+	trackingTypes = ns.GetTrackingTypes(); -- defined in FarmHud.lua
+	table.sort(trackingTypes,sortTrackingTypes);
+	for textureId,data in pairs(trackingTypes)do
+		local key = "tracking^"..textureId;
+		if trackingOpts[textureId]==nil then
+			trackingOpts[textureId] = CopyTable(trackingTemplate);
+			trackingOpts[textureId].name = trackingPattern:format(textureId,data.name);
+			trackingOpts[textureId].order = data.index;
+		end
+		if data.level==2 then -- townfolk
+			options.args.tracking.args.townsfolk.args[key] = trackingOpts[textureId]
+		else -- misc
+			options.args.tracking.args.misc.args[key] = trackingOpts[textureId];
+		end
+	end
+	return false;
+end
+
 function ns.RegisterOptions()
-	if (FarmHudDB==nil) then
+	if FarmHudDB==nil then
 		FarmHudDB={};
 	end
 
-	if (FarmHudDB.MinimapIcon==nil) then
+	if FarmHudDB.MinimapIcon==nil then
 		FarmHudDB.MinimapIcon = {
 			hide = false,
 			minimapPos = 220,
 			radius = 80
 		};
+	end
+
+	trackingTypes = ns.GetTrackingTypes();
+	for id, data in pairs(trackingTypes)do
+		ns.debug("trackingTypes",id);
+		dbDefaults["tracking^"..id] = "client"
 	end
 
 	for k,v in pairs(dbDefaults)do
@@ -419,6 +506,19 @@ function ns.RegisterOptions()
 		FarmHudDB.MinimapIcon.hide = not FarmHudDB.MinimapIcon.show;
 		FarmHudDB.MinimapIcon.show = nil;
 	end
+
+	-- migration
+	-- areaborder > archaeology
+	if FarmHudDB["tracking^535615"]==nil and FarmHudDB.areaborder_arch_show~=nil then
+		FarmHudDB["tracking^535615"] = (FarmHudDB.areaborder_arch_show=="blizz" and "client") or FarmHudDB.areaborder_arch_show
+	end
+	-- areaborder > quest & task
+	if FarmHudDB["tracking^535616"]==nil and FarmHudDB.areaborder_quest_show~=nil then
+		FarmHudDB["tracking^535616"] = (FarmHudDB.areaborder_quest_show=="blizz" and "client") or FarmHudDB.areaborder_quest_show
+		FarmHudDB.areaborder_quest_show~=nil
+	end
+
+	options.args.tracking.hidden = updateTrackingOptions
 
 	LibStub("AceConfig-3.0"):RegisterOptionsTable(addon, options);
 	LibStub("AceConfigDialog-3.0"):AddToBlizOptions(addon);

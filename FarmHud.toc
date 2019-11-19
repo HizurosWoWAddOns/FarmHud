@@ -1,4 +1,4 @@
-## Interface: 11302
+## Interface: 80205
 ## Title: FarmHud
 ## Version: @project-version@
 ## Notes: Turns your minimap into a hud for gathering resources!

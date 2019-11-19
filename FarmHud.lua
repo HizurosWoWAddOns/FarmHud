@@ -16,6 +16,7 @@ local minimapScripts,cardinalTicker,coordsTicker = {--[["OnMouseUp",]]"OnMouseDo
 local playerDot_orig, playerDot_custom = "Interface\\Minimap\\MinimapArrow";
 local TrackingIndex,timeTicker={};
 local SetPointToken,SetParentToken = {},{};
+local trackingTypes,trackingTypesStates,numTrackingTypes,trackingHookLocked = {},{},0,false;
 local breadcrumps = {path={},pool={}};
 local anchoredFrames = { -- <name[string]>, <SetParent[bool]>, <SetPoint[bool]>,
 	-- Blizzard
@@ -92,7 +93,7 @@ if not ns.IsClassic then
 	end
 end
 
-local function SetPlayerDotTexture(bool)
+local function SetPlayerDotTexture(bool) -- executed by FarmHud:UpdateOptions(), FrameHud:OnShow(), FarmHud:OnHide() and FarmHud:OnLoad()
 	local tex = media.."playerDot-"..FarmHudDB.player_dot
 	if FarmHudDB.player_dot=="blizz" or not bool then
 		tex = playerDot_custom or playerDot_orig;
@@ -100,7 +101,8 @@ local function SetPlayerDotTexture(bool)
 	MinimapMT.SetPlayerTexture(_G.Minimap,tex);
 end
 
--- unusable. changes from lower to upper values are ignored by blizzards api.
+-- unusable. changes from lower to upper values are ignored by blizzards api without ui reload.
+--[[
 local function AreaBorder_SetAlpha(Type,Value)
 	if not (Type=="Arch" or Type=="Quest" or Type=="Task") then return end
 	_G.Minimap["Set"..Type.."BlobInsideAlpha"](Value);
@@ -115,6 +117,58 @@ local function AreaBorder_SetTexture(Type,Inside,Outside,Ring,Selected)
 	_G.Minimap["Set"..Type.."BlobRingTexture"](Ring);
 	if t=="Quest" and Selected then
 		_G.Minimap["Set"..v.."BlobOutsideSelectedTexture"](Selected);
+	end
+end
+--]]
+
+-- tracking options
+
+function ns.GetTrackingTypes()
+	if ns.IsClassic() then
+		return {};
+	end
+	local num = GetNumTrackingTypes();
+	if numTrackingTypes~=num then
+		numTrackingTypes = num;
+		wipe(trackingTypes);
+		for i=1, num do
+			local name, textureId, active, objType, objLevel, objId = GetTrackingInfo(i);
+			trackingTypes[textureId] = {index=i,name=name,active=active,level=objLevel};
+		end
+	end
+	return trackingTypes;
+end
+
+local function TrackingTypes_Update(bool, id)
+	if ns.IsClassic() then return end
+	if tonumber(id) then
+		local key,data = "tracking^"..id,trackingTypes[id];
+		local _, _, active = GetTrackingInfo(data.index);
+		trackingHookLocked = true;
+		if bool then
+			if FarmHudDB[key]=="client" then
+				if trackingTypesStates[data.index]~=nil then
+					SetTracking(data.index,trackingTypesStates[data.index]);
+					trackingTypesStates[data.index] = nil;
+				end
+			elseif FarmHudDB[key]~=tostring(active) then
+				if trackingTypesStates[data.index]==nil then
+					trackingTypesStates[data.index] = active;
+				end
+				SetTracking(data.index,FarmHudDB[key]=="true");
+			end
+		elseif not bool and trackingTypesStates[data.index]~=nil then
+			SetTracking(data.index,trackingTypesStates[data.index]);
+			trackingTypesStates[data.index] = nil;
+		end
+		trackingHookLocked = false;
+	else
+		ns.GetTrackingTypes();
+		for id, data in pairs(trackingTypes) do
+			if FarmHudDB["tracking^"..id]~="client" then
+				TrackingTypes_Update(bool, id);
+			end
+		end
 	end
 end
 
@@ -151,18 +205,21 @@ local function AreaBorder_Update(bool, key, dbValue)
 	end
 end
 
-local function dummyOnlySetPoint(self,a,b,c,d,e)
+
+-- dummyOnly; prevent changes by foreign addons while farmhud is visible
+
+local function dummyOnly_SetPoint(self,a,b,c,d,e)
 	return self[SetPointToken](self,a,(b==_G.Minimap or b=="Minimap") and Dummy or b,c,d,e);
 end
 
-local function dummyOnlySetParent(self,parent)
+local function dummyOnly_SetParent(self,parent)
 	if parent==_G.Minimap or p=="Minimap" then
 		return self[SetParentToken](self,Dummy);
 	end
 	return self[SetParentToken](self,parent);
 end
 
-local function objectToDummy(object,doSetPoint,doSetParent,enable)
+local function objectToDummy(object,enable,doSetPoint,doSetParent)
 	local parent,fstrata,flevel,dlayer,dlevel = object:GetParent();
 	if doSetParent then
 		if object.GetDrawLayer then
@@ -175,7 +232,7 @@ local function objectToDummy(object,doSetPoint,doSetParent,enable)
 			object[SetParentToken] = object.SetParent;
 		end
 		if enable==true and parent==_G.Minimap then
-			object.SetParent = dummyOnlySetParent;
+			object.SetParent = dummyOnly_SetParent;
 			object[SetParentToken](object,Dummy);
 		elseif enable==false and parent==Dummy then
 			object.SetParent = object[SetParentToken];
@@ -196,7 +253,7 @@ local function objectToDummy(object,doSetPoint,doSetParent,enable)
 		for p=1, (object:GetNumPoints()) do
 			local point,relTo,relPoint,x,y = object:GetPoint(p);
 			if enable==true and relTo==_G.Minimap then
-				object[SetPointToken](object,point,Dummy,relPoint,x,y);
+ 				object[SetPointToken](object,point,Dummy,relPoint,x,y);
 				changed=true;
 			elseif enable==false and relTo==Dummy then
 				object[SetPointToken](object,point,_G.Minimap,relPoint,x,y);
@@ -204,7 +261,7 @@ local function objectToDummy(object,doSetPoint,doSetParent,enable)
 			end
 		end
 		if changed then
-			object.SetPoint = enable and dummyOnlySetPoint or object[SetPointToken];
+			object.SetPoint = enable and dummyOnly_SetPoint or object[SetPointToken];
 		end
 	end
 	return parent;
@@ -237,6 +294,8 @@ function FarmHudMixin:UpdateCardinalPoints(state)
 	end
 end
 
+-- coordinates
+
 local function CoordsUpdate_TickerFunc()
 	local x,y,uiMapID = 0,0,C_Map.GetBestMapForUnit("player");
 	if uiMapID then
@@ -261,6 +320,8 @@ function FarmHudMixin:UpdateCoords(state)
 	end
 	self.TextFrame.coords:SetShown(state);
 end
+
+-- time
 
 local function TimeUpdate_TickerFunc()
 	local timeStr = {};
@@ -288,6 +349,8 @@ function FarmHudMixin:UpdateTime(state)
 	end
 	self.TextFrame.time:SetShown(state);
 end
+
+--
 
 function FarmHudMixin:SetScales(enabled)
 	self:SetPoint("CENTER");
@@ -352,7 +415,6 @@ function FarmHudMixin:UpdateForeignAddOns(state)
 		LibStub("HereBeDragons-Pins-2.0"):SetMinimapObject(state and Map or nil);
 	end
 	if LibStub.libs["HereBeDragonsQuestie-Pins-2.0"] then
-		ns.debug("HereBeDragonsQuestie-Pins-2.0",state);
 		LibStub("HereBeDragonsQuestie-Pins-2.0"):SetMinimapObject(state and Map or nil);
 	end
 	if LibHijackMinimap then
@@ -404,6 +466,10 @@ do
 			Dummy:SetShown(FarmHudDB.showDummy);
 		elseif IsKey(key,"showDummyBg") then
 			Dummy.bg:SetShown(FarmHudDB.showDummyBg);
+		elseif key:find("tracking^%d+") then
+			local _, id = strsplit("^",key);
+			id = tonumber(id);
+			TrackingTypes_Update(true,id);
 		end
 	end
 end
@@ -456,7 +522,7 @@ function FarmHudMixin:OnShow()
 	for i=1, #anchoredFrames, 3 do
 		if _G[anchoredFrames[i]] then
 			mps.anchoredFrames[i]=true;
-			objectToDummy(_G[anchoredFrames[i]],anchoredFrames[i+1],anchoredFrames[i+2],true);
+			objectToDummy(_G[anchoredFrames[i]],true,anchoredFrames[i+1],anchoredFrames[i+2]);
 		end
 	end
 
@@ -504,7 +570,8 @@ function FarmHudMixin:OnShow()
 	end
 
 	SetPlayerDotTexture(true);
-	AreaBorder_Update(true);
+	--AreaBorder_Update(true);
+	TrackingTypes_Update(true);
 
 	self:SetScales(true);
 	self:UpdateCardinalPoints(FarmHudDB.cardinalpoints_show);
@@ -550,18 +617,18 @@ function FarmHudMixin:OnHide(force)
 
 	for i=1, #anchoredFrames, 3 do
 		if mps.anchoredFrames[i] then
-			objectToDummy(_G[anchoredFrames[i]],anchoredFrames[i+1],anchoredFrames[i+2],false);
+			objectToDummy(_G[anchoredFrames[i]],false,anchoredFrames[i+1],anchoredFrames[i+2]);
 		end
 	end
 
 	local childs = {Dummy:GetChildren()}; -- child frames
 	for i=1, #childs do
-		objectToDummy(childs[i],true,true,false);
+		objectToDummy(childs[i],false,true,true);
 	end
 
 	local regions = {Dummy:GetRegions()}; -- child textures and more; mostly by sexymap
 	for r=1, #regions do
-		objectToDummy(regions[r],true,true,false);
+		objectToDummy(regions[r],false,true,true);
 	end
 
 	if mps.mc_mouse then
@@ -582,7 +649,8 @@ function FarmHudMixin:OnHide(force)
 	wipe(mps);
 
 	SetPlayerDotTexture(false);
-	AreaBorder_Update(false);
+	--AreaBorder_Update(false);
+	TrackingTypes_Update(false);
 
 	self:UpdateCardinalPoints(false);
 	self:UpdateCoords(false);
@@ -719,6 +787,13 @@ function FarmHudMixin:OnLoad()
 
 	hooksecurefunc(_G.Minimap,"SetMaskTexture",function(_,texture)
 		Dummy.bg:SetMask(texture);
+	end);
+
+	hooksecurefunc("SetTracking",function(index,bool)
+		if not trackingHookLocked and FarmHud:IsVisible() and trackingTypesStates[index]~=nil then
+			ns.print("SetTracking",index,bool);
+			trackingTypesStates[index]=nil;
+		end
 	end);
 
 	hooksecurefunc("SetSuperTrackedQuestID",function(questID)

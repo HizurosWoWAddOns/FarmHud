@@ -102,6 +102,11 @@ L["ShowPlaceholder"] = "Show elements"
 L["ShowPlaceholderDesc"] = "The elements of your minimap remain visible even when FarmHud is active."
 L["ShowPlaceholderBg"] = "Show Background"
 L["ShowPlaceholderBgDesc"] = "Display a black background instead of the minimap while FarmHud is active."
+
+L["TrackingOptions"] = "Tracking Options"
+L["TrackingOptionsLikeMinimap"] = "Like minimap"
+L["TrackingOptionsDesc"] = "Toggle tracking icons on opened FarmHud.|n|n\"Like minimap\" means your changes over the minimap tracking button will be used on opened FarmHud."
+L["AreaBorderRemoved"] = "The options are moved to new section \"Tracking Options\"."
 --@end-do-not-package@
 
 --@localization(locale="enUS", format="lua_additive_table", handle-subnamespaces="none", handle-unlocalized="ignore")@
