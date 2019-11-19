@@ -511,11 +511,12 @@ function ns.RegisterOptions()
 	-- areaborder > archaeology
 	if FarmHudDB["tracking^535615"]==nil and FarmHudDB.areaborder_arch_show~=nil then
 		FarmHudDB["tracking^535615"] = (FarmHudDB.areaborder_arch_show=="blizz" and "client") or FarmHudDB.areaborder_arch_show
+		FarmHudDB.areaborder_arch_show = nil
 	end
 	-- areaborder > quest & task
 	if FarmHudDB["tracking^535616"]==nil and FarmHudDB.areaborder_quest_show~=nil then
 		FarmHudDB["tracking^535616"] = (FarmHudDB.areaborder_quest_show=="blizz" and "client") or FarmHudDB.areaborder_quest_show
-		FarmHudDB.areaborder_quest_show~=nil
+		FarmHudDB.areaborder_quest_show = nil
 	end
 
 	options.args.tracking.hidden = updateTrackingOptions
