@@ -30,9 +30,6 @@ local dbDefaults = {
 	buttons_show=false,buttons_buttom=false,buttons_alpha=0.6,buttons_radius=0.56,
 	time_show=true, time_server=true, time_local=true, time_radius = 0.48, time_bottom=false, time_color={1,0.82,0,0.7},
 	mouseoverinfo_color={1,0.82,0,0.7},
-	--areaborder_arch_show="blizz",areaborder_arch_texture=false,areaborder_arch_alpha=1,
-	--areaborder_quest_show="blizz",areaborder_quest_texture=false,areaborder_quest_alpha=1,
-	--areaborder_tasks_show="blizz",areaborder_task_texture=false,areaborder_task_alpha=1,
 	player_dot="blizz", background_alpha=0, holdKeyForMouseOn = "_none",
 	rotation=true, SuperTrackedQuest = true, showDummy = true, showDummyBg = true
 }
@@ -105,7 +102,7 @@ local function optTracking(info,value)
 		FarmHud:UpdateOptions(key);
 		return;
 	end
-	return --[[FarmHudDB[key]==nil and "client" or]] FarmHudDB[key];
+	return FarmHudDB[key];
 end
 
 local options = {
@@ -488,7 +485,6 @@ function ns.RegisterOptions()
 
 	trackingTypes = ns.GetTrackingTypes();
 	for id, data in pairs(trackingTypes)do
-		ns.debug("trackingTypes",id);
 		dbDefaults["tracking^"..id] = "client"
 	end
 
@@ -517,6 +513,13 @@ function ns.RegisterOptions()
 	if FarmHudDB["tracking^535616"]==nil and FarmHudDB.areaborder_quest_show~=nil then
 		FarmHudDB["tracking^535616"] = (FarmHudDB.areaborder_quest_show=="blizz" and "client") or FarmHudDB.areaborder_quest_show
 		FarmHudDB.areaborder_quest_show = nil
+	end
+
+	for id, data in pairs(trackingTypes)do
+		local v = FarmHudDB["tracking^"..id];
+		if not (v=="client" or v=="true" or v=="false") then
+			FarmHudDB["tracking^"..id] = "client";
+		end
 	end
 
 	options.args.tracking.hidden = updateTrackingOptions
