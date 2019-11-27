@@ -483,9 +483,11 @@ function ns.RegisterOptions()
 		};
 	end
 
-	trackingTypes = ns.GetTrackingTypes();
-	for id, data in pairs(trackingTypes)do
-		dbDefaults["tracking^"..id] = "client"
+	if not ns.IsClassic() then
+		trackingTypes = ns.GetTrackingTypes();
+		for id, data in pairs(trackingTypes)do
+			dbDefaults["tracking^"..id] = "client"
+		end
 	end
 
 	for k,v in pairs(dbDefaults)do
@@ -503,26 +505,30 @@ function ns.RegisterOptions()
 		FarmHudDB.MinimapIcon.show = nil;
 	end
 
-	-- migration
-	-- areaborder > archaeology
-	if FarmHudDB["tracking^535615"]==nil and FarmHudDB.areaborder_arch_show~=nil then
-		FarmHudDB["tracking^535615"] = (FarmHudDB.areaborder_arch_show=="blizz" and "client") or FarmHudDB.areaborder_arch_show
-		FarmHudDB.areaborder_arch_show = nil
-	end
-	-- areaborder > quest & task
-	if FarmHudDB["tracking^535616"]==nil and FarmHudDB.areaborder_quest_show~=nil then
-		FarmHudDB["tracking^535616"] = (FarmHudDB.areaborder_quest_show=="blizz" and "client") or FarmHudDB.areaborder_quest_show
-		FarmHudDB.areaborder_quest_show = nil
-	end
-
-	for id, data in pairs(trackingTypes)do
-		local v = FarmHudDB["tracking^"..id];
-		if not (v=="client" or v=="true" or v=="false") then
-			FarmHudDB["tracking^"..id] = "client";
+	if not ns.IsClassic() then
+		-- migration
+		-- areaborder > archaeology
+		if FarmHudDB["tracking^535615"]==nil and FarmHudDB.areaborder_arch_show~=nil then
+			FarmHudDB["tracking^535615"] = (FarmHudDB.areaborder_arch_show=="blizz" and "client") or FarmHudDB.areaborder_arch_show
+			FarmHudDB.areaborder_arch_show = nil
 		end
+		-- areaborder > quest & task
+		if FarmHudDB["tracking^535616"]==nil and FarmHudDB.areaborder_quest_show~=nil then
+			FarmHudDB["tracking^535616"] = (FarmHudDB.areaborder_quest_show=="blizz" and "client") or FarmHudDB.areaborder_quest_show
+			FarmHudDB.areaborder_quest_show = nil
+		end
+
+		for id, data in pairs(trackingTypes)do
+			local v = FarmHudDB["tracking^"..id];
+			if not (v=="client" or v=="true" or v=="false") then
+				FarmHudDB["tracking^"..id] = "client";
+			end
+		end
+		options.args.tracking.hidden = updateTrackingOptions
+	else
+		options.args.tracking = nil;
 	end
 
-	options.args.tracking.hidden = updateTrackingOptions
 
 	LibStub("AceConfig-3.0"):RegisterOptionsTable(addon, options);
 	LibStub("AceConfigDialog-3.0"):AddToBlizOptions(addon);

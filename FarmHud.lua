@@ -9,7 +9,7 @@ local _G,type,wipe,tinsert,unpack,tostring = _G,type,wipe,tinsert,unpack,tostrin
 local GetPlayerFacing,C_Map = GetPlayerFacing,C_Map;
 local Minimap_OnClick = Minimap_OnClick;
 
-local LibHijackMinimap_Token,AreaBorderStates,TrackingIndex,LibHijackMinimap,_ = {},{},{};
+local LibHijackMinimap_Token,TrackingIndex,LibHijackMinimap,_ = {},{};
 local media, media_blizz = "Interface\\AddOns\\"..addon.."\\media\\", "Interface\\Minimap\\";
 local mps,MinimapMT,mouseOnKeybind,Dummy = {},getmetatable(_G.Minimap).__index;
 local minimapScripts,cardinalTicker,coordsTicker = {--[["OnMouseUp",]]"OnMouseDown","OnDragStart"};
@@ -412,7 +412,7 @@ do
 			Dummy:SetShown(FarmHudDB.showDummy);
 		elseif IsKey(key,"showDummyBg") then
 			Dummy.bg:SetShown(FarmHudDB.showDummyBg);
-		elseif key:find("tracking^%d+") then
+		elseif key:find("tracking^%d+") and not ns.IsClassic() then
 			local _, id = strsplit("^",key);
 			id = tonumber(id);
 			TrackingTypes_Update(true,id);
@@ -733,12 +733,13 @@ function FarmHudMixin:OnLoad()
 		Dummy.bg:SetMask(texture);
 	end);
 
-	hooksecurefunc("SetTracking",function(index,bool)
-		if not trackingHookLocked and FarmHud:IsVisible() and trackingTypesStates[index]~=nil then
-			ns.print("SetTracking",index,bool);
-			trackingTypesStates[index]=nil;
-		end
-	end);
+	if not ns.IsClassic() then
+		hooksecurefunc("SetTracking",function(index,bool)
+			if not trackingHookLocked and FarmHud:IsVisible() and trackingTypesStates[index]~=nil then
+				trackingTypesStates[index]=nil;
+			end
+		end);
+	end
 
 	hooksecurefunc("SetSuperTrackedQuestID",function(questID)
 		questID = tonumber(questID) or 0;
