@@ -29,6 +29,7 @@ local anchoredFrames = { -- <name[string]>, <SetParent[bool]>, <SetPoint[bool]>,
 	"MiniMapTracking",true,true,
 	"MinimapZoomIn",true,true,
 	"MinimapZoomOut",true,true,
+	"MinimapZoneText",true,false,
 	"MiniMapWorldMapButton",true,true,
 	"GarrisonLandingPageMinimapButton",true,true,
 	-- MinimapButtonFrame
@@ -46,6 +47,9 @@ local anchoredFrames = { -- <name[string]>, <SetParent[bool]>, <SetPoint[bool]>,
 	-- obeliskminimap
 	"ObeliskMinimapZoneText",true,true,
 	"ObeliskMinimapInformationFrame",true,true,
+	-- Lorti-UI / Lorti-UI-Classic
+	"rBFS_BuffDragFrame",true,false,
+	"rBFS_DebuffDragFrame",true,false,
 };
 ns.SuperTrackedQuestID = 0;
 local modifiers = {
