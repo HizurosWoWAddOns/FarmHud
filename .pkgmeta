@@ -25,6 +25,9 @@ externals:
 		url: https://repos.wowace.com/wow/libdbicon-1-0/trunk/LibDBIcon-1.0
 		tag: latest
 
+move-folders:
+    FarmHud/QuestArrow: FarmHud_QuestArrow
+
 enable-nolib-creation: yes
 
 ignore:

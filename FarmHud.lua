@@ -17,8 +17,7 @@ local playerDot_orig, playerDot_custom = "Interface\\Minimap\\MinimapArrow";
 local TrackingIndex,timeTicker={};
 local SetPointToken,SetParentToken = {},{};
 local trackingTypes,trackingTypesStates,numTrackingTypes,trackingHookLocked = {},{},0,false;
-local breadcrumps = {path={},pool={}};
-local anchoredFrames = { -- <name[string]>, <SetParent[bool]>, <SetPoint[bool]>,
+local anchoredFrames = { -- <name[string]>, <SetPoint[bool]>, <SetParent[bool]>
 	-- Blizzard
 	"TimeManagerClockButton",true,true,
 	"GameTimeFrame",true,true,
@@ -51,7 +50,6 @@ local anchoredFrames = { -- <name[string]>, <SetParent[bool]>, <SetPoint[bool]>,
 	"rBFS_BuffDragFrame",true,false,
 	"rBFS_DebuffDragFrame",true,false,
 };
-ns.SuperTrackedQuestID = 0;
 local modifiers = {
 	A  = {LALT=1,RALT=1},
 	AL = {LALT=1},
@@ -71,7 +69,7 @@ do
 		local t,c,a1 = {tostringall(...)},1,...;
 		if type(a1)=="boolean" then tremove(t,1); end
 		if a1~=false then
-			tinsert(t,1,"|cff0099ff"..((a1==true and addon_short) or (a1=="||" and "||") or addon).."|r"..(a1~="||" and ":" or ""));
+			tinsert(t,1,"|cff0099ff"..((a1==true and addon_short) or (a1=="||" and "||") or addon).."|r"..(a1~="||" and HEADER_COLON or ""));
 			c=2;
 		end
 		for i=c, #t do
@@ -85,6 +83,7 @@ do
 		print(colorize(...));
 	end
 	function ns.debug(...)
+		--print(colorize("<debug>",...));
 		ConsolePrint(date("|cff999999%X|r"),colorize(...));
 	end
 end
@@ -514,9 +513,8 @@ function FarmHudMixin:OnShow()
 		SetCVar("rotateMinimap", "1", "ROTATE_MINIMAP");
 	end
 
-	if not FarmHudDB.SuperTrackedQuest then
-		ns.SuperTrackedQuestID = GetSuperTrackedQuestID();
-		SetSuperTrackedQuestID(0);
+	if FarmHud_ToggleSuperTrackedQuest and FarmHudDB.SuperTrackedQuest then
+		FarmHud_ToggleSuperTrackedQuest(); -- FarmHud_QuestArrow
 	end
 
 	SetPlayerDotTexture(true);
@@ -591,8 +589,8 @@ function FarmHudMixin:OnHide(force)
 	if mps.zoom>maxLevels then mps.zoom = maxLevels; end
 	MinimapMT.SetZoom(_G.Minimap,mps.zoom);
 
-	if not FarmHudDB.SuperTrackedQuest and ns.SuperTrackedQuestID~=0 then
-		SetSuperTrackedQuestID(ns.SuperTrackedQuestID);
+	if FarmHud_ToggleSuperTrackedQuest and FarmHudDB.SuperTrackedQuest then
+		FarmHud_ToggleSuperTrackedQuest(); -- FarmHud_QuestArrow
 	end
 
 	wipe(mps);
@@ -646,7 +644,7 @@ function FarmHudMixin:ToggleOptions()
 		ACD:Close(addon);
 	else
 		ACD:Open(addon);
-		ACD.OpenFrames[addon]:SetStatusText(GAME_VERSION_LABEL..": @project-version@");
+		ACD.OpenFrames[addon]:SetStatusText(GAME_VERSION_LABEL..CHAT_HEADER_SUFFIX.."@project-version@");
 	end
 end
 
@@ -744,14 +742,6 @@ function FarmHudMixin:OnLoad()
 			end
 		end);
 	end
-
-	hooksecurefunc("SetSuperTrackedQuestID",function(questID)
-		questID = tonumber(questID) or 0;
-		if questID~=0 and not FarmHudDB.SuperTrackedQuest and FarmHud:IsVisible() then
-			ns.SuperTrackedQuestID = questID;
-			SetSuperTrackedQuestID(0);
-		end
-	end);
 
 	function self.cluster:GetZoom()
 		return _G.Minimap:GetZoom();

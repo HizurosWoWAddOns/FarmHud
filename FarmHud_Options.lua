@@ -1,7 +1,6 @@
 
 local addon, ns = ...;
 local L = ns.L;
-local _SetSuperTrackedQuestID = SetSuperTrackedQuestID;
 local SaveBindings = SaveBindings or AttemptToSaveBindings
 local playerDot_textures = {
 	["blizz"]         = L["Blizzards player arrow"],
@@ -10,11 +9,6 @@ local playerDot_textures = {
 	["white"]         = L["White player dot"],
 	["black"]         = L["Black player dot"],
 	["hide"]          = L["Hide player arrow"],
-};
-local AreaBorderValues = { -- deprecated
-	["true"] = SHOW,
-	["false"] = HIDE,
-	["blizz"] = L["AreaBorderByClient"]
 };
 local TrackingValues = {
 	["true"] = SHOW,
@@ -33,6 +27,30 @@ local dbDefaults = {
 	player_dot="blizz", background_alpha=0, holdKeyForMouseOn = "_none",
 	rotation=true, SuperTrackedQuest = true, showDummy = true, showDummyBg = true
 }
+
+local isAddOnsLoadedForOption = {
+	SuperTrackedQuest = {
+		addon="FarmHud_QuestArrow",
+		descLoaded=L.QuestArrowDesc.."|n|n"..GREEN_FONT_COLOR_CODE..L.ExtraAddOnLoaded:format("FarmHud [QuestArrow]").."|r",
+		descNotLoaded=L.QuestArrowDesc.."|n|n"..ORANGE_FONT_COLOR_CODE..L.ExtraAddOnNotLoaded:format("FarmHud [QuestArrow]").."|r"
+	}
+}
+
+local function checkAddOnLoaded(info)
+	local key,pKey = info[#info],info[#info-1];
+	ns.debug("?",key,pKey);
+	if isAddOnsLoadedForOption[key] then
+		return not IsAddOnLoaded(isAddOnsLoadedForOption[key].addon);
+	elseif isAddOnsLoadedForOption[pKey] then
+		local isLoaded = IsAddOnLoaded(isAddOnsLoadedForOption[pKey].addon) and "Loaded" or "NotLoaded";
+		ns.debug(isLoaded);
+		if isAddOnsLoadedForOption[pKey][key..isLoaded] then
+			return isAddOnsLoadedForOption[pKey][key..isLoaded];
+		elseif isAddOnsLoadedForOption[pKey][key] then
+			return isAddOnsLoadedForOption[pKey][key];
+		end
+	end
+end
 
 local function opt(info,value,...)
 	local key,reset = info[#info],info[#info]:gsub("reset","");
@@ -56,13 +74,8 @@ local function opt(info,value,...)
 					if ns.rotation=="0" then
 						SetCVar("rotateMinimap", value and "1" or "0", "ROTATE_MINIMAP");
 					end
-				elseif key=="SuperTrackedQuest" then
-					if value and ns.SuperTrackedQuestID~=0 then
-						_SetSuperTrackedQuestID(ns.SuperTrackedQuestID);
-					elseif not value then
-						ns.SuperTrackedQuestID = GetSuperTrackedQuestID() or 0;
-						_SetSuperTrackedQuestID(0);
-					end
+				elseif key=="SuperTrackedQuest" and FarmHud_ToggleSuperTrackedQuest then
+					FarmHud_ToggleSuperTrackedQuest(value);
 				elseif key=="hud_size" then
 					FarmHud:SetScales();
 				end
@@ -126,12 +139,8 @@ local options = {
 					name = L.AddOnLoaded, desc = L.AddOnLoadedDesc
 				},
 				rotation = {
-					type = "toggle", order = 3,
+					type = "toggle", order = 3, width="full",
 					name = L.Rotation, desc = L.RotationDesc
-				},
-				SuperTrackedQuest = { -- quest_arrow
-					type = "toggle", order = 4,
-					name = L.QuestArrow, desc = L.QuestArrowDesc
 				},
 				hud_scale = {
 					type = "range", order = 11,
@@ -211,8 +220,23 @@ local options = {
 			}
 		},
 		----------------------------------------------
-		gathercircle = {
+		SuperTrackedQuest = {
 			type = "group", order = 1,
+			name = L.QuestArrow,
+			args = {
+				desc = {
+					type = "description", order=1, fontSize="medium",
+					name = checkAddOnLoaded,-- ({"SuperTrackedQuest","desc"}),
+				},
+				SuperTrackedQuest = {
+					type = "toggle", order = 2,
+					name = SHOW,
+					disabled = checkAddOnLoaded
+				}
+			}
+		},
+		gathercircle = {
+			type = "group", order = 2,
 			name = L.GatherCircle,
 			args = {
 				gathercircle_desc = {
@@ -235,7 +259,7 @@ local options = {
 			}
 		},
 		cardinalpoints = {
-			type = "group", order = 2,
+			type = "group", order = 3,
 			name = L.CardinalPoints,
 			args = {
 				cardinalpoints_show = {
@@ -274,7 +298,7 @@ local options = {
 			}
 		},
 		coords = {
-			type = "group", order = 3,
+			type = "group", order = 4,
 			name = L.Coords,
 			args = {
 				coords_show = {
@@ -301,7 +325,7 @@ local options = {
 			}
 		},
 		time = {
-			type = "group", order = 4,
+			type = "group", order = 5,
 			name = L.Time,
 			args = {
 				time_show = {
@@ -336,7 +360,7 @@ local options = {
 			}
 		},
 		onscreenbuttons = {
-			type = "group", order = 5,
+			type = "group", order = 6,
 			name = L.OnScreen,
 			args = {
 				buttons_show = {
@@ -359,36 +383,8 @@ local options = {
 				}
 			}
 		},
-		areaborder = {  -- deprecated
-			type = "group", order = 6, hidden=ns.IsClassic,
-			name = "|cff888888"..L.AreaBorder.."|r",
-			args = {
-				info = {
-					type = "description", order = 0, fontSize = "medium",
-					name = "|cffff9900"..L["AreaBorderRemoved"].."|r"
-				},
-				areaborder_arch_header = {
-					type = "header", order = 10,
-					name = "|cff888888"..TRACKING.." > "..MINIMAP_TRACKING_DIGSITES.."|r",
-				},
-				areaborder_arch_show = {
-					type = "select", order = 11, width = "double", disabled=true,
-					name = L.AreaBorderOnHUD:format(PROFESSIONS_ARCHAEOLOGY),
-					values = AreaBorderValues
-				},
-				areaborder_quest_header = {
-					type = "header", order = 20,
-					name = "|cff888888"..TRACKING.." > "..MINIMAP_TRACKING_QUEST_POIS.."|r",
-				},
-				areaborder_quest_show = {
-					type = "select", order = 21, width = "double", disabled=true,
-					name = L.AreaBorderOnHUD:format(LOOT_JOURNAL_LEGENDARIES_SOURCE_QUEST),
-					values = AreaBorderValues
-				},
-			}
-		},
 		tracking = {
-			type = "group", order = 7,
+			type = "group", order = 8,
 			name = L.TrackingOptions,
 			get = optTracking, set = optTracking,
 			childGroups = "tab",
