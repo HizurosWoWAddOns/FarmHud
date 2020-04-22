@@ -9,6 +9,7 @@ local _G,type,wipe,tinsert,unpack,tostring = _G,type,wipe,tinsert,unpack,tostrin
 local GetPlayerFacing,C_Map = GetPlayerFacing,C_Map;
 local Minimap_OnClick = Minimap_OnClick;
 
+ns.QuestArrowToken = {};
 local LibHijackMinimap_Token,TrackingIndex,LibHijackMinimap,_ = {},{};
 local media, media_blizz = "Interface\\AddOns\\"..addon.."\\media\\", "Interface\\Minimap\\";
 local mps,MinimapMT,mouseOnKeybind,Dummy = {},getmetatable(_G.Minimap).__index;
@@ -69,7 +70,17 @@ do
 		local t,c,a1 = {tostringall(...)},1,...;
 		if type(a1)=="boolean" then tremove(t,1); end
 		if a1~=false then
-			tinsert(t,1,"|cff0099ff"..((a1==true and addon_short) or (a1=="||" and "||") or addon).."|r"..(a1~="||" and HEADER_COLON or ""));
+			local header = addon;
+			if a1==true then
+				header = addon_short;
+			elseif a1=="||" then
+				header = "||";
+			elseif a1=="()" then
+				header = header .. " (" ..t[2]..")";
+				tremove(t,2);
+				tremove(t,1);
+			end
+			tinsert(t,1,"|cff0099ff"..header.."|r"..(a1~="||" and HEADER_COLON or ""));
 			c=2;
 		end
 		for i=c, #t do
@@ -514,7 +525,7 @@ function FarmHudMixin:OnShow()
 	end
 
 	if FarmHud_ToggleSuperTrackedQuest and FarmHudDB.SuperTrackedQuest then
-		FarmHud_ToggleSuperTrackedQuest(); -- FarmHud_QuestArrow
+		FarmHud_ToggleSuperTrackedQuest(ns.QuestArrowToken,true); -- FarmHud_QuestArrow
 	end
 
 	SetPlayerDotTexture(true);
@@ -590,7 +601,7 @@ function FarmHudMixin:OnHide(force)
 	MinimapMT.SetZoom(_G.Minimap,mps.zoom);
 
 	if FarmHud_ToggleSuperTrackedQuest and FarmHudDB.SuperTrackedQuest then
-		FarmHud_ToggleSuperTrackedQuest(); -- FarmHud_QuestArrow
+		FarmHud_ToggleSuperTrackedQuest(ns.QuestArrowToken,false); -- FarmHud_QuestArrow
 	end
 
 	wipe(mps);

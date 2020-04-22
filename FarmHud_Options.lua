@@ -25,7 +25,8 @@ local dbDefaults = {
 	time_show=true, time_server=true, time_local=true, time_radius = 0.48, time_bottom=false, time_color={1,0.82,0,0.7},
 	mouseoverinfo_color={1,0.82,0,0.7},
 	player_dot="blizz", background_alpha=0, holdKeyForMouseOn = "_none",
-	rotation=true, SuperTrackedQuest = true, showDummy = true, showDummyBg = true
+	rotation=true, SuperTrackedQuest = true, showDummy = true, showDummyBg = true,
+	QuestArrowInfoMsg = false,
 }
 
 local isAddOnsLoadedForOption = {
@@ -74,8 +75,8 @@ local function opt(info,value,...)
 					if ns.rotation=="0" then
 						SetCVar("rotateMinimap", value and "1" or "0", "ROTATE_MINIMAP");
 					end
-				elseif key=="SuperTrackedQuest" and FarmHud_ToggleSuperTrackedQuest then
-					FarmHud_ToggleSuperTrackedQuest(value);
+				elseif key=="SuperTrackedQuest" and FarmHud_ToggleSuperTrackedQuest and FarmHud:IsShown() then
+					FarmHud_ToggleSuperTrackedQuest(ns.QuestArrowToken,value);
 				elseif key=="hud_size" then
 					FarmHud:SetScales();
 				end
@@ -160,7 +161,14 @@ local options = {
 				background_alpha = {
 					type = "range", order = 14,
 					name = L.BgTransparency, --desc = L.BgTransparencyDesc
-					min = 0.0, max = 1, step = 0.1, isPercent = true
+					min = 0.0, max = 1, step = 0.1, isPercent = true,
+					get = function()
+						return 1-FarmHudDB.background_alpha
+					end,
+					set = function(info,value)
+						FarmHudDB.background_alpha = 1-value;
+						FarmHud:UpdateOptions("background_alpha");
+					end
 				},
 				player_dot = {
 					type = "select", order = 15,
@@ -232,6 +240,11 @@ local options = {
 					type = "toggle", order = 2,
 					name = SHOW,
 					disabled = checkAddOnLoaded
+				},
+				QuestArrowInfoMsg = {
+					type = "toggle", order = 3,
+					name = L["QuestArrowInfoMsg"],
+					desc = L["QuestArrowInfoMsgDesc"]
 				}
 			}
 		},
