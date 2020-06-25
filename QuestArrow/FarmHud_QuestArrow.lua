@@ -1,4 +1,37 @@
 
+local addon, ns = ...;
+do
+	local addon_short = "FH";
+	local colors = {"0099ff","00ff00","ff6060","44ffff","ffff00","ff8800","ff44ff","ffffff"};
+	local function colorize(...)
+		local t,c,a1 = {tostringall(...)},1,...;
+		if type(a1)=="boolean" then tremove(t,1); end
+		if a1~=false then
+			local header = "FarmHud (QuestArrow)";
+			if a1==true then
+				header = addon_short;
+			elseif a1=="||" then
+				header = "||";
+			elseif a1=="()" then
+				header = header .. " (" ..t[2]..")";
+				tremove(t,2);
+				tremove(t,1);
+			end
+			tinsert(t,1,"|cff0099ff"..header.."|r"..(a1~="||" and HEADER_COLON or ""));
+			c=2;
+		end
+		for i=c, #t do
+			if not t[i]:find("\124c") then
+				t[i],c = "|cff"..colors[c]..t[i].."|r", c<#colors and c+1 or 1;
+			end
+		end
+		return unpack(t);
+	end
+	function ns.print(...)
+		print(colorize(...));
+	end
+end
+
 local SetSuperTrackedQuestID_Orig,TrackedQuestID = SetSuperTrackedQuestID
 
 local function SetSuperTrackedQuestID_Replacement(questID)
@@ -24,7 +57,11 @@ function FarmHud_ToggleSuperTrackedQuest(token,state)
 		msg = "QuestArrowInfoMsgRestored";
 	end
 	if msg and token and FarmHudDB.QuestArrowInfoMsg then
-		FarmHud:Print(token,msg);
+		if FarmHud.AddChatMessage then
+			FarmHud:AddChatMessage(token,msg);
+		else
+			ns.print(msg); -- fallback without localizations from main addon
+		end
 	end
 end
 

@@ -659,6 +659,13 @@ function FarmHudMixin:ToggleOptions()
 	end
 end
 
+function FarmHudMixin:AddChatMessage(token,msg)
+	local from = (token==ns.QuestArrowToken and "QuestArrow") or false
+	if from and type(msg)=="string" then
+		ns.print("()",from,L[msg]);
+	end
+end
+
 function FarmHudMixin:OnEvent(event,...)
 	if event=="ADDON_LOADED" and ...==addon then
 		ns.RegisterOptions();

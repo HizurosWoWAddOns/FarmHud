@@ -32,19 +32,17 @@ local dbDefaults = {
 local isAddOnsLoadedForOption = {
 	SuperTrackedQuest = {
 		addon="FarmHud_QuestArrow",
-		descLoaded=L.QuestArrowDesc.."|n|n"..GREEN_FONT_COLOR_CODE..L.ExtraAddOnLoaded:format("FarmHud [QuestArrow]").."|r",
-		descNotLoaded=L.QuestArrowDesc.."|n|n"..ORANGE_FONT_COLOR_CODE..L.ExtraAddOnNotLoaded:format("FarmHud [QuestArrow]").."|r"
+		descLoaded=GREEN_FONT_COLOR_CODE..L.ExtraAddOnLoaded:format("FarmHud [QuestArrow]").."|r",
+		descNotLoaded=ORANGE_FONT_COLOR_CODE..L.ExtraAddOnNotLoaded:format("FarmHud [QuestArrow]").."|r"
 	}
 }
 
 local function checkAddOnLoaded(info)
 	local key,pKey = info[#info],info[#info-1];
-	ns.debug("?",key,pKey);
 	if isAddOnsLoadedForOption[key] then
 		return not IsAddOnLoaded(isAddOnsLoadedForOption[key].addon);
 	elseif isAddOnsLoadedForOption[pKey] then
 		local isLoaded = IsAddOnLoaded(isAddOnsLoadedForOption[pKey].addon) and "Loaded" or "NotLoaded";
-		ns.debug(isLoaded);
 		if isAddOnsLoadedForOption[pKey][key..isLoaded] then
 			return isAddOnsLoadedForOption[pKey][key..isLoaded];
 		elseif isAddOnsLoadedForOption[pKey][key] then
@@ -237,14 +235,13 @@ local options = {
 					name = checkAddOnLoaded,-- ({"SuperTrackedQuest","desc"}),
 				},
 				SuperTrackedQuest = {
-					type = "toggle", order = 2,
-					name = SHOW,
+					type = "toggle", order = 2, width = "full",
+					name = L["QuestArrowHide"], --desc = L["QuestArrowHideDesc"],
 					disabled = checkAddOnLoaded
 				},
 				QuestArrowInfoMsg = {
-					type = "toggle", order = 3,
-					name = L["QuestArrowInfoMsg"],
-					desc = L["QuestArrowInfoMsgDesc"]
+					type = "toggle", order = 3, width = "full",
+					name = L["QuestArrowInfoMsg"], desc = L["QuestArrowInfoMsgDesc"]
 				}
 			}
 		},
