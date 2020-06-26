@@ -7,4 +7,3 @@
 ## DefaultState: enabled
 
 FarmHud_QuestArrow.lua
-
