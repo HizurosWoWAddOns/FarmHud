@@ -368,11 +368,13 @@ function FarmHudMixin:UpdateForeignAddOns(state)
 	if Bloodhound2 and Bloodhound2.ReparentMinimap then
 		Bloodhound2.ReparentMinimap(Map,"Minimap");
 	end
-	if LibStub.libs["HereBeDragons-Pins-1.0"] then
-		LibStub("HereBeDragons-Pins-1.0"):SetMinimapObject(state and Map or nil);
+	local HBD1 = LibStub.libs["HereBeDragons-Pins-1.0"];
+	if HBD1 and HBD1.SetMinimapObject then
+		HBD1:SetMinimapObject(state and Map or nil);
 	end
-	if LibStub.libs["HereBeDragons-Pins-2.0"] then
-		LibStub("HereBeDragons-Pins-2.0"):SetMinimapObject(state and Map or nil);
+	local HBD2 = LibStub.libs["HereBeDragons-Pins-2.0"];
+	if HBD2 and HBD2.SetMinimapObject then
+		HBD2:SetMinimapObject(state and Map or nil);
 	end
 	if LibStub.libs["HereBeDragonsQuestie-Pins-2.0"] then
 		LibStub("HereBeDragonsQuestie-Pins-2.0"):SetMinimapObject(state and Map or nil);
@@ -667,7 +669,7 @@ function FarmHudMixin:AddChatMessage(token,msg)
 end
 
 function FarmHudMixin:OnEvent(event,...)
-	if event=="ADDON_LOADED" and ...==addon then
+	if event=="VARIABLES_LOADED" then
 		ns.RegisterOptions();
 		ns.RegisterDataBroker();
 		if FarmHudDB.AddOnLoaded then
