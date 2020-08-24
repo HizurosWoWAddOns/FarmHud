@@ -771,7 +771,7 @@ function FarmHudMixin:OnLoad()
 		-- dummy
 	end
 
-	self:RegisterEvent("ADDON_LOADED");
+	self:RegisterEvent("VARIABLES_LOADED");
 	self:RegisterEvent("PLAYER_LOGIN");
 	self:RegisterEvent("PLAYER_LOGOUT");
 	self:RegisterEvent("MODIFIER_STATE_CHANGED");
