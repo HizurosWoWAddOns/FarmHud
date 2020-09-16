@@ -36,6 +36,7 @@ local anchoredFrames = { -- <name[string]>, <SetPoint[bool]>, <SetParent[bool]>
 	"MBB_MinimapButtonFrame",true,true,
 	-- SexyMap
 	"SexyMapCustomBackdrop",true,true,
+	"QueueStatusMinimapButton",true,true,
 	-- chinchilla minimap
 	"Chinchilla_Coordinates_Frame",true,true,
 	"Chinchilla_Location_Frame",true,true,
@@ -50,6 +51,8 @@ local anchoredFrames = { -- <name[string]>, <SetPoint[bool]>, <SetParent[bool]>
 	-- Lorti-UI / Lorti-UI-Classic
 	"rBFS_BuffDragFrame",true,false,
 	"rBFS_DebuffDragFrame",true,false,
+	-- BtWQuests
+	"BtWQuestsMinimapButton",true,true,
 };
 local modifiers = {
 	A  = {LALT=1,RALT=1},
@@ -181,6 +184,25 @@ end
 
 local function objectToDummy(object,enable,doSetPoint,doSetParent)
 	local parent,fstrata,flevel,dlayer,dlevel = object:GetParent();
+	if doSetPoint then
+		if object[SetPointToken]==nil then
+			object[SetPointToken] = object.SetPoint;
+		end
+		local changed = false;
+		for p=1, (object:GetNumPoints()) do
+			local point,relTo,relPoint,x,y = object:GetPoint(p);
+			if enable==true and relTo==_G.Minimap then
+ 				object[SetPointToken](object,point,Dummy,relPoint,x,y);
+				changed=true;
+			elseif enable==false and relTo==Dummy then
+				object[SetPointToken](object,point,_G.Minimap,relPoint,x,y);
+				changed=true;
+			end
+		end
+		if changed then
+			object.SetPoint = enable and dummyOnly_SetPoint or object[SetPointToken];
+		end
+	end
 	if doSetParent then
 		if object.GetDrawLayer then
 			dlayer,dlevel = object:GetDrawLayer(); -- textures
@@ -203,25 +225,6 @@ local function objectToDummy(object,enable,doSetPoint,doSetParent)
 		else
 			object:SetFrameStrata(fstrata);
 			object:SetFrameLevel(flevel);
-		end
-	end
-	if doSetPoint then
-		if object[SetPointToken]==nil then
-			object[SetPointToken] = object.SetPoint;
-		end
-		local changed = false;
-		for p=1, (object:GetNumPoints()) do
-			local point,relTo,relPoint,x,y = object:GetPoint(p);
-			if enable==true and relTo==_G.Minimap then
- 				object[SetPointToken](object,point,Dummy,relPoint,x,y);
-				changed=true;
-			elseif enable==false and relTo==Dummy then
-				object[SetPointToken](object,point,_G.Minimap,relPoint,x,y);
-				changed=true;
-			end
-		end
-		if changed then
-			object.SetPoint = enable and dummyOnly_SetPoint or object[SetPointToken];
 		end
 	end
 	return parent;
@@ -313,9 +316,13 @@ end
 -- main frame functions
 
 function FarmHudMixin:SetScales(enabled)
-	self:SetPoint("CENTER");
-
-	local size = UIParent:GetHeight();
+	local eScale = UIParent:GetEffectiveScale();
+	local width,height,size = WorldFrame:GetSize();
+	width,height = width/eScale,height/eScale;
+	size = height;
+	if width<height then
+		size = width;
+	end
 	self:SetSize(size,size);
 
 	local MinimapSize = size * FarmHudDB.hud_size;
@@ -331,12 +338,12 @@ function FarmHudMixin:SetScales(enabled)
 	local gcSize = MinimapSize * 0.432;
 	self.gatherCircle:SetSize(gcSize, gcSize);
 
-	local y = ((self:GetHeight()*self:GetScale()) * FarmHudDB.buttons_radius) * 0.5;
+	local y = (self:GetHeight()*FarmHudDB.buttons_radius) * 0.5;
 	if (FarmHudDB.buttons_bottom) then y = -y; end
 	self.onScreenButtons:SetPoint("CENTER", self, "CENTER", 0, y);
 
 	self.TextFrame:SetScale(FarmHudDB.text_scale);
-	self.TextFrame.ScaledHeight = ((self:GetHeight()*self:GetScale()) / FarmHudDB.text_scale) * 0.5;
+	self.TextFrame.ScaledHeight = (self:GetHeight()/FarmHudDB.text_scale) * 0.5;
 
 	local coords_y = self.TextFrame.ScaledHeight * FarmHudDB.coords_radius;
 	local time_y = self.TextFrame.ScaledHeight * FarmHudDB.time_radius;
@@ -432,6 +439,16 @@ do
 			local _, id = strsplit("^",key);
 			id = tonumber(id);
 			TrackingTypes_Update(true,id);
+		elseif key:find("rotation") then
+			rotationMode = FarmHudDB.rotation and "1" or "0";
+			SetCVar("rotateMinimap", rotationMode, "ROTATE_MINIMAP");
+			Minimap_UpdateRotationSetting();
+		elseif IsKey(key,"SuperTrackedQuest") and FarmHud_ToggleSuperTrackedQuest and FarmHud:IsShown() then
+			FarmHud_ToggleSuperTrackedQuest(ns.QuestArrowToken,FarmHudDB.SuperTrackedQuest);
+		elseif IsKey(key,"hud_size") then
+			FarmHud:SetScales();
+		elseif IsKey(key,"trailPinIcon") then
+			-- FarmHudDB.trailPinIcon
 		end
 	end
 end
@@ -520,10 +537,11 @@ function FarmHudMixin:OnShow()
 		_G.MinimapCluster:EnableMouseWheel(false);
 	end
 
-	if FarmHudDB.rotation then
-		mps.rotation = GetCVar("rotateMinimap");
-		ns.rotation = mps.rotation;
-		SetCVar("rotateMinimap", "1", "ROTATE_MINIMAP");
+	mps.rotation = GetCVar("rotateMinimap");
+	if FarmHudDB.rotation ~= (mps.rotation=="1") then
+		rotationMode = FarmHudDB.rotation and "1" or "0";
+		SetCVar("rotateMinimap", rotationMode, "ROTATE_MINIMAP");
+		Minimap_UpdateRotationSetting();
 	end
 
 	if FarmHud_ToggleSuperTrackedQuest and FarmHudDB.SuperTrackedQuest then
@@ -540,9 +558,9 @@ function FarmHudMixin:OnShow()
 end
 
 function FarmHudMixin:OnHide(force)
-	if mps.rotation=="0" then
+	if rotationMode ~= mps.rotation then
 		SetCVar("rotateMinimap", mps.rotation, "ROTATE_MINIMAP");
-		ns.rotation = nil;
+		rotationMode = mps.rotation
 		Minimap_UpdateRotationSetting();
 	end
 

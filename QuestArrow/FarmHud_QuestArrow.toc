@@ -1,4 +1,4 @@
-## Interface: 80300
+## Interface: 90002
 ## Title: FarmHud [QuestArrow]
 ## Version: @project-version@
 ## Notes: Experimental way to suppress the quest arrow while FarmHud is active.

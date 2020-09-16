@@ -68,17 +68,6 @@ local function opt(info,value,...)
 				value = {value,...}; -- color table
 			end
 			FarmHudDB[key] = value;
-			if FarmHud:IsVisible() then
-				if key=="rotation" then
-					if ns.rotation=="0" then
-						SetCVar("rotateMinimap", value and "1" or "0", "ROTATE_MINIMAP");
-					end
-				elseif key=="SuperTrackedQuest" and FarmHud_ToggleSuperTrackedQuest and FarmHud:IsShown() then
-					FarmHud_ToggleSuperTrackedQuest(ns.QuestArrowToken,value);
-				elseif key=="hud_size" then
-					FarmHud:SetScales();
-				end
-			end
 		end
 		FarmHud:UpdateOptions(key);
 		return;
