@@ -230,6 +230,24 @@ local function objectToDummy(object,enable,doSetPoint,doSetParent)
 	return parent;
 end
 
+
+-- function replacements for _G.Minimap while FarmHud is enabled.
+-- Should prevent problems with repositioning of minimap buttons from other addons.
+local replacements = {
+	GetWidth = function() return Dummy:GetWidth() end,
+	GetHeight = function() return Dummy:GetHeight() end,
+	GetSize = function() return Dummy:GetSize() end,
+	GetCenter = function() return Dummy:GetCenter() end,
+	GetEffectiveScale = function() return Dummy:GetEffectiveScale() end,
+	GetLeft = function() return Dummy:GetLeft() end,
+	GetRight = function() return Dummy:GetRight() end,
+	GetBottom = function() return Dummy:GetBottom() end,
+	GetTop = function() return Dummy:GetTop() end,
+}
+
+
+-- cardinal points
+
 local function CardinalPointsUpdate_TickerFunc()
 	local bearing = GetPlayerFacing();
 	local scaledRadius = FarmHud.TextFrame.ScaledHeight * FarmHudDB.cardinalpoints_radius;
@@ -392,6 +410,7 @@ function FarmHudMixin:UpdateForeignAddOns(state)
 end
 
 do
+	-- the following part apply some config changes while FarmHud is enabled
 	local function IsKey(k1,k2)
 		return k1==k2 or k1==nil;
 	end
@@ -447,8 +466,6 @@ do
 			FarmHud_ToggleSuperTrackedQuest(ns.QuestArrowToken,FarmHudDB.SuperTrackedQuest);
 		elseif IsKey(key,"hud_size") then
 			FarmHud:SetScales();
-		elseif IsKey(key,"trailPinIcon") then
-			-- FarmHudDB.trailPinIcon
 		end
 	end
 end
@@ -467,8 +484,10 @@ function FarmHudMixin:OnShow()
 	Dummy:SetShown(FarmHudDB.showDummy);
 	self.cluster:Show();
 
+	-- cache some data from minimap
 	mps.anchors = {};
 	mps.childs = {};
+	mps.replacements = {};
 	mps.zoom = _G.Minimap:GetZoom();
 	mps.parent = _G.Minimap:GetParent();
 	mps.scale = _G.Minimap:GetScale();
@@ -479,12 +498,14 @@ function FarmHudMixin:OnShow()
 	mps.mousewheel = _G.Minimap:IsMouseWheelEnabled();
 	mps.alpha = _G.Minimap:GetAlpha();
 
+	-- cache mouse enable state
 	local onmouseup = _G.Minimap:GetScript("OnMouseUp");
 	if onmouseup~=Minimap_OnClick then
 		mps.ommouseup = onmouseup;
 		MinimapMT.SetScript(_G.Minimap,"OnMouseUp",Minimap_OnClick);
 	end
 
+	-- cache non original frame script entries from foreign addons
 	for _,action in ipairs(minimapScripts)do
 		local fnc = _G.Minimap:GetScript(action);
 		if fnc then
@@ -493,10 +514,12 @@ function FarmHudMixin:OnShow()
 		end
 	end
 
+	-- cache minimap anchors
 	for i=1, _G.Minimap:GetNumPoints() do
 		mps.anchors[i] = {_G.Minimap:GetPoint(i)};
 	end
 
+	-- reanchor named frames that not have minimap as parent but anchored on it
 	mps.anchoredFrames = {};
 	for i=1, #anchoredFrames, 3 do
 		if _G[anchoredFrames[i]] then
@@ -505,6 +528,7 @@ function FarmHudMixin:OnShow()
 		end
 	end
 
+	-- move child frames to dummy frame
 	local childs = {_G.Minimap:GetChildren()};
 	for i=1, #childs do
 		if not (childs[i].arrow and childs[i].point) or not childs[i].keep==true then -- try to ignore HereBeDragonPins
@@ -512,11 +536,13 @@ function FarmHudMixin:OnShow()
 		end
 	end
 
-	local regions = {_G.Minimap:GetRegions()}; -- child textures and more; mostly by sexymap
+	-- move child textures to dummy frame; required by sexymap
+	local regions = {_G.Minimap:GetRegions()};
 	for r=1, #regions do
 		objectToDummy(regions[r],true,true,true);
 	end
 
+	-- move and change minimap for FarmHud
 	MinimapMT.ClearAllPoints(_G.Minimap);
 	MinimapMT.SetParent(_G.Minimap,FarmHud);
 	MinimapMT.SetPoint(_G.Minimap,"CENTER");
@@ -544,6 +570,13 @@ function FarmHudMixin:OnShow()
 		Minimap_UpdateRotationSetting();
 	end
 
+	-- function replacements for _G.Minimap while FarmHud is enabled.
+	-- Should prevent problems with repositioning of minimap buttons from other addons.
+	for k,v in pairs(replacements)do
+		mps.replacements[k] = _G.Minimap[k];
+		_G.Minimap[k] = v;
+	end
+
 	if FarmHud_ToggleSuperTrackedQuest and FarmHudDB.SuperTrackedQuest then
 		FarmHud_ToggleSuperTrackedQuest(ns.QuestArrowToken,true); -- FarmHud_QuestArrow
 	end
@@ -562,6 +595,11 @@ function FarmHudMixin:OnHide(force)
 		SetCVar("rotateMinimap", mps.rotation, "ROTATE_MINIMAP");
 		rotationMode = mps.rotation
 		Minimap_UpdateRotationSetting();
+	end
+
+	-- restore function replacements for _G.Minimap
+	for k in pairs(replacements)do
+		_G.Minimap[k] = mps.replacements[k];
 	end
 
 	MinimapMT.ClearAllPoints(_G.Minimap);
