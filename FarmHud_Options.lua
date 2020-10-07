@@ -328,7 +328,7 @@ local options = {
 			name = L.Time,
 			args = {
 				time_show = {
-					type = "toggle", order = 1,
+					type = "toggle", order = 1, width = "full",
 					name = L.TimeShow, desc = L.TimeShowDesc
 				},
 				time_server = {
@@ -337,7 +337,7 @@ local options = {
 				},
 				time_local = {
 					type = "toggle", order = 3,
-					name = L.TimeLocal, desc = L.TimeLocalDdesc
+					name = L.TimeLocal, desc = L.TimeLocalDesc
 				},
 				time_radius = {
 					type = "range", order = 4,
