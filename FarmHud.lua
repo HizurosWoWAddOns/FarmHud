@@ -68,6 +68,7 @@ local modifiers = {
 	SL = {LSHIFT=1},
 	SR = {RSHIFT=1},
 };
+local minimapCreateTextureTable = {};
 
 do
 	local addon_short = "FH";
