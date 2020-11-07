@@ -609,9 +609,9 @@ function FarmHudMixin:OnShow()
 	end
 
 	-- move and change minimap for FarmHud
-	MinimapMT.ClearAllPoints(Minimap);
 	MinimapMT.SetParent(Minimap,FarmHud);
-	MinimapMT.SetPoint(Minimap,"CENTER",FarmHud,"CENTER",0,0);
+	MinimapMT.ClearAllPoints(Minimap);
+	MinimapMT.SetPoint(Minimap,"CENTER",0,0);
 	MinimapMT.SetFrameStrata(Minimap,"BACKGROUND");
 	MinimapMT.SetFrameLevel(Minimap,1);
 	MinimapMT.SetScale(Minimap,1);
