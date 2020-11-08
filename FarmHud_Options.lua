@@ -28,7 +28,7 @@ local dbDefaults = {
 	rotation=true, SuperTrackedQuest = true, showDummy = true, showDummyBg = true,
 	QuestArrowInfoMsg = false,
 }
-
+local excludeFrames = {}
 local isAddOnsLoadedForOption = {
 	SuperTrackedQuest = {
 		addon="FarmHud_QuestArrow",
@@ -36,6 +36,59 @@ local isAddOnsLoadedForOption = {
 		descNotLoaded=ORANGE_FONT_COLOR_CODE..L.ExtraAddOnNotLoaded:format("FarmHud [QuestArrow]").."|r"
 	}
 }
+
+local function printFrames(key,value)
+	if type(key)=="table" then
+		if not FarmHud:IsVisible() then
+			ns.print("FarmHud must be enabled before use this option");
+			return;
+		end
+
+		ns.print("Search for unwanted elements anchored on minimap...");
+		local count = 0;
+		local regions = {Minimap:GetRegions()};
+		for r=1, #regions do
+			print("GetRegions()"," - ",regions[i]:GetDebugName());
+			count = count + 1;
+		end
+
+		--ns.print("Search for unwanted frames anchored on minimap... (deep reverse search)");
+		for k,v in pairs(_G) do
+			if (not excludeFrames[key]) and (type(value)=="table") and (type(value[0])=="userdata") and (not (value:IsProtected() or value:IsForbidden())) then
+				if printFrames(k,v) then
+					count = count + 1;
+				end
+			end
+		end
+
+		--ns.print("Search for unwanted textures/fontstrings anchored on minimap...");
+		local childs = {Minimap:GetChildren()};
+		for i=1, #childs do
+			print("GetChildren()"," - ",childs[i]:GetDebugName());
+			count = count + 1;
+		end
+
+		if count>0 then
+			ns.print("Finished...");
+		else
+			ns.print("No elements found...");
+		end
+		return;
+	end
+
+	local secure, taint = issecurevariable(_G,k);
+	if secure then
+		return -- ignore elements from blizzard
+	end
+
+	for i=1, value:GetNumPoints() do
+		local _,parent = value:GetPoint(i);
+		if parent==Minimap then
+			print("pairs(_G)"," - ",value:GetDebugName());
+			return true;
+		end
+	end
+end
 
 local function checkAddOnLoaded(info)
 	local key,pKey = info[#info],info[#info-1];
@@ -428,6 +481,21 @@ local options = {
 				},
 			}
 		},
+		debugging = {
+			type = "group", order = 100,
+			name = BINDING_HEADER_DEBUG,
+			args = {
+				info = {
+					type = "description", order = 1, fontSize = "med",
+					name = L["DebugOptInfo"]
+				},
+				frames = {
+					type = "execute", order = 2,
+					name = L["DebugOptFrames"],
+					func = printFrames
+				}
+			}
+		}
 	}
 };
 

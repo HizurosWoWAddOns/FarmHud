@@ -113,6 +113,11 @@ L["TrackingOptionsDesc"] = "Toggle tracking icons on opened FarmHud.|n|n\"Like m
 L["TrackingOptionsLikeMinimap"] = "Like minimap"
 L["W"] = "W"
 L["White player dot"] = "White player dot"
+L["DebugOptInfo"] = "This section contains options to help tracking problems with other addons."
+L["DebugOptFrames"] = "Print unwanted elements"
+L["DebugOptFramesDesc"] = "Print a list of unwanted elements anchored on Minimap if FarmHud enabled."
+L["IncompatibleAddOnDetected"] = "ERROR: FarmHud can't be opened. There are incompatible addons active. Disable the following list of AddOns:"
+L["AnotherAddOnsHijackedFunc"] = "Warning: Another addon has hijacked some essential functions. See following List:"
 
 -- empty / unused
 --L["BgTransparencyDesc"] = ""
