@@ -1,29 +1,29 @@
 package-as: FarmHud
 
 externals:
-	libs/LibStub:
-		url: https://repos.wowace.com/wow/libstub/trunk
-		tag: latest
+    libs/LibStub:
+        url: https://repos.curseforge.com/wow/libstub/trunk
+        tag: latest
 
-	libs/CallbackHandler-1.0:
-		url: https://repos.wowace.com/wow/callbackhandler/trunk/CallbackHandler-1.0
-		tag: latest
+    libs/CallbackHandler-1.0:
+        url: https://repos.curseforge.com/wow/callbackhandler/trunk/CallbackHandler-1.0
+        tag: latest
 
-	libs/AceGUI-3.0:
-		url: https://repos.wowace.com/wow/ace3/trunk/AceGUI-3.0
-		tag: latest
+    libs/AceGUI-3.0:
+        url: https://repos.curseforge.com/wow/ace3/trunk/AceGUI-3.0
+        tag: latest
 
-	libs/AceConfig-3.0:
-		url: https://repos.wowace.com/wow/ace3/trunk/AceConfig-3.0
-		tag: latest
+    libs/AceConfig-3.0:
+        url: https://repos.curseforge.com/wow/ace3/trunk/AceConfig-3.0
+        tag: latest
 
-	libs/LibDataBroker-1.1:
-		url: https://repos.wowace.com/wow/libdatabroker-1-1
-		tag: latest
+    libs/LibDataBroker-1.1:
+        url: https://repos.curseforge.com/wow/libdatabroker-1-1
+        tag: latest
 
-	libs/LibDBIcon-1.0:
-		url: https://repos.wowace.com/wow/libdbicon-1-0/trunk/LibDBIcon-1.0
-		tag: latest
+    libs/LibDBIcon-1.0:
+        url: https://repos.curseforge.com/wow/libdbicon-1-0/trunk/LibDBIcon-1.0
+        tag: latest
 
 move-folders:
     FarmHud/QuestArrow: FarmHud_QuestArrow
@@ -31,10 +31,10 @@ move-folders:
 enable-nolib-creation: yes
 
 ignore:
-	- libs/LibStub/tests
-	- libs/LibStub/LibStub.toc
-	- libs/CallbackHandler-1.0/CallbackHandler-1.0.xml
-	- libs/LibDataBroker-1.0/README.textile
-	- libs/LibDBIcon-1.0/lib.xml
+    - libs/LibStub/tests
+    - libs/LibStub/LibStub.toc
+    - libs/CallbackHandler-1.0/CallbackHandler-1.0.xml
+    - libs/LibDataBroker-1.0/README.textile
+    - libs/LibDBIcon-1.0/lib.xml
 
 license-output: LICENSE.txt
