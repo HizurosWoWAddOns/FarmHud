@@ -817,7 +817,7 @@ end
 -- Toggle FarmHud display
 function FarmHudMixin:Toggle(force)
 	if #knownProblematicAddOnsDetected>0 then
-		ns.print("|cffffee00"..L["KnownProblematicAddOnDetected"].."|r","|cffffee00"..table.concat(knownProblematicAddOnsDetected,", ").."|r")
+		ns.print("|cffffee00"..L["KnownProblematicAddOnDetected"].."|r","|cffff8000("..table.concat(knownProblematicAddOnsDetected,", ")..")|r")
 	end
 	if force==nil then
 		force = not self:IsShown();
