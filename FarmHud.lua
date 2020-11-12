@@ -16,7 +16,7 @@ local mps,Minimap,MinimapMT,mouseOnKeybind,Dummy = {},_G.Minimap,getmetatable(_G
 local minimapScripts,cardinalTicker,coordsTicker = {--[["OnMouseUp",]]"OnMouseDown","OnDragStart"};
 local playerDot_orig, playerDot_custom = "Interface\\Minimap\\MinimapArrow";
 local TrackingIndex,timeTicker = {};
-local knownProblematicAddOns, knownProblematicAddOnsDetected = {BasicMinimap=true},{};
+local knownProblematicAddOns, knownProblematicAddOnsDetected = {},{};
 local SetPointToken,SetParentToken = {},{};
 local trackingTypes,trackingTypesStates,numTrackingTypes,trackingHookLocked = {},{},0,false;
 --local MinimapFunctionHijacked = {"SetParent","ClearAllPoints","SetAllPoints","GetPoint","GetNumPoints"};
@@ -936,6 +936,10 @@ function FarmHudMixin:OnEvent(event,...)
 		if(LibStub.libs['LibHijackMinimap-1.0'])then
 			LibHijackMinimap = LibStub('LibHijackMinimap-1.0');
 			LibHijackMinimap:RegisterHijacker(addon,LibHijackMinimap_Token);
+		end
+
+		if BasicMinimap then
+			self:RegisterForeignAddOnObject(BasicMinimap.backdrop:GetParent(),"BasicMinimap");
 		end
 
 		checkOnKnownProblematicAddOns()
