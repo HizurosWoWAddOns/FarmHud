@@ -58,6 +58,12 @@ local foreignObjects,anchoredFrames = {},{ -- <name[string]>
 	"rBFS_DebuffDragFrame",
 	-- BtWQuests
 	"BtWQuestsMinimapButton",
+	-- GW2_UI
+	"GwQuestTracker",
+	"GwAddonToggle",
+	"GwCalendarButton",
+	"GwGarrisonButton",
+	"GwMailButton",
 };
 local modifiers = {
 	A  = {LALT=1,RALT=1},
