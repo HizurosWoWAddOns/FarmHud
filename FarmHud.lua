@@ -532,7 +532,7 @@ do
 		elseif IsKey(key,"showDummy") then
 			Dummy:SetShown(FarmHudDB.showDummy);
 		elseif IsKey(key,"showDummyBg") then
-			Dummy.bg:SetShown(FarmHudDB.showDummyBg);
+			Dummy.bg:SetShown(FarmHudDB.showDummyBg and (not HybridMinimap or (HybridMinimap and not HybridMinimap:IsShown())) );
 		elseif key:find("tracking^%d+") and not ns.IsClassic() then
 			local _, id = strsplit("^",key);
 			id = tonumber(id);
@@ -559,7 +559,7 @@ function FarmHudMixin:OnShow()
 	for i=1, Minimap:GetNumPoints() do
 		Dummy:SetPoint(Minimap:GetPoint(i));
 	end
-	Dummy.bg:SetShown(FarmHudDB.showDummyBg);
+	Dummy.bg:SetShown(FarmHudDB.showDummyBg and (not HybridMinimap or (HybridMinimap and not HybridMinimap:IsShown())) );
 	Dummy:SetShown(FarmHudDB.showDummy);
 	self.cluster:Show();
 
@@ -644,8 +644,13 @@ function FarmHudMixin:OnShow()
 	-- move and change minimap for FarmHud
 	Minimap:SetParent(FarmHud);
 	Minimap:ClearAllPoints();
-	--Minimap:SetPoint("CENTER",0,0); -- failed because[SetPoint would result in anchor family connection]
-	Minimap:SetAllPoints(); -- i don't know why but this works
+	-- sometimes SetPoint produce error "because[SetPoint would result in anchor family connection]"
+	local f, err = loadstring('Minimap:SetPoint("CENTER",0,0)');
+	if f then f(); else
+		Minimap:SetAllPoints(); -- but SetAllPoints results in an offset for somebody
+		Minimap:ClearAllPoints();
+		Minimap:SetPoint("CENTER",0,0); -- next try...
+	end
 	MinimapMT.SetFrameStrata(Minimap,"BACKGROUND");
 	MinimapMT.SetFrameLevel(Minimap,1);
 	MinimapMT.SetScale(Minimap,1);
