@@ -2,6 +2,7 @@
 local addon,ns=...;
 local L=ns.L;
 local ACD = LibStub("AceConfigDialog-3.0");
+local HBDPins = LibStub("HereBeDragons-Pins-2.0")
 
 FarmHudMixin = {};
 
@@ -295,13 +296,6 @@ local function objectToDummy(object,enable,debugStr)
 	--ns.debug(object:GetDebugName(),debugStr,enable,changedSetParent and "SetParent" or "",changedSetPoint and "SetPoint" or "");
 
 	return changedSetParent,changedSetPoint;
-end
-
-local function IsHereBeDragonPins(obj)
-	if (obj.arrow and obj.point) or obj.keep==true then -- try to ignore HereBeDragonPins
-		return true;
-	end
-	return false;
 end
 
 -- function replacements for Minimap while FarmHud is enabled.
@@ -605,7 +599,7 @@ function FarmHudMixin:OnShow()
 		-- childs
 		local childs = {object:GetChildren()};
 		for i=1, #childs do
-			if not IsHereBeDragonPins(childs[i]) then
+			if not (HBDPins and HBDPins.minimapPins[childs[i]]) then -- ignore herebedragons pins
 				parent,point = objectToDummy(childs[i],true,"OnShow.GetChildren");
 				if parent or point then
 					tinsert(movedElements.childs,childs[i])
