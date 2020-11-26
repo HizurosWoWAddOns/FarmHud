@@ -549,6 +549,8 @@ do
 end
 
 function FarmHudMixin:OnShow()
+	trackEnableMouse = true;
+
 	Dummy:SetParent(Minimap:GetParent());
 	Dummy:SetScale(Minimap:GetScale());
 	Dummy:SetSize(Minimap:GetSize());
@@ -656,6 +658,7 @@ function FarmHudMixin:OnShow()
 	MinimapMT.SetZoom(Minimap,0);
 	MinimapMT.SetAlpha(Minimap,FarmHudDB.background_alpha);
 
+	suppressNextMouseEnable = true;
 	MinimapMT.EnableMouse(Minimap,false);
 	MinimapMT.EnableMouseWheel(Minimap,false);
 
@@ -692,6 +695,11 @@ function FarmHudMixin:OnShow()
 	self:UpdateCardinalPoints(FarmHudDB.cardinalpoints_show);
 	self:UpdateCoords(FarmHudDB.coords_show);
 	self:UpdateTime(FarmHudDB.time_show);
+
+	-- second try to suppress mouse enable state
+	suppressNextMouseEnable = true;
+	MinimapMT.EnableMouse(Minimap,false);
+	MinimapMT.EnableMouseWheel(Minimap,false);
 end
 
 function FarmHudMixin:OnHide()
@@ -700,6 +708,8 @@ function FarmHudMixin:OnHide()
 		rotationMode = mps.rotation
 		Minimap_UpdateRotationSetting();
 	end
+
+	trackEnableMouse = false;
 
 	-- restore function replacements for Minimap
 	for k in pairs(replacements)do
@@ -854,12 +864,14 @@ end
 function FarmHudMixin:ToggleMouse(force)
 	if Minimap:GetParent()==self then
 		if (force==nil and Minimap:IsMouseEnabled()) or force then
+			suppressNextMouseEnable = true;
 			MinimapMT.EnableMouse(Minimap,false);
 			self.TextFrame.mouseWarn:Hide();
 			if not force then
 				mouseOnKeybind = true;
 			end
 		else
+			suppressNextMouseEnable = true;
 			MinimapMT.EnableMouse(Minimap,true);
 			self.TextFrame.mouseWarn:Show();
 			if not force then
@@ -989,6 +1001,14 @@ function FarmHudMixin:OnLoad()
 
 	hooksecurefunc(Minimap,"SetMaskTexture",function(_,texture)
 		Dummy.bg:SetMask(texture);
+	end);
+
+	hooksecurefunc(Minimap,"EnableMouse",function(_,bool)
+		if not trackEnableMouse or suppressNextMouseEnable then
+			suppressNextMouseEnable = false;
+			return
+		end
+		ns.print(L.PleaseReportThisMessage,"<EnableMouse>",bool,"|n"..debugstack());
 	end);
 
 	if not ns.IsClassic() then
