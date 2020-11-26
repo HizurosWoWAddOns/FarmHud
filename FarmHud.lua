@@ -423,6 +423,7 @@ function FarmHudMixin:SetScales(enabled)
 
 	local gcSize = MinimapSize * 0.432;
 	self.gatherCircle:SetSize(gcSize, gcSize);
+	self.healCircle:SetSize(gcSize/2.11, gcSize/2.11);
 
 	local y = (self:GetHeight()*FarmHudDB.buttons_radius) * 0.5;
 	if (FarmHudDB.buttons_bottom) then y = -y; end
@@ -500,8 +501,12 @@ do
 			self.TextFrame.mouseWarn:SetTextColor(unpack(FarmHudDB.mouseoverinfo_color));
 		elseif IsKey(key,"gathercircle_show") then
 			self.gatherCircle:SetShown(FarmHudDB.gathercircle_show);
-		elseif IsKey(key,"gathercircle_color") or key=="gathetcircle_resetcolor" then
+		elseif IsKey(key,"gathercircle_color") or key=="gathercircle_resetcolor" then
 			self.gatherCircle:SetVertexColor(unpack(FarmHudDB.gathercircle_color));
+		elseif IsKey(key,"healcircle_show") then
+			self.healCircle:SetShown(FarmHudDB.healcircle_show);
+		elseif IsKey(key,"healcircle_color") or key=="healcircle_resetcolor" then
+			self.healCircle:SetVertexColor(unpack(FarmHudDB.healcircle_color));
 		elseif IsKey(key,"cardinalpoints_show") then
 			self:UpdateCardinalPoints(FarmHudDB.cardinalpoints_show);
 		elseif IsKey(key,"cardinalpoints_color1") or IsKey(key,"cardinalpoints_color2") then
@@ -899,8 +904,12 @@ function FarmHudMixin:OnEvent(event,...)
 		if (FarmHudDB.gathercircle_show) then
 			self.gatherCircle:Show();
 		end
+		if (FarmHudDB.healcircle_show) then
+			self.healCircle:Show();
+		end
 
 		self.gatherCircle:SetVertexColor(unpack(FarmHudDB.gathercircle_color));
+		self.healCircle:SetVertexColor(unpack(FarmHudDB.healcircle_color));
 
 		local radius = Minimap:GetWidth() * 0.214;
 		for i, v in ipairs(self.TextFrame.cardinalPoints) do

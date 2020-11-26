@@ -55,6 +55,12 @@
 						<Anchor point="CENTER" />
 					</Anchors>
 				</Texture>
+				<Texture parentKey="healCircle" file="Interface\AddOns\FarmHud\media\gathercircle" alphaMode="ADD" hidden="true">
+					<Size x="30" y="30"/>
+					<Anchors>
+						<Anchor point="CENTER" />
+					</Anchors>
+				</Texture>
 			</Layer>
 		</Layers>
 		<Frames>

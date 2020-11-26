@@ -27,6 +27,7 @@ local dbDefaults = {
 	player_dot="blizz", background_alpha=0, holdKeyForMouseOn = "_none",
 	rotation=true, SuperTrackedQuest = true, showDummy = true, showDummyBg = true,
 	QuestArrowInfoMsg = false,
+	healcircle_show=true,healcircle_color={0,.7,1,0.5},
 }
 local excludeFrames = {}
 local isAddOnsLoadedForOption = {
@@ -287,27 +288,54 @@ local options = {
 				}
 			}
 		},
-		gathercircle = {
+		rangecircles = {
 			type = "group", order = 2,
-			name = L.GatherCircle,
+			name = L.RangeCircles,
 			args = {
+				-- gathercircle
+				gathercircle = {
+					type = "header", order = 10,
+					name = L.GatherCircle,
+				},
 				gathercircle_desc = {
-					type = "description", order = 0, fontSize = "medium",
+					type = "description", order = 11, fontSize = "medium",
 					name = L.GatherCircleDesc
 				},
 				gathercircle_show = {
-					type = "toggle", order = 1, width = "double",
+					type = "toggle", order = 12, width = "double",
 					name = L.GatherCircleShow, desc = L.GatherCircleShowDesc
 				},
 				gathercircle_color = {
-					type = "color", order = 2,
+					type = "color", order = 13,
 					name = COLOR, desc = L.GatherCircleColorDesc,
 					hasAlpha = true
 				},
 				gathercircle_resetcolor = {
-					type = "execute", order = 3,
+					type = "execute", order = 14,
 					name = L.ResetColor, --desc = L.ResetColorDesc
-				}
+				},
+				-- healcircle
+				healcircle = {
+					type = "header", order = 20,
+					name = L.HealCircle,
+				},
+				healcircle_desc = {
+					type = "description", order = 21, fontSize = "medium",
+					name = L.HealcircleDesc
+				},
+				healcircle_show = {
+					type = "toggle", order = 22, width = "double",
+					name = L.HealcircleShow, desc = L.HealcircleShowDesc
+				},
+				healcircle_color = {
+					type = "color", order = 23,
+					name = COLOR, desc = L.HealcircleColorDesc,
+					hasAlpha = true
+				},
+				healcircle_resetcolor = {
+					type = "execute", order = 24,
+					name = L.ResetColor, --desc = L.ResetColorDesc
+				},
 			}
 		},
 		cardinalpoints = {
