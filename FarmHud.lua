@@ -2,6 +2,7 @@
 local addon,ns=...;
 local L=ns.L;
 local ACD = LibStub("AceConfigDialog-3.0");
+local HBD = LibStub("HereBeDragons-2.0")
 local HBDPins = LibStub("HereBeDragons-Pins-2.0")
 
 FarmHudMixin = {};

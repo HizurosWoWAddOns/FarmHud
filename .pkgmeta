@@ -25,6 +25,10 @@ externals:
         url: https://repos.curseforge.com/wow/libdbicon-1-0/trunk/LibDBIcon-1.0
         tag: latest
 
+    libs/HereBeDragons
+        url: https://repos.curseforge.com/wow/herebedragons
+        tag: latest
+
 move-folders:
     FarmHud/QuestArrow: FarmHud_QuestArrow
 
@@ -36,5 +40,8 @@ ignore:
     - libs/CallbackHandler-1.0/CallbackHandler-1.0.xml
     - libs/LibDataBroker-1.0/README.textile
     - libs/LibDBIcon-1.0/lib.xml
+    - libs/HereBeDragons-1.0
+    - libs/HereBeDragons/CallbackHandler-1.0
+    - libs/HereBeDragons/LibStub
 
 license-output: LICENSE.txt
