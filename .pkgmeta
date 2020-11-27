@@ -25,7 +25,7 @@ externals:
         url: https://repos.curseforge.com/wow/libdbicon-1-0/trunk/LibDBIcon-1.0
         tag: latest
 
-    libs/HereBeDragons
+    libs/HereBeDragons:
         url: https://repos.curseforge.com/wow/herebedragons
         tag: latest
 
