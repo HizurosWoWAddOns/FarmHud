@@ -36,11 +36,6 @@ enable-nolib-creation: no
 
 ignore:
     - libs/LibStub/tests
-    - libs/LibStub/LibStub.toc
-    - libs/CallbackHandler-1.0/CallbackHandler-1.0.xml
-    - libs/LibDataBroker-1.0/README.textile
-    - libs/LibDBIcon-1.0/lib.xml
-    - libs/HereBeDragons-1.0
     - libs/HereBeDragons/CallbackHandler-1.0
     - libs/HereBeDragons/LibStub
 
