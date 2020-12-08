@@ -32,7 +32,7 @@ externals:
 move-folders:
     FarmHud/QuestArrow: FarmHud_QuestArrow
 
-enable-nolib-creation: no
+enable-nolib-creation: yes
 
 ignore:
     - libs/LibStub/tests
