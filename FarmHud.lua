@@ -21,7 +21,7 @@ local TrackingIndex,timeTicker = {};
 local knownProblematicAddOns, knownProblematicAddOnsDetected = {BasicMinimap=true},{};
 local SetPointToken,SetParentToken = {},{};
 local trackingTypes,trackingTypesStates,numTrackingTypes,trackingHookLocked = {},{},0,false;
---local MinimapFunctionHijacked = {"SetParent","ClearAllPoints","SetAllPoints","GetPoint","GetNumPoints"};
+local MinimapFunctionHijacked --= {"SetParent","ClearAllPoints","SetAllPoints","GetPoint","GetNumPoints"};
 local PrintTokens,rotationMode,IsOpened = {
 	FarmHud_QuestArrow = {}
 };
@@ -126,11 +126,11 @@ do
 	end
 end
 
-ns.IsClassic = IsClassic or IsClassicClient;
-if not ns.IsClassic then
-	local version,build,datestr,interface = GetBuildInfo()
+do
+	local _,_,_,interface = GetBuildInfo()
+	local isClassic = interface<20000;
 	function ns.IsClassic()
-		return interface<20000;
+		return isClassic;
 	end
 end
 
@@ -200,7 +200,6 @@ do
 	local Minimap_CreateTexture = Minimap.CreateTexture;
 	function Minimap:CreateTexture(...)
 		local byAddOn = ({strsplit("\\", ({strsplit("\n",debugstack())})[2] )})[3];
-		--ns.debug("<Minimap:CreateTexture>",byAddOn);
 		local tex = Minimap_CreateTexture(self,...);
 		tinsert(minimapCreateTextureTable,tex);
 		return tex;
@@ -600,18 +599,15 @@ function FarmHudMixin:OnShow()
 		mps.anchors[i] = {Minimap:GetPoint(i)};
 	end
 
-	--ns.debug("+","+","move child regions of a frame");
 	-- move child and regions of a frame to FarmHudDummy
 	for object,movedElements in pairs(foreignObjects) do
 		local parent,point
 		-- childs
 		local childs = {object:GetChildren()};
 		for i=1, #childs do
-			if not (HBDPins and HBDPins.minimapPins[childs[i]]) then -- ignore herebedragons pins
-				parent,point = objectToDummy(childs[i],true,"OnShow.GetChildren");
-				if parent or point then
-					tinsert(movedElements.childs,childs[i])
-				end
+			parent,point = objectToDummy(childs[i],true,"OnShow.GetChildren");
+			if parent or point then
+				tinsert(movedElements.childs,childs[i]);
 			end
 		end
 
@@ -625,7 +621,6 @@ function FarmHudMixin:OnShow()
 		end
 	end
 
-	--ns.debug("+","+","move anchored frames by name table");
 	-- reanchor named frames that not have minimap as parent but anchored on it
 	mps.anchoredFrames = {};
 	for i=1, #anchoredFrames do
@@ -635,7 +630,6 @@ function FarmHudMixin:OnShow()
 		end
 	end
 
-	--ns.debug("+","+","move anchored nameless textures", #minimapCreateTextureTable)
 	-- nameless textures
 	if #minimapCreateTextureTable>0 then
 		for i=1, #minimapCreateTextureTable do
@@ -663,7 +657,7 @@ function FarmHudMixin:OnShow()
 	MinimapMT.EnableMouse(Minimap,false);
 	MinimapMT.EnableMouseWheel(Minimap,false);
 
-	local mc_points = {MinimapCluster:GetPoint(i)};
+	local mc_points = {MinimapCluster:GetPoint()};
 	if mc_points[2]==Minimap then
 		mps.mc_mouse = MinimapCluster:IsMouseEnabled();
 		mps.mc_mousewheel = MinimapCluster:IsMouseWheelEnabled();
@@ -746,7 +740,6 @@ function FarmHudMixin:OnHide()
 		Minimap:SetPoint(unpack(mps.anchors[i]));
 	end
 
-	--ns.debug("-","-","move child regions of a frame");
 	-- move child frames and regions (textures/fontstrings) of a frame back agian to Minimap
 	for object,movedElements in pairs(foreignObjects) do
 		-- childs
@@ -762,7 +755,6 @@ function FarmHudMixin:OnHide()
 		wipe(movedElements.regions);
 	end
 
-	--ns.debug("-","-","move anchored frames by name table");
 	-- anchored frames by name
 	for i=1, #anchoredFrames do
 		if mps.anchoredFrames[i] then
@@ -770,7 +762,6 @@ function FarmHudMixin:OnHide()
 		end
 	end
 
-	--ns.debug("-","-","move anchored nameless textures")
 	-- nameless textures
 	if #minimapCreateTextureTable>0 then
 		for i=1, #minimapCreateTextureTable do
@@ -847,7 +838,6 @@ function FarmHudMixin:Toggle(force)
 		local isHijacked = {};
 		for i=1, #MinimapFunctionHijacked do
 			local k = MinimapFunctionHijacked[i];
-			--ns.debug("<check hijacking>",k,MinimapMT[k],Minimap[k],MinimapMT[k] ~= Minimap[k]);
 			if MinimapMT[k] ~= Minimap[k] then
 				local _,taintBy = issecurevariable(Minimap,k);
 				tinsert(isHijacked,k.." ("..(taintBy or UNKNOWN)..")");
