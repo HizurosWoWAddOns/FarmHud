@@ -79,6 +79,8 @@ local modifiers = {
 	SR = {RSHIFT=1},
 };
 local minimapCreateTextureTable = {};
+local trackEnableMouse,suppressNextMouseEnable = false,false; -- try to get more info for mouse enable bug
+
 
 do
 	local addon_short = "FH";
@@ -292,8 +294,6 @@ local function objectToDummy(object,enable,debugStr)
 			object.SetPoint,object[SetPointToken] = object[SetPointToken],nil;
 		end
 	end
-
-	--ns.debug(object:GetDebugName(),debugStr,enable,changedSetParent and "SetParent" or "",changedSetPoint and "SetPoint" or "");
 
 	return changedSetParent,changedSetPoint;
 end

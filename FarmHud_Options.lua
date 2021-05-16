@@ -15,7 +15,6 @@ local TrackingValues = {
 	["false"] = HIDE,
 	["client"] = L["TrackingOptionsLikeMinimap"]
 }
-
 local dbDefaults = {
 	hud_scale=1.4, text_scale=1.4, hud_size=1,
 	gathercircle_show=true,gathercircle_color={0,1,0,0.5},
@@ -474,14 +473,16 @@ local options = {
 					name = MISCELLANEOUS,
 					args = {
 						-- filled by function updateTrackingOptions
-					}
+					},
+					hidden = true,
 				},
 				townsfolk = {
 					type = "group", order = 3,
 					name = TOWNSFOLK_TRACKING_TEXT,
 					args = {
 						-- filled by function updateTrackingOptions
-					}
+					},
+					hidden = true,
 				}
 			}
 		},
@@ -550,8 +551,10 @@ local function updateTrackingOptions(info)
 		end
 		if data.level==2 then -- townfolk
 			options.args.tracking.args.townsfolk.args[key] = trackingOpts[textureId]
+			options.args.tracking.args.townsfolk.hidden=false;
 		else -- misc
 			options.args.tracking.args.misc.args[key] = trackingOpts[textureId];
+			options.args.tracking.args.misc.hidden=false;
 		end
 	end
 	return false;
