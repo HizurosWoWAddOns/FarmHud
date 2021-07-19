@@ -84,7 +84,7 @@ local trackEnableMouse,suppressNextMouseEnable = false,false; -- try to get more
 
 do
 	local addon_short = "FH";
-	local colors = {"0099ff","00ff00","ff6060","44ffff","ffff00","ff8800","ff44ff","ffffff"};
+	local colors = {"82c5ff","00ff00","ff6060","44ffff","ffff00","ff8800","ff44ff","ffffff"};
 	local debugMode = "@project-version@" == "@".."project-version".."@";
 	local function colorize(...)
 		local t,c,a1 = {tostringall(...)},1,...;
@@ -100,7 +100,7 @@ do
 				tremove(t,2);
 				tremove(t,1);
 			end
-			tinsert(t,1,"|cff0099ff"..header.."|r"..(a1~="||" and HEADER_COLON or ""));
+			tinsert(t,1,"|cff82c5ff"..header.."|r"..(a1~="||" and HEADER_COLON or ""));
 			c=2;
 		end
 		for i=c, #t do
