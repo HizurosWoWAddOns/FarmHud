@@ -129,11 +129,19 @@ do
 end
 
 do
-	local _,_,_,interface = GetBuildInfo()
-	local isClassic = interface<20000;
 	function ns.IsClassic()
-		return isClassic;
+		return WOW_PROJECT_ID==WOW_PROJECT_CLASSIC;
 	end
+	function ns.IsClassicBC()
+		return WOW_PROJECT_ID==WOW_PROJECT_BURNING_CRUSADE_CLASSIC;
+	end
+	function ns.IsRetail()
+		return WOW_PROJECT_ID==WOW_PROJECT_MAINLINE;
+	end
+end
+
+local function GetMicrotime()
+	return ceil(GetTime()*100);
 end
 
 local function SetPlayerDotTexture(bool) -- executed by FarmHud:UpdateOptions(), FrameHud:OnShow(), FarmHud:OnHide() and FarmHud:OnLoad()
@@ -147,9 +155,7 @@ end
 -- tracking options
 
 function ns.GetTrackingTypes()
-	if ns.IsClassic() then
-		return {};
-	end
+	if ns.IsClassic() then return {}; end
 	local num = GetNumTrackingTypes();
 	if numTrackingTypes~=num then
 		numTrackingTypes = num;
@@ -227,6 +233,14 @@ end
 local objSetPoint = {};
 local objSetParent = {};
 local function objectToDummy(object,enable,debugStr)
+
+	-- == ignore == --
+	if (HBDPins and HBDPins.minimapPins[object]) -- ignore herebedragons pins
+	then
+		return;
+	end
+
+	-- == prepare == --
 	local changedSetParent,changedSetPoint,objType = false,false,object:GetObjectType()
 	if objSetParent[objType] == nil then
 		objSetParent[objType] = getmetatable(object).__index.SetParent;
