@@ -230,6 +230,55 @@ local function dummyOnly_SetParent(self,parent)
 	return self[SetParentToken](self,parent);
 end
 
+-- function replacements for Minimap while FarmHud is enabled.
+-- Should prevent problems with repositioning of minimap buttons from other addons.
+local replacements,addHooks
+do
+	local alreadyHooked,useDummy,lockedBy = {};
+	local function MinimapOrDummy(func,...)
+		if useDummy then
+			return Dummy[func](Dummy,...);
+		end
+		return MinimapMT[func](Minimap,...);
+	end
+	replacements = {
+		GetWidth = function() return MinimapOrDummy("GetWidth") end,
+		GetHeight = function() return MinimapOrDummy("GetHeight") end,
+		GetSize = function() return MinimapOrDummy("GetSize") end,
+		GetCenter = function() return Dummy :GetCenter() end,
+		GetEffectiveScale = function() return Dummy :GetEffectiveScale() end,
+		GetLeft = function() return Dummy :GetLeft() end,
+		GetRight = function() return Dummy :GetRight() end,
+		GetBottom = function() return Dummy :GetBottom() end,
+		GetTop = function() return Dummy :GetTop() end,
+	}
+	local function objHookStart(self)
+		if lockedBy~=false then return end
+		lockedBy = self;
+		useDummy = true;
+		ns.debugPrint(self :GetDebugName(),true);
+	end
+	local function objHookStop(self)
+		if lockedBy~=self then
+			return
+		end
+		useDummy = false;
+		ns.debugPrint(self :GetDebugName(),false);
+	end
+	function addHooks(obj)
+		if alreadyHooked[obj] then
+			return;
+		end
+		alreadyHooked[obj] = true;
+		local objMT = getmetatable(obj).__index;
+		objMT .HookScript(obj,"OnEnter",objHookStart);
+		objMT .HookScript(obj,"OnDragStart",objHookStart);
+		objMT .HookScript(obj,"OnLeave",objHookStop);
+		objMT .HookScript(obj,"OnDragStop",objHookStop);
+	end
+end
+
+-- move anchoring of objects from minimap to dummy and back
 local objSetPoint = {};
 local objSetParent = {};
 local function objectToDummy(object,enable,debugStr)
@@ -282,6 +331,7 @@ local function objectToDummy(object,enable,debugStr)
 		else
 			object:SetFrameStrata(fstrata);
 			object:SetFrameLevel(flevel);
+			addHooks(object)
 		end
 	end
 
@@ -311,21 +361,6 @@ local function objectToDummy(object,enable,debugStr)
 
 	return changedSetParent,changedSetPoint;
 end
-
--- function replacements for Minimap while FarmHud is enabled.
--- Should prevent problems with repositioning of minimap buttons from other addons.
-local replacements = {
-	GetWidth = function() return Dummy:GetWidth() end,
-	GetHeight = function() return Dummy:GetHeight() end,
-	GetSize = function() return Dummy:GetSize() end,
-	GetCenter = function() return Dummy:GetCenter() end,
-	GetEffectiveScale = function() return Dummy:GetEffectiveScale() end,
-	GetLeft = function() return Dummy:GetLeft() end,
-	GetRight = function() return Dummy:GetRight() end,
-	GetBottom = function() return Dummy:GetBottom() end,
-	GetTop = function() return Dummy:GetTop() end,
-}
-
 
 -- cardinal points
 
@@ -591,6 +626,7 @@ function FarmHudMixin:OnShow()
 	mps.mouse = Minimap:IsMouseEnabled();
 	mps.mousewheel = Minimap:IsMouseWheelEnabled();
 	mps.alpha = Minimap:GetAlpha();
+	mps.backdropMouse = MinimapBackdrop:IsMouseEnabled();
 
 	-- cache mouse enable state
 	local onmouseup = Minimap:GetScript("OnMouseUp");
@@ -652,14 +688,14 @@ function FarmHudMixin:OnShow()
 	end
 
 	-- move and change minimap for FarmHud
-	Minimap:SetParent(FarmHud);
-	Minimap:ClearAllPoints();
+	MinimapMT.SetParent(Minimap,FarmHud);
+	MinimapMT.ClearAllPoints(Minimap);
 	-- sometimes SetPoint produce error "because[SetPoint would result in anchor family connection]"
 	local f, err = loadstring('Minimap:SetPoint("CENTER",0,0)');
 	if f then f(); else
-		Minimap:SetAllPoints(); -- but SetAllPoints results in an offset for somebody
-		Minimap:ClearAllPoints();
-		Minimap:SetPoint("CENTER",0,0); -- next try...
+		MinimapMT.SetAllPoints(Minimap); -- but SetAllPoints results in an offset for somebody
+		MinimapMT.ClearAllPoints(Minimap);
+		MinimapMT.SetPoint(Minimap,"CENTER",0,0); -- next try...
 	end
 	MinimapMT.SetFrameStrata(Minimap,"BACKGROUND");
 	MinimapMT.SetFrameLevel(Minimap,1);
@@ -808,7 +844,9 @@ function FarmHudMixin:OnHide()
 	self:UpdateTime(false);
 	self:UpdateForeignAddOns(false);
 
-	MinimapBackdrop:Show();
+	if mps.backdropMouse~=MinimapBackdrop:IsMouseEnabled() then
+		MinimapBackdrop:EnableMouse(mps.backdropMouse);
+	end
 end
 
 local function checkOnKnownProblematicAddOns()
