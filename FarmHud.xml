@@ -2,6 +2,9 @@
 ..\FrameXML\UI.xsd">
 
 	<Script file="Localization.lua"/>
+	<!--@do-not-package@-->
+	<Script file="../FarmHud/Localization.workfile.lua"/>
+	<!--@end-do-not-package@-->
 	<Script file="FarmHud.lua"/>
 	<Script file="FarmHud_Options.lua"/>
 	<Script file="FarmHud_DataBroker.lua"/>

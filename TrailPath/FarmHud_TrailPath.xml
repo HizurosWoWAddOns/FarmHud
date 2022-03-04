@@ -2,7 +2,9 @@
 ..\..\FrameXML\UI.xsd">
 
 	<Script file="../FarmHud/Localization.lua"/>
+	<!--@do-not-package@-->
 	<Script file="../FarmHud/Localization.workfile.lua"/>
+	<!--@end-do-not-package@-->
 	<Script file="FarmHud_TrailPath.lua" />
 
 	<Frame name="FarmHudTrailPathPinTemplate" parentArray="TrailPathPool" mixin="FarmHudTrailPathPinMixin" hidden="true" virtual="true">
