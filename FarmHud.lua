@@ -12,6 +12,8 @@ local GetPlayerFacing,C_Map = GetPlayerFacing,C_Map;
 local Minimap_OnClick = Minimap_OnClick;
 
 ns.QuestArrowToken = {};
+ns.modules = {};
+local modEvents,events = {},{VARIABLES_LOADED=true,PLAYER_ENTERING_WORLD=true,PLAYER_LOGIN=true,PLAYER_LOGOUT=true,MODIFIER_STATE_CHANGED=true};
 local LibHijackMinimap_Token,TrackingIndex,LibHijackMinimap,_ = {},{};
 local media, media_blizz = "Interface\\AddOns\\"..addon.."\\media\\", "Interface\\Minimap\\";
 local mps,Minimap,MinimapMT,mouseOnKeybind,Dummy = {},_G.Minimap,getmetatable(_G.Minimap).__index;
@@ -138,10 +140,6 @@ do
 	function ns.IsRetail()
 		return WOW_PROJECT_ID==WOW_PROJECT_MAINLINE;
 	end
-end
-
-local function GetMicrotime()
-	return ceil(GetTime()*100);
 end
 
 local function SetPlayerDotTexture(bool) -- executed by FarmHud:UpdateOptions(), FrameHud:OnShow(), FarmHud:OnHide() and FarmHud:OnLoad()
@@ -745,6 +743,12 @@ function FarmHudMixin:OnShow()
 	suppressNextMouseEnable = true;
 	MinimapMT.EnableMouse(Minimap,false);
 	MinimapMT.EnableMouseWheel(Minimap,false);
+
+	for modName,mod in pairs(ns.modules)do
+		if mod.OnShow then
+			mod.OnShow();
+		end
+	end
 end
 
 function FarmHudMixin:OnHide()
@@ -835,6 +839,12 @@ function FarmHudMixin:OnHide()
 	end
 
 	wipe(mps);
+
+	for modName,mod in pairs(ns.modules)do
+		if mod.OnHide then
+			mod.OnHide();
+		end
+	end
 
 	SetPlayerDotTexture(false);
 	TrackingTypes_Update(false);
@@ -946,6 +956,21 @@ function FarmHudMixin:AddChatMessage(token,msg)
 	end
 end
 
+function FarmHudMixin:RegisterModule(name,module)
+	assert(type(name)=="string" and type(module)=="table", "FarmHud:RegisterModule(<moduleName[string]>, <module[table]>)" );
+	ns.modules[name] = module;
+
+	for event in pairs(events) do
+		if module[event] and type(module[event])=="function" then
+			tinsert(modEvents[event],module[event]);
+		end
+	end
+
+	if type(module.OnLoad)=="function" then
+		module:OnLoad();
+	end
+end
+
 function FarmHudMixin:OnEvent(event,...)
 	if event=="VARIABLES_LOADED" then
 		ns.RegisterOptions();
@@ -1015,6 +1040,11 @@ function FarmHudMixin:OnEvent(event,...)
 			self:ToggleMouse(down==0);
 		end
 	end
+	for _,modEventFunc in ipairs(modEvents[event])do
+		if modEventFunc then
+			modEventFunc(...);
+		end
+	end
 end
 
 function FarmHudMixin:OnLoad()
@@ -1070,10 +1100,10 @@ function FarmHudMixin:OnLoad()
 		-- dummy
 	end
 
-	self:RegisterEvent("VARIABLES_LOADED");
-	self:RegisterEvent("PLAYER_LOGIN");
-	self:RegisterEvent("PLAYER_LOGOUT");
-	self:RegisterEvent("MODIFIER_STATE_CHANGED");
+	for event in pairs(events) do
+		self:RegisterEvent(event);
+		modEvents[event] = {};
+	end
 
 	FarmHudMixin=nil;
 end

@@ -28,6 +28,7 @@ local dbDefaults = {
 	QuestArrowInfoMsg = false,
 	healcircle_show=true,healcircle_color={0,.7,1,0.5},
 }
+local modDB = {};
 local excludeFrames = {}
 local isAddOnsLoadedForOption = {
 	SuperTrackedQuest = {
@@ -118,7 +119,11 @@ local function opt(info,value,...)
 			end
 			FarmHudDB[key] = value;
 		end
-		FarmHud:UpdateOptions(key);
+		if modDB[key] and ns.modules[modDB[key]] then
+			ns.modules[modDB[key]].UpdateOptions(key,value)
+		else
+			FarmHud:UpdateOptions(key);
+		end
 		return;
 	elseif key=="MinimapIcon" then
 		return not FarmHudDB[key].hide;
@@ -212,7 +217,7 @@ local options = {
 					values = playerDot_textures
 				},
 				placeholder = {
-					type = "group", order = 19, inline = true,
+					type = "group", order = 98, inline = true,
 					name = L.Placeholder,
 					args = {
 						desc = {
@@ -230,7 +235,7 @@ local options = {
 					}
 				},
 				mouseover = {
-					type = "group", order = 20, inline=true,
+					type = "group", order = 99, inline=true,
 					name = L.MouseOver,
 					args = {
 						holdKeyForMouseOn = {
@@ -577,6 +582,28 @@ function ns.RegisterOptions()
 		trackingTypes = ns.GetTrackingTypes();
 		for id, data in pairs(trackingTypes)do
 			dbDefaults["tracking^"..id] = "client"
+		end
+	end
+
+	local modOptsOrder = 50;
+	for modName, mod in pairs(ns.modules)do
+		if mod.dbDefaults then
+			for k,v in pairs(mod.dbDefaults)do
+				if (dbDefaults[k]==nil) then
+					dbDefaults[k] = v
+					modDB[k] = modName;
+				end
+			end
+		end
+		if mod.AddOptions then
+			opts = mod.AddOptions()
+			if type(opts)=="table" then
+				for k,v in pairs(opts)do
+					options.args[k] = v;
+					v.order = modOptsOrder;
+					modOptsOrder = modOptsOrder + 1;
+				end
+			end
 		end
 	end
 

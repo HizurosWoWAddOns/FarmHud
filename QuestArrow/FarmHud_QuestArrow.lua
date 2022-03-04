@@ -1,7 +1,7 @@
 
 local addon, ns = ...;
 do
-	local addon_short = "FH";
+	local addon_short = "FH-QA";
 	local colors = {"82c5ff","00ff00","ff6060","44ffff","ffff00","ff8800","ff44ff","ffffff"};
 	local function colorize(...)
 		local t,c,a1 = {tostringall(...)},1,...;
