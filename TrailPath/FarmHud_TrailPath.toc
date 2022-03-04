@@ -1,0 +1,17 @@
+## Interface: 90200
+## Interface-BCC: 20503
+## Interface-Classic: 11402
+## Title: FarmHud [TrailPath]
+## Version: @project-version@
+## Notes: [Experimental] Trail path on minimap
+## Author: Hizuro
+## Dependencies: FarmHud
+## DefaultState: enabled
+
+..\FarmHud\libs\LibStub\LibStub.lua
+..\FarmHud\libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+..\FarmHud\libs\HereBeDragons\HereBeDragons-2.0.lua
+..\FarmHud\libs\HereBeDragons\HereBeDragons-Pins-2.0.lua
+..\FarmHud\libs\HereBeDragons\HereBeDragons-Migrate.lua
+
+FarmHud_TrailPath.xml

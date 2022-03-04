@@ -1,0 +1,30 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\..\FrameXML\UI.xsd">
+
+	<Script file="../FarmHud/Localization.lua"/>
+	<Script file="../FarmHud/Localization.workfile.lua"/>
+	<Script file="FarmHud_TrailPath.lua" />
+
+	<Frame name="FarmHudTrailPathPinTemplate" parentArray="TrailPathPool" mixin="FarmHudTrailPathPinMixin" hidden="true" virtual="true">
+		<Size x="20" y="20"/>
+		<Frames>
+			<Frame parentKey="pin">
+				<Size x="20" y="20"/>
+				<Anchors>
+					<Anchor point="CENTER" />
+				</Anchors>
+				<Layers>
+					<Layer level="OVERLAY">
+						<Texture parentKey="icon" file="Interface/AddOns/FarmHud/media/trail-arrow-1.tga" setallpoints="true" />
+					</Layer>
+				</Layers>
+				<Animations>
+					<AnimationGroup parentKey="Facing" looping="REPEAT">
+						<Rotation parentKey="Rotate" childKey="icon" duration="0" degrees="0" />
+					</AnimationGroup>
+				</Animations>
+			</Frame>
+		</Frames>
+	</Frame>
+
+</Ui>

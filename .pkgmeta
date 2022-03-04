@@ -31,6 +31,7 @@ externals:
 
 move-folders:
     FarmHud/QuestArrow: FarmHud_QuestArrow
+    FarmHud/TrailPath: FarmHud_TrailPath
 
 enable-nolib-creation: no
 enable-toc-creation: yes
