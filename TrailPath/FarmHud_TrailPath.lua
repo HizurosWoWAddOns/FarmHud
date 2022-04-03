@@ -135,6 +135,10 @@ function FarmHudTrailPathPinMixin:UpdatePin(facing,pinIcon,scale)
 	end
 end
 
+function FarmHudTrailPathPinMixin:EnableMouse()
+	-- dummy
+end
+
 local function GetMicrotime()
 	return ceil(GetTime()*100);
 end

@@ -7,7 +7,7 @@
 	<!--@end-do-not-package@-->
 	<Script file="FarmHud_TrailPath.lua" />
 
-	<Frame name="FarmHudTrailPathPinTemplate" parentArray="TrailPathPool" mixin="FarmHudTrailPathPinMixin" hidden="true" virtual="true">
+	<Frame name="FarmHudTrailPathPinTemplate" parentArray="TrailPathPool" mixin="FarmHudTrailPathPinMixin" enableMouse="false" hidden="true" virtual="true">
 		<Size x="20" y="20"/>
 		<Frames>
 			<Frame parentKey="pin">
