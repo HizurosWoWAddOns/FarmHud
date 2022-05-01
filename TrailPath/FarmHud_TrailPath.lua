@@ -35,6 +35,7 @@ end
 local HBD = LibStub("HereBeDragons-2.0")
 local HBDPins = LibStub("HereBeDragons-Pins-2.0")
 
+local EnableMouseDummy = function() end
 local L = ns.L;
 local pi2 = math.pi*2;
 local media, media_blizz = "Interface\\AddOns\\FarmHud\\media\\", "Interface\\Minimap\\";
@@ -135,10 +136,6 @@ function FarmHudTrailPathPinMixin:UpdatePin(facing,pinIcon,scale)
 	end
 end
 
-function FarmHudTrailPathPinMixin:EnableMouse()
-	-- dummy
-end
-
 local function GetMicrotime()
 	return ceil(GetTime()*100);
 end
@@ -166,6 +163,8 @@ local function TrailPath_TickerFunc()
 			entry = CreateFrame("Frame",nil,FarmHud,"FarmHudTrailPathPinTemplate");
 			entry.info = {};
 			entry.pin.Facing:Play();
+			entry:EnableMouse(false);
+			entry.EnableMouse=EnableMouseDummy;
 			new = true;
 		end
 
