@@ -178,7 +178,7 @@ local options = {
 				},
 				AddOnLoaded = {
 					type = "toggle", order = 2,
-					name = L.AddOnLoaded, desc = L.AddOnLoadedDesc
+					name = L.AddOnLoaded, desc = L["AddOnLoadedDesc"].."|n|n|cff44ff44"..L["AddOnLoadedDescAlt"].."|r"
 				},
 				rotation = {
 					type = "toggle", order = 3, width="full",

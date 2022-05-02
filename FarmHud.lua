@@ -975,7 +975,7 @@ function FarmHudMixin:OnEvent(event,...)
 	if event=="VARIABLES_LOADED" then
 		ns.RegisterOptions();
 		ns.RegisterDataBroker();
-		if FarmHudDB.AddOnLoaded then
+		if FarmHudDB.AddOnLoaded or IsShiftKeyDown() then
 			ns.print(L.AddOnLoaded);
 		end
 	elseif event=="PLAYER_LOGIN" then
