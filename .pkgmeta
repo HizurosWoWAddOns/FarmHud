@@ -41,4 +41,3 @@ ignore:
     - libs/HereBeDragons/CallbackHandler-1.0
     - libs/HereBeDragons/LibStub
 
-license-output: LICENSE.txt
