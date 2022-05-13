@@ -65,8 +65,8 @@ From time to time i will look on updated versions.
 # @Authors of Minimap and UI AddOns
 I've added a function to register (anonymous) frames that anchored on Minimap.
 Please use it to make smooth cooperation between our AddOns possible.
- `FarmHud:RegisterForeignAddOnObject( <frame object>, <addon name>)` or let me known your function i could trigger between show and hide farmhud.
-~~No addon should have the sole claim to the minidap frame. We should use it cooperatively.~~
+* `FarmHud:RegisterForeignAddOnObject( <frame object>, <addon name>)`
+* Or let me known your function i could trigger on show and hide farmhud.
 
 # Bug reports, feature requests and Support
 * [Bug reports & feature requests on Github](https://github.com/hizuro/FarmHud/issues)
@@ -77,10 +77,10 @@ Do you want to help translate this addon?
 See Curseforge localization tool
 
 # Macro functions
-`/run FarmHud:Toggle()`
-`/run FarmHud:ToggleMouse()`
-`/run FarmHud:ToggleBackground()`
-`/run FarmHud:ToggleOptions()`
+* `/run FarmHud:Toggle()`
+* `/run FarmHud:ToggleMouse()`
+* `/run FarmHud:ToggleBackground()`
+* `/run FarmHud:ToggleOptions()`
 
 # Our other projects
 * [TorvaldsMP1's projects](https://www.curseforge.com/members/torvaldsmp1/projects) (also known as CodeRedLin before "twiching")
