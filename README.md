@@ -1,6 +1,8 @@
 # Description
 Turn your minimap into a hud for farming ore / herb.
 
+![FarmHud Screenshot1](./.github/media/farmhud1.jpg) ![FarmHud Screenshot2](./.github/media/farmhud2.jpg)
+
 # Minimap / Nodes / FarmHud
 Blizzard has designed the Minimap element as All-in-One (Terrain texture + Nodes).
 It could not be separated. It could not be copied. Minimap and FarmHud can't be displayed at the same time.
@@ -23,9 +25,6 @@ It could not be separated. It could not be copied. Minimap and FarmHud can't be 
    * Display your path on Minimap/FarmHud with red arrows.
    * Color, transparency and icons are adjustable
 TrailPath - Display your path on minimap and farmhud with red arrows. Color, transparency and icons are adjustable.Trail path options
-
-# Screenshots
-![FarmHud Screenshot1](./.github/media/farmhud1.jpg) ![FarmHud Screenshot2](./.github/media/farmhud2.jpg)
 
 # Option panel
 The option panel are available over  Game Menu > Interface > AddOns > FarmHud
