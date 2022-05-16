@@ -30,6 +30,10 @@ do
 	function ns.print(...)
 		print(colorize(...));
 	end
+	function ns.debug(...)
+		--print(colorize("<debug>",...));
+		ConsolePrint(date("|cff999999%X|r"),colorize(...));
+	end
 end
 
 local HBD = LibStub("HereBeDragons-2.0")
@@ -40,7 +44,7 @@ local L = ns.L;
 local pi2 = math.pi*2;
 local media, media_blizz = "Interface\\AddOns\\FarmHud\\media\\", "Interface\\Minimap\\";
 local minDistanceBetween = 12;
-local trailPathActive,trailPathPool,lastX,lastY,lastM,lastFacing = {},{};
+local trailPathActive,trailPathPool,lastX,lastY,lastM,lastFacing,IsOpened = {},{};
 local trailPathIcons,trailPathTicker = { -- coords_pos = { <left>, <right>, <top>, <bottom>, <sizeW>, <sizeH> }
 	-- arrows1.tga
 	arrow01 = {file=media.."arrows1.tga",coords_pos={58,122, 64,128,  128,128},desaturated=true},
@@ -103,11 +107,6 @@ FarmHudTrailPathPinMixin = {}
 function FarmHudTrailPathPinMixin:UpdatePin(facing,pinIcon,scale)
 	-- facing
 	if facing and IsOpened then
-		if rotationMode == "0" then
-			facing = self.info.f;
-		else
-			facing = -(facing-self.info.f);
-		end
 		self.pin.Facing.Rotate :SetRadians(facing);
 	end
 	-- texture
