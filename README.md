@@ -96,4 +96,4 @@ See Curseforge localization tool
 * Hizuro's projects on: [Curseforge](https://www.curseforge.com/members/hizuro_de/projects) or [Github](https://github.com/hizuro?tab=repositories)
 
 ## Disclaimer
-> World of Warcraft© and Blizzard Entertainment© are all trademarks or registered trademarks of Blizzard Entertainment in the United States and/or other countries. These terms and all related materials, logos, and images are copyright © Blizzard Entertainment. The author of this addon is in no way associated with or endorsed by Blizzard Entertainment ©
+> World of Warcraft© and Blizzard Entertainment© are all trademarks or registered trademarks of Blizzard Entertainment in the United States and/or other countries. These terms and all related materials, logos, and images are copyright © Blizzard Entertainment.
