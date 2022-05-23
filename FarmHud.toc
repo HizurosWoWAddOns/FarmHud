@@ -9,6 +9,8 @@
 ## SavedVariables: FarmHudDB
 
 ## X-Curse-Project-ID: 29767
+## X-Wago-ID: RaN0DANj
+## X#WoWI#ID:#19761
 
 libs\LibStub\LibStub.lua
 libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
