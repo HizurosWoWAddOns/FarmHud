@@ -1,12 +1,12 @@
 # FarmHud (WoW AddOn)
-![Build](https://github.com/hizuro/FarmHud/actions/workflows/bigwigsmods-packager.yml/badge.svg)
-![Tag](https://img.shields.io/github/v/tag/hizuro/FarmHud?style=flat-square)
-![Downloads](https://img.shields.io/github/downloads/hizuro/FarmHud/total?style=flat-square)
-![Downloads](https://img.shields.io/github/downloads/hizuro/FarmHud/latest/total?style=flat-square)
+![Build](https://github.com/HizurosWoWAddOns/FarmHud/actions/workflows/bigwigsmods-packager.yml/badge.svg)
+![Tag](https://img.shields.io/github/v/tag/HizurosWoWAddOns/FarmHud?style=flat-square)
+![Downloads](https://img.shields.io/github/downloads/HizurosWoWAddOns/FarmHud/total?style=flat-square)
+![Downloads](https://img.shields.io/github/downloads/HizurosWoWAddOns/FarmHud/latest/total?style=flat-square)
 &nbsp; &nbsp; &nbsp; &nbsp;
 [![Patreon](https://img.shields.io/badge/&zwj;-Patreon-gray?logo=patreon&color=red&style=flat-square)](https://www.patreon.com/bePatron?u=12558524)
 [![Paypal](https://img.shields.io/badge/&zwj;-Paypal-gray?logo=paypal&color=blue&style=flat-square)](https://paypal.me/hizuro)
-![Sponsors](https://img.shields.io/github/sponsors/hizuro?logo=github&style=flat-square)
+![Sponsors](https://img.shields.io/github/sponsors/HizurosWoWAddOns?logo=github&style=flat-square)
 
 ## Description
 Turn your minimap into a hud for farming ore / herb.
@@ -78,7 +78,7 @@ Please use it to make smooth cooperation between our AddOns possible.
 * Or let me known your function i could trigger on show and hide farmhud.
 
 ## Bug reports, feature requests and Support
-* [Bug reports & feature requests on Github](https://github.com/hizuro/FarmHud/issues)
+* [Bug reports & feature requests on Github](https://github.com/HizurosWoWAddOns/FarmHud/issues)
 * [Comments & Criticism on Curseforge](https://www.curseforge.com/wow/addons/farmhud)
 
 ## Localization
@@ -93,7 +93,7 @@ See Curseforge localization tool
 
 ## Our other projects
 * [TorvaldsMP1's projects](https://www.curseforge.com/members/torvaldsmp1/projects) (also known as CodeRedLin before Twitch as purchased Curseforge)
-* Hizuro's projects on: [Curseforge](https://www.curseforge.com/members/hizuro_de/projects) or [Github](https://github.com/hizuro?tab=repositories)
+* Hizuro's projects on: [Curseforge](https://www.curseforge.com/members/hizuro_de/projects) or [Github](https://github.com/HizurosWoWAddOns?tab=repositories)
 
 ## Disclaimer
 > World of Warcraft© and Blizzard Entertainment© are all trademarks or registered trademarks of Blizzard Entertainment in the United States and/or other countries. These terms and all related materials, logos, and images are copyright © Blizzard Entertainment.
