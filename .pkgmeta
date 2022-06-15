@@ -29,6 +29,9 @@ externals:
         url: https://repos.curseforge.com/wow/herebedragons
         tag: latest
 
+    libs/HizurosSharedTools:
+        url: https://github.com/HizurosWoWAddOns/HizurosSharedTools
+
 move-folders:
     FarmHud/QuestArrow: FarmHud_QuestArrow
     FarmHud/TrailPath: FarmHud_TrailPath
@@ -40,4 +43,5 @@ ignore:
     - libs/LibStub/tests
     - libs/HereBeDragons/CallbackHandler-1.0
     - libs/HereBeDragons/LibStub
+    - libs/HizurosSharedTools/README.md
 

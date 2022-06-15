@@ -42,11 +42,11 @@ local function printFrames(key,value)
 	local keyType = type(key);
 	if keyType=="table" then
 		if not FarmHud:IsVisible() then
-			ns.print("FarmHud must be enabled before use this option");
+			ns:print("FarmHud must be enabled before use this option");
 			return;
 		end
 
-		ns.print("Search for unwanted elements anchored on minimap...");
+		ns:print("Search for unwanted elements anchored on minimap...");
 		local count = 0;
 		local regions = {Minimap:GetRegions()};
 		for r=1, #regions do
@@ -54,7 +54,7 @@ local function printFrames(key,value)
 			count = count + 1;
 		end
 
-		--ns.print("Search for unwanted frames anchored on minimap... (deep reverse search)");
+		--ns:print("Search for unwanted frames anchored on minimap... (deep reverse search)");
 		for k,v in pairs(_G) do
 			if not (issecurevariable(_G,k)) and (not excludeFrames[key]) and (type(value)=="table") and (type(value[0])=="userdata") and (not (value:IsProtected() or value:IsForbidden())) then
 				if printFrames(k,v) then
@@ -63,7 +63,7 @@ local function printFrames(key,value)
 			end
 		end
 
-		--ns.print("Search for unwanted textures/fontstrings anchored on minimap...");
+		--ns:print("Search for unwanted textures/fontstrings anchored on minimap...");
 		local childs = {Minimap:GetChildren()};
 		for i=1, #childs do
 			print("GetChildren()"," - ",childs[i]:GetDebugName());
@@ -71,9 +71,9 @@ local function printFrames(key,value)
 		end
 
 		if count>0 then
-			ns.print("Finished...");
+			ns:print("Finished...");
 		else
-			ns.print("No elements found...");
+			ns:print("No elements found...");
 		end
 		return;
 	end
@@ -525,7 +525,12 @@ local options = {
 					func = printFrames
 				}
 			}
-		}
+		},
+		credits = {
+			type = "group", order = 200,
+			name = L["Credits"],
+			args = {}
+		},
 	}
 };
 
@@ -596,7 +601,7 @@ function ns.RegisterOptions()
 			end
 		end
 		if mod.AddOptions then
-			opts = mod.AddOptions()
+			local opts = mod.AddOptions()
 			if type(opts)=="table" then
 				for k,v in pairs(opts)do
 					options.args[k] = v;
@@ -637,4 +642,6 @@ function ns.RegisterOptions()
 
 	LibStub("AceConfig-3.0"):RegisterOptionsTable(addon, options);
 	LibStub("AceConfigDialog-3.0"):AddToBlizOptions(addon);
+
+	LibStub("HizurosSharedTools").AddCredit(addon,options.args.credits.args);
 end

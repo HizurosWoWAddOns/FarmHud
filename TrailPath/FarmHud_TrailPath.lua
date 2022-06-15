@@ -1,46 +1,13 @@
 
 local addon, ns = ...;
-do
-	local addon_short = "FH-TP";
-	local colors = {"82c5ff","00ff00","ff6060","44ffff","ffff00","ff8800","ff44ff","ffffff"};
-	local function colorize(...)
-		local t,c,a1 = {tostringall(...)},1,...;
-		if type(a1)=="boolean" then tremove(t,1); end
-		if a1~=false then
-			local header = "FarmHud (TrailPath)";
-			if a1==true then
-				header = addon_short;
-			elseif a1=="||" then
-				header = "||";
-			elseif a1=="()" then
-				header = header .. " (" ..t[2]..")";
-				tremove(t,2);
-				tremove(t,1);
-			end
-			tinsert(t,1,"|cff82c5ff"..header.."|r"..(a1~="||" and HEADER_COLON or ""));
-			c=2;
-		end
-		for i=c, #t do
-			if not t[i]:find("\124c") then
-				t[i],c = "|cff"..colors[c]..t[i].."|r", c<#colors and c+1 or 1;
-			end
-		end
-		return unpack(t);
-	end
-	function ns.print(...)
-		print(colorize(...));
-	end
-	function ns.debug(...)
-		--print(colorize("<debug>",...));
-		ConsolePrint(date("|cff999999%X|r"),colorize(...));
-	end
-end
+local L = ns.L;
+ns.debugMode = "@project-version@"=="@".."project-version".."@";
+LibStub("HizurosSharedTools").RegisterPrint(ns,addon,"FH/TP");
 
 local HBD = LibStub("HereBeDragons-2.0")
 local HBDPins = LibStub("HereBeDragons-Pins-2.0")
 
-local EnableMouseDummy = function() end
-local L = ns.L;
+local EnableMouse
 local pi2 = math.pi*2;
 local media, media_blizz = "Interface\\AddOns\\FarmHud\\media\\", "Interface\\Minimap\\";
 local minDistanceBetween = 12;
@@ -102,6 +69,7 @@ local TrailPathIconValues = {
 	ring1 = L["Ring 1"],
 	ring2 = L["Ring 2"],
 }
+
 FarmHudTrailPathPinMixin = {}
 
 function FarmHudTrailPathPinMixin:UpdatePin(facing,pinIcon,scale)
@@ -163,8 +131,9 @@ local function TrailPath_TickerFunc()
 			entry.info = {};
 			entry.pin.Facing:Play();
 			entry:EnableMouse(false);
-			entry.EnableMouse=EnableMouseDummy;
 			new = true;
+		elseif entry: IsMouseEnabled() then
+			entry: EnableMouse(false)
 		end
 
 		lastX,lastY,lastM = x,y,instance;

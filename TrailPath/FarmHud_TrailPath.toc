@@ -1,6 +1,6 @@
-## Interface: 90200
-## Interface-BCC: 20503
-## Interface-Classic: 11402
+## Interface: 90205
+## Interface-BCC: 20504
+## Interface-Classic: 11403
 ## Title: FarmHud [TrailPath]
 ## Version: @project-version@
 ## Notes: [Experimental] Trail path on minimap
@@ -13,5 +13,6 @@
 ..\FarmHud\libs\HereBeDragons\HereBeDragons-2.0.lua
 ..\FarmHud\libs\HereBeDragons\HereBeDragons-Pins-2.0.lua
 ..\FarmHud\libs\HereBeDragons\HereBeDragons-Migrate.lua
+..\FarmHud\libs\HizurosSharedTools\HizurosSharedTools.lua
 
 FarmHud_TrailPath.xml

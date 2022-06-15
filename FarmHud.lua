@@ -1,6 +1,9 @@
 
 local addon,ns=...;
 local L=ns.L;
+ns.debugMode = "@project-version@"=="@".."project-version".."@";
+LibStub("HizurosSharedTools").RegisterPrint(ns,addon,"FH");
+
 local ACD = LibStub("AceConfigDialog-3.0");
 local HBD = LibStub("HereBeDragons-2.0")
 local HBDPins = LibStub("HereBeDragons-Pins-2.0")
@@ -82,53 +85,6 @@ local modifiers = {
 };
 local minimapCreateTextureTable = {};
 local trackEnableMouse,suppressNextMouseEnable = false,false; -- try to get more info for mouse enable bug
-
-
-do
-	local addon_short = "FH";
-	local colors = {"82c5ff","00ff00","ff6060","44ffff","ffff00","ff8800","ff44ff","ffffff"};
-	local debugMode = "@project-version@" == "@".."project-version".."@";
-	local function colorize(...)
-		local t,c,a1 = {tostringall(...)},1,...;
-		if type(a1)=="boolean" then tremove(t,1); end
-		if a1~=false then
-			local header = addon;
-			if a1==true then
-				header = addon_short;
-			elseif a1=="||" then
-				header = "||";
-			elseif a1=="()" then
-				header = header .. " (" ..t[2]..")";
-				tremove(t,2);
-				tremove(t,1);
-			end
-			tinsert(t,1,"|cff82c5ff"..header.."|r"..(a1~="||" and HEADER_COLON or ""));
-			c=2;
-		end
-		for i=c, #t do
-			if not t[i]:find("\124c") then
-				t[i],c = "|cff"..colors[c]..t[i].."|r", c<#colors and c+1 or 1;
-			end
-		end
-		return unpack(t);
-	end
-	function ns.print(...)
-		print(colorize(...));
-	end
-	function ns.debug(...)
-		--print(colorize("<debug>",...));
-		ConsolePrint(date("|cff999999%X|r"),colorize(...));
-	end
-	function ns.debugPrint(...)
-		if not debugMode then return end
-		print(colorize("<debug>",...))
-	end
-	if debugMode then
-		_G[addon.."_GetNamespace"] = function()
-			return ns;
-		end
-	end
-end
 
 do
 	function ns.IsClassic()
@@ -254,14 +210,14 @@ do
 		if lockedBy~=false then return end
 		lockedBy = self;
 		useDummy = true;
-		ns.debugPrint(self :GetDebugName(),true);
+		ns:debugPrint(self :GetDebugName(),true);
 	end
 	local function objHookStop(self)
 		if lockedBy~=self then
 			return
 		end
 		useDummy = false;
-		ns.debugPrint(self :GetDebugName(),false);
+		ns:debugPrint(self :GetDebugName(),false);
 	end
 	function addHooks(obj)
 		if alreadyHooked[obj] then
@@ -891,7 +847,7 @@ end
 -- Toggle FarmHud display
 function FarmHudMixin:Toggle(force)
 	if #knownProblematicAddOnsDetected>0 then
-		ns.print("|cffffee00"..L["KnownProblematicAddOnDetected"].."|r","|cffff8000("..table.concat(knownProblematicAddOnsDetected,", ")..")|r")
+		ns:print("|cffffee00"..L["KnownProblematicAddOnDetected"].."|r","|cffff8000("..table.concat(knownProblematicAddOnsDetected,", ")..")|r")
 	end
 	if force==nil then
 		force = not self:IsShown();
@@ -906,7 +862,7 @@ function FarmHudMixin:Toggle(force)
 			end
 		end
 		if #isHijacked>0 then
-			ns.print("|cffffee00"..L["AnotherAddOnsHijackedFunc"].."|r",table.concat(isHijacked,", "));
+			ns:print("|cffffee00"..L["AnotherAddOnsHijackedFunc"].."|r",table.concat(isHijacked,", "));
 			return;
 		end
 	end
@@ -952,7 +908,7 @@ end
 function FarmHudMixin:AddChatMessage(token,msg)
 	local from = (token==ns.QuestArrowToken and "QuestArrow") or false
 	if from and type(msg)=="string" then
-		ns.print("()",from,L[msg]);
+		ns:print("()",from,L[msg]);
 	end
 end
 
@@ -976,7 +932,7 @@ function FarmHudMixin:OnEvent(event,...)
 		ns.RegisterOptions();
 		ns.RegisterDataBroker();
 		if FarmHudDB.AddOnLoaded or IsShiftKeyDown() then
-			ns.print(L.AddOnLoaded);
+			ns:print(L.AddOnLoaded);
 		end
 	elseif event=="PLAYER_LOGIN" then
 		self:SetFrameLevel(2);
@@ -1081,7 +1037,7 @@ function FarmHudMixin:OnLoad()
 			suppressNextMouseEnable = false;
 			return
 		end
-		ns.print(L.PleaseReportThisMessage,"<EnableMouse>",bool,"|n"..debugstack());
+		ns:print(L.PleaseReportThisMessage,"<EnableMouse>",bool,"|n"..debugstack());
 	end);
 
 	if not ns.IsClassic() then
