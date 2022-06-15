@@ -1,6 +1,6 @@
-## Interface: 90200
-## Interface-BCC: 20503
-## Interface-Classic: 11402
+## Interface: 90205
+## Interface-BCC: 20504
+## Interface-Classic: 11403
 ## Title: FarmHud
 ## Version: @project-version@
 ## Notes: Turns your minimap into a hud for gathering resources!
