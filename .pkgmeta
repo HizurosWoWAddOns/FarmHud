@@ -30,7 +30,7 @@ externals:
         tag: latest
 
     libs/HizurosSharedTools:
-        url: https://github.com/HizurosWoWAddOns/HizurosSharedTools
+        url: https://github.com/HizurosWoWAddOns/HizurosSharedTools.git
 
 move-folders:
     FarmHud/QuestArrow: FarmHud_QuestArrow
