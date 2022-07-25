@@ -1,4 +1,16 @@
 
+if not LibStub.libs["HizurosSharedTools"] or GetAddOnMetadata("FarmHud","Version")~="@project-version@" then
+	local FarmHudInvalidInstallation = "Your current installation of FarmHud is invalid. Please uninstall all other addons with 'FarmHud' in its name and reinstall FarmHud."
+	StaticPopupDialogs["FARMHUD_INVALID_INSTALLATION"] = {
+		text = FarmHudInvalidInstallation,
+		button1 = OKAY,
+		showAlert = 1,
+		timeout = 0,
+		whileDead = 1,
+	};
+	StaticPopup_Show("FARMHUD_INVALID_INSTALLATION")
+end
+
 local addon, ns = ...;
 ns.debugMode = "@project-version@"=="@".."project-version".."@";
 LibStub("HizurosSharedTools").RegisterPrint(ns,addon,"FH/QA");
