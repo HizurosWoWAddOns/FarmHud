@@ -75,7 +75,7 @@ FarmHudTrailPathPinMixin = {}
 function FarmHudTrailPathPinMixin:UpdatePin(facing,pinIcon,scale)
 	-- facing
 	if facing and IsOpened then
-		self.pin.Facing.Rotate :SetRadians(facing);
+		self.pin.Facing.Rotate :SetRadians(self.info.f - facing);
 	end
 	-- texture
 	if self.info.currentPinIcon ~= pinIcon then
