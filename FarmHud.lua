@@ -586,6 +586,8 @@ function FarmHudMixin:OnShow()
 	local onmouseup = Minimap:GetScript("OnMouseUp");
 	if onmouseup~=Minimap_OnClick then
 		mps.ommouseup = onmouseup;
+		FarmHudMinimapDummy: SetScript("OnMouseUp",onmouseup);
+		FarmHudMinimapDummy: EnableMouse(true);
 		MinimapMT.SetScript(Minimap,"OnMouseUp",Minimap_OnClick);
 	end
 
@@ -737,6 +739,8 @@ function FarmHudMixin:OnHide()
 
 	if mps.ommouseup then
 		MinimapMT.SetScript(Minimap,"OnMouseUp",mps.ommouseup);
+		FarmHudMinimapDummy: SetScript("OnMouseUp",nil);
+		FarmHudMinimapDummy: EnableMouse(false);
 	end
 
 	for _,action in ipairs(minimapScripts)do
