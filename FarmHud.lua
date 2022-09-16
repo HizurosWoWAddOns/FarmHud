@@ -585,7 +585,7 @@ function FarmHudMixin:OnShow()
 	-- cache mouse enable state
 	local onmouseup = Minimap:GetScript("OnMouseUp");
 	if onmouseup~=Minimap_OnClick then
-		mps.ommouseup = onmouseup;
+		mps.onmouseup = onmouseup;
 		FarmHudMinimapDummy: SetScript("OnMouseUp",onmouseup);
 		FarmHudMinimapDummy: EnableMouse(true);
 		MinimapMT.SetScript(Minimap,"OnMouseUp",Minimap_OnClick);
@@ -648,8 +648,8 @@ function FarmHudMixin:OnShow()
 	MinimapMT.ClearAllPoints(Minimap);
 	-- sometimes SetPoint produce error "because[SetPoint would result in anchor family connection]"
 	local f, err = loadstring('Minimap:SetPoint("CENTER",0,0)');
-	if f then f(); else
-		MinimapMT.SetAllPoints(Minimap); -- but SetAllPoints results in an offset for somebody
+	if not err then f() else
+ 		MinimapMT.SetAllPoints(Minimap); -- but SetAllPoints results in an offset for somebody
 		MinimapMT.ClearAllPoints(Minimap);
 		MinimapMT.SetPoint(Minimap,"CENTER",0,0); -- next try...
 	end
@@ -676,6 +676,7 @@ function FarmHudMixin:OnShow()
 		rotationMode = FarmHudDB.rotation and "1" or "0";
 		SetCVar("rotateMinimap", rotationMode, "ROTATE_MINIMAP");
 		Minimap_UpdateRotationSetting();
+		MinimapCompassTexture:Hide();
 	end
 
 	-- function replacements for Minimap while FarmHud is enabled.
@@ -737,8 +738,8 @@ function FarmHudMixin:OnHide()
 	Dummy:Hide();
 	self.cluster:Hide();
 
-	if mps.ommouseup then
-		MinimapMT.SetScript(Minimap,"OnMouseUp",mps.ommouseup);
+	if mps.onmouseup then
+		MinimapMT.SetScript(Minimap,"OnMouseUp",mps.onmouseup);
 		FarmHudMinimapDummy: SetScript("OnMouseUp",nil);
 		FarmHudMinimapDummy: EnableMouse(false);
 	end
