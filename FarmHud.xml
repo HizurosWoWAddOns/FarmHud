@@ -93,11 +93,6 @@
 					</Layer>
 				</Layers>
 			</Frame>
-			<Frame name="FarmHudMoveResizeBorder" frameStrata="TOOLTIP"  hidden="true" setallpoints="true">
-				<Backdrop edgeFile="Interface\Addons\FarmHud\media\BorderBlue2">
-					<EdgeSize val="8" />
-				</Backdrop>
-			</Frame>
 			<Frame parentKey="onScreenButtons" hidden="true">
 				<Size x="1" y="1" />
 				<Frames>

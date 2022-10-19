@@ -13,6 +13,7 @@ FarmHudMixin = {};
 local _G,type,wipe,tinsert,unpack,tostring = _G,type,wipe,tinsert,unpack,tostring;
 local GetPlayerFacing,C_Map = GetPlayerFacing,C_Map;
 local Minimap_OnClick = Minimap_OnClick;
+local Minimap_UpdateRotationSetting = Minimap_UpdateRotationSetting or function() end -- removed in dragonflight
 
 ns.QuestArrowToken = {};
 ns.modules = {};
@@ -96,6 +97,10 @@ do
 	function ns.IsRetail()
 		return WOW_PROJECT_ID==WOW_PROJECT_MAINLINE;
 	end
+	local _,_,_,b = GetBuildInfo();
+	function ns.IsDragonFlight()
+		return b>=100000;
+	end
 end
 
 local function SetPlayerDotTexture(bool) -- executed by FarmHud:UpdateOptions(), FrameHud:OnShow(), FarmHud:OnHide() and FarmHud:OnLoad()
@@ -110,12 +115,12 @@ end
 
 function ns.GetTrackingTypes()
 	if ns.IsClassic() then return {}; end
-	local num = GetNumTrackingTypes();
+	local num = (C_Minimap and C_Minimap.GetNumTrackingTypes or GetNumTrackingTypes)();
 	if numTrackingTypes~=num then
 		numTrackingTypes = num;
 		wipe(trackingTypes);
 		for i=1, num do
-			local name, textureId, active, objType, objLevel, objId = GetTrackingInfo(i);
+			local name, textureId, active, objType, objLevel, objId = (C_Minimap and C_Minimap.GetTrackingInfo or GetTrackingInfo)(i);
 			trackingTypes[textureId] = {index=i,name=name,active=active,level=objLevel};
 		end
 	end
@@ -126,22 +131,22 @@ local function TrackingTypes_Update(bool, id)
 	if ns.IsClassic() then return end
 	if tonumber(id) then
 		local key,data = "tracking^"..id,trackingTypes[id];
-		local _, _, active = GetTrackingInfo(data.index);
+		local _, _, active = (C_Minimap and C_Minimap.GetTrackingInfo or GetTrackingInfo)(data.index);
 		trackingHookLocked = true;
 		if bool then
 			if FarmHudDB[key]=="client" then
 				if trackingTypesStates[data.index]~=nil then
-					SetTracking(data.index,trackingTypesStates[data.index]);
+					(C_Minimap and C_Minimap.SetTracking or SetTracking)(data.index,trackingTypesStates[data.index]);
 					trackingTypesStates[data.index] = nil;
 				end
 			elseif FarmHudDB[key]~=tostring(active) then
 				if trackingTypesStates[data.index]==nil then
 					trackingTypesStates[data.index] = active;
 				end
-				SetTracking(data.index,FarmHudDB[key]=="true");
+				(C_Minimap and C_Minimap.SetTracking or SetTracking)(data.index,FarmHudDB[key]=="true");
 			end
 		elseif not bool and trackingTypesStates[data.index]~=nil then
-			SetTracking(data.index,trackingTypesStates[data.index]);
+			(C_Minimap and C_Minimap.SetTracking or SetTracking)(data.index,trackingTypesStates[data.index]);
 			trackingTypesStates[data.index] = nil;
 		end
 		trackingHookLocked = false;
@@ -702,7 +707,9 @@ function FarmHudMixin:OnShow()
 		rotationMode = FarmHudDB.rotation and "1" or "0";
 		SetCVar("rotateMinimap", rotationMode, "ROTATE_MINIMAP");
 		Minimap_UpdateRotationSetting();
-		MinimapCompassTexture:Hide();
+		if not ns.IsDragonFlight() then
+			MinimapCompassTexture:Hide(); -- Note: Compass Texture is the new border texture in dragonflight
+		end
 	end
 
 	-- function replacements for Minimap while FarmHud is enabled.
@@ -1072,11 +1079,16 @@ function FarmHudMixin:OnLoad()
 	end);
 
 	if not ns.IsClassic() then
-		hooksecurefunc("SetTracking",function(index,bool)
+		local function hookSetTracking(index,bool)
 			if not trackingHookLocked and FarmHud:IsVisible() and trackingTypesStates[index]~=nil then
 				trackingTypesStates[index]=nil;
 			end
-		end);
+		end
+		if C_Minimap and C_Minimap.SetTracking then
+			hooksecurefunc(C_Minimap,"SetTracking",hookSetTracking);
+		else
+			hooksecurefunc("SetTracking",hookSetTracking);
+		end
 	end
 
 	function self.cluster:GetZoom()
