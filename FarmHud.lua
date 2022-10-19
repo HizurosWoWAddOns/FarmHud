@@ -20,7 +20,7 @@ local modEvents,events = {},{VARIABLES_LOADED=true,PLAYER_ENTERING_WORLD=true,PL
 local LibHijackMinimap_Token,TrackingIndex,LibHijackMinimap,_ = {},{};
 local media, media_blizz = "Interface\\AddOns\\"..addon.."\\media\\", "Interface\\Minimap\\";
 local mps,Minimap,MinimapMT,mouseOnKeybind,Dummy = {},_G.Minimap,getmetatable(_G.Minimap).__index;
-local minimapScripts,cardinalTicker,coordsTicker = {--[["OnMouseUp",]]"OnMouseDown","OnDragStart"};
+local minimapScripts,cardinalTicker,coordsTicker = { --[["OnMouseUp",]] OnMouseDown="Dummy", OnDragStart="nil" };
 local playerDot_orig, playerDot_custom = "Interface\\Minimap\\MinimapArrow";
 local TrackingIndex,timeTicker = {};
 local knownProblematicAddOns, knownProblematicAddOnsDetected = {BasicMinimap=true},{};
@@ -401,7 +401,23 @@ function FarmHudMixin:UpdateTime(state)
 	self.TextFrame.time:SetShown(state);
 end
 
--- main frame functions
+-- dummy frame mixin functions
+
+FarmHudMinimapDummyMixin = {}
+
+function FarmHudMinimapDummyMixin:OnMouseUp()
+	ns:debugPrint("OnMouseUp");
+	if type(mps.OnMouseUp)~="function" then return end
+	mps.OnMouseUp(self);
+end
+
+function FarmHudMinimapDummyMixin:OnMouseDown()
+	ns:debugPrint("OnMouseDown");
+	if type(mps.OnMouseDown)~="function" then return end
+	mps.OnMouseDown(self);
+end
+
+-- main frame mixin functions
 
 function FarmHudMixin:SetScales(enabled)
 	local self = FarmHud;
@@ -583,20 +599,18 @@ function FarmHudMixin:OnShow()
 	mps.backdropMouse = MinimapBackdrop:IsMouseEnabled();
 
 	-- cache mouse enable state
-	local onmouseup = Minimap:GetScript("OnMouseUp");
-	if onmouseup~=Minimap_OnClick then
-		mps.onmouseup = onmouseup;
-		FarmHudMinimapDummy: SetScript("OnMouseUp",onmouseup);
-		FarmHudMinimapDummy: EnableMouse(true);
-		MinimapMT.SetScript(Minimap,"OnMouseUp",Minimap_OnClick);
+	local OnMouseUp = Minimap:GetScript("OnMouseUp");
+	if OnMouseUp~=Minimap_OnClick then
+		mps.OnMouseUp = OnMouseUp;
+		MinimapMT.SetScript(Minimap,"OnMouseUp",Minimap_OnClick); -- TODO: currently not work on hud.
 	end
 
 	-- cache non original frame script entries from foreign addons
-	for _,action in ipairs(minimapScripts)do
-		local fnc = Minimap:GetScript(action);
+	for name, todo in pairs(minimapScripts)do
+		local fnc = Minimap:GetScript(name);
 		if fnc then
-			mps[action] = fnc;
-			MinimapMT.SetScript(Minimap,action,nil);
+			mps[name] = fnc;
+			MinimapMT.SetScript(Minimap,name,nil);
 		end
 	end
 
@@ -659,9 +673,21 @@ function FarmHudMixin:OnShow()
 	MinimapMT.SetZoom(Minimap,0);
 	MinimapMT.SetAlpha(Minimap,FarmHudDB.background_alpha);
 
+	-- disable mouse enabled frames
 	suppressNextMouseEnable = true;
 	MinimapMT.EnableMouse(Minimap,false);
 	MinimapMT.EnableMouseWheel(Minimap,false);
+
+	mps.backdropMouse = MinimapBackdrop:IsMouseEnabled();
+	if mps.backdropMouse then
+		MinimapBackdrop:EnableMouse(false);
+	end
+
+	-- elvui special
+	if _G.MMHolder and _G.MMHolder:IsMouseEnabled() then
+		mps.mmholder_mouse = true;
+		_G.MMHolder:EnableMouse(false);
+	end
 
 	local mc_points = {MinimapCluster:GetPoint()};
 	if mc_points[2]==Minimap then
@@ -738,15 +764,15 @@ function FarmHudMixin:OnHide()
 	Dummy:Hide();
 	self.cluster:Hide();
 
-	if mps.onmouseup then
-		MinimapMT.SetScript(Minimap,"OnMouseUp",mps.onmouseup);
+	if mps.OnMouseUp then
+		MinimapMT.SetScript(Minimap,"OnMouseUp",mps.OnMouseUp);
 		FarmHudMinimapDummy: SetScript("OnMouseUp",nil);
 		FarmHudMinimapDummy: EnableMouse(false);
 	end
 
-	for _,action in ipairs(minimapScripts)do
-		if type(mps[action])=="function" then
-			MinimapMT.SetScript(Minimap,action,mps[action]);
+	for name,todo in pairs(minimapScripts)do
+		if type(mps[name])=="function" then
+			MinimapMT.SetScript(Minimap,name,mps[name]);
 		end
 	end
 
