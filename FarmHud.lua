@@ -1078,6 +1078,15 @@ function FarmHudMixin:OnLoad()
 		ns:print(L.PleaseReportThisMessage,"<EnableMouse>",bool,"|n"..debugstack());
 	end);
 
+	if EditModeManagerFrame then
+		-- Close FarmHud on ShowUIPanel(EditModeManagerFrame) to prevent problems
+		hooksecurefunc(EditModeManagerFrame,"IsShown",function(self)
+			if debugstack():match("ShowUIPanel") then
+				FarmHud:Toggle(false);
+			end
+		end);
+	end
+
 	if not ns.IsClassic() then
 		local function hookSetTracking(index,bool)
 			if not trackingHookLocked and FarmHud:IsVisible() and trackingTypesStates[index]~=nil then
