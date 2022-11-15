@@ -72,6 +72,8 @@ local TrailPathIconValues = {
 
 FarmHudTrailPathPinMixin = {}
 
+FarmHudTrailPathPinMixin.EnableMouse = function() end;
+
 function FarmHudTrailPathPinMixin:UpdatePin(facing,pinIcon,scale)
 	-- facing
 	if facing and IsOpened then
@@ -101,6 +103,9 @@ function FarmHudTrailPathPinMixin:UpdatePin(facing,pinIcon,scale)
 		self.pin.icon :SetVertexColor(unpack(FarmHudDB.trailPathColor1))
 		self.info.currentPinColor1 = FarmHudDB.trailPathColor1;
 	end
+
+	-- Force EnableMouse off
+	EnableMouse(self,false);
 end
 
 local function GetMicrotime()
@@ -202,7 +207,13 @@ end
 local module = {};
 
 module.dbDefaults = {
-	trailPathShow = true, trailPathCount = 32, trailPathTimeout = 60, trailPathIcon = "arrow01", trailPathColor1 = {1,.2,.2,1,.75}, trailPathScale = 1,
+	trailPathShow = true,
+	trailPathOnMinimap = true,
+	trailPathCount = 32,
+	trailPathTimeout = 60,
+	trailPathIcon = "arrow01",
+	trailPathColor1 = {1,.2,.2,1,.75},
+	trailPathScale = 1,
 };
 
 function module.AddOptions()
@@ -212,27 +223,31 @@ function module.AddOptions()
 			name = L["TrailPath"],
 			args = {
 				trailPathShow = {
-					type = "toggle", order = 0, width = "full",
-					name = L["TrailPathShow"]
+					type = "toggle", order = 1,
+					name = L["TrailPathShow"], -- desc = L["TrailPathShowDesc"],
+				},
+				trailPathOnMinimap = {
+					type = "toggle", order = 2,
+					name = L["TrailPathOnMinimap"], desc = L["TrailPathOnMinimapDesc"],
 				},
 				trailPathCount = {
-					type = "range", order = 1,
+					type = "range", order = 3,
 					name = L["TrailPathCount"], desc = L["TrailPathCountDesc"],
 					min = 10, step = 1, max = 64,
 				},
 				trailPathTimeout = {
-					type = "range", order = 2,
+					type = "range", order = 4,
 					name = L["TrailPathTimeout"], desc = L["TrailPathTimeoutDesc"],
 					min = 10, step = 10, max = 600,
 				},
 				-- TODO: header ?
 				trailPathIcon = {
-					type = "select", order = 4,
+					type = "select", order = 5,
 					name = L["TrailPathIcon"], desc = L["TrailPathIconDesc"],
 					values = TrailPathIconValues
 				},
 				trailPathScale = {
-					type = "range", order = 5,
+					type = "range", order = 6,
 					name = L["TrailPathScale"], desc = L["TrailPathScaleDesc"],
 					min=0.1, step=0.1, max=1, isPercent = true
 				},
@@ -249,19 +264,19 @@ function module.AddOptions()
 				},
 				]]
 				trailPathColor1 = {
-					type = "color", order = 6,
+					type = "color", order = 7,
 					name = COLOR, desc = L["TrailPathColorsDesc"],
 					hasAlpha = true,
 					hidden = false -- function to check color mode
 				},
 				--[[
 				trailPathColor2 = {
-					type = "color", order = 6,
+					type = "color", order = 8,
 					name = COLOR.." 2", desc = L["TrailPathColorsDesc"],
 					hidden = false -- function to check color mode
 				},
 				trailPathColor3 = {
-					type = "color", order = 6,
+					type = "color", order = 9,
 					name = COLOR.." 2", desc = L["TrailPathColorsDesc"],
 					hidden = false -- function to check color mode
 				},
@@ -292,6 +307,9 @@ function module.PLAYER_ENTERING_WORLD()
 end
 
 function module.OnLoad()
+	local mt = getmetatable(FarmHud).__index;
+	EnableMouse = mt.EnableMouse;
+
 	-- prepare trailPathIcons texture coords from coords_pos entries
 	FarmHud.UpdateTrailPath = UpdateTrailPath;
 
