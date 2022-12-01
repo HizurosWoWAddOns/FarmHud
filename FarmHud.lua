@@ -12,8 +12,9 @@ FarmHudMixin = {};
 
 local _G,type,wipe,tinsert,unpack,tostring = _G,type,wipe,tinsert,unpack,tostring;
 local GetPlayerFacing,C_Map = GetPlayerFacing,C_Map;
-local Minimap_OnClick = Minimap_OnClick;
-local Minimap_UpdateRotationSetting = Minimap_UpdateRotationSetting or function() end -- removed in dragonflight
+local Minimap_OnClick = (MinimapMixin and MinimapMixin.Onclick) or Minimap_OnClick;
+local Minimap_UpdateRotationSetting = Minimap_UpdateRotationSetting or function() end -- dummy; removed in dragonflight
+local GetCVar, SetCVar = C_CVar.GetCVar, C_CVar.SetCVar;
 
 ns.QuestArrowToken = {};
 ns.modules = {};
@@ -692,6 +693,9 @@ function FarmHudMixin:OnShow()
 	if _G.MMHolder and _G.MMHolder:IsMouseEnabled() then
 		mps.mmholder_mouse = true;
 		_G.MMHolder:EnableMouse(false);
+	elseif _G.ElvUI_MinimapHolder and _G.ElvUI_MinimapHolder:IsMouseEnabled() then
+		mps.elvui_mmholder_mouse = true;
+		_G.ElvUI_MinimapHolder:EnableMouse(false);
 	end
 
 	local mc_points = {MinimapCluster:GetPoint()};
@@ -815,6 +819,13 @@ function FarmHudMixin:OnHide()
 		for i=1, #minimapCreateTextureTable do
 			objectToDummy(minimapCreateTextureTable[i],false,"OnHide.minimapCreateTextureTable");
 		end
+	end
+
+	-- elvui special on hide hud
+	if mps.mmholder_mouse then
+		_G.MMHolder:EnableMouse(true);
+	elseif mps.elvui_mmholder_mouse then
+		_G.ElvUI_MinimapHolder:EnableMouse(true);
 	end
 
 	if mps.mc_mouse then
