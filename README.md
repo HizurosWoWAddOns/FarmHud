@@ -77,6 +77,9 @@ Please use it to make smooth cooperation between our AddOns possible.
 * `FarmHud:RegisterForeignAddOnObject( <frame object>, <addon name>)`
 * Or let me known your function i could trigger on show and hide farmhud.
 
+## Dragonflight problems
+* I'm currently getting error messages after changing the keyboard layout. Hope it only happens to me.
+
 ## Bug reports, feature requests and Support
 * [Bug reports & feature requests on Github](https://github.com/HizurosWoWAddOns/FarmHud/issues)
 * [Comments & Criticism on Curseforge](https://www.curseforge.com/wow/addons/farmhud)
