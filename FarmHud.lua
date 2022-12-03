@@ -412,14 +412,14 @@ end
 FarmHudMinimapDummyMixin = {}
 
 function FarmHudMinimapDummyMixin:OnMouseUp()
-	ns:debugPrint("OnMouseUp");
 	if type(mps.OnMouseUp)~="function" then return end
 	mps.OnMouseUp(self);
 end
 
 function FarmHudMinimapDummyMixin:OnMouseDown()
-	ns:debugPrint("OnMouseDown");
-	if type(mps.OnMouseDown)~="function" then return end
+	if type(mps.OnMouseDown)~="function" and not type(mps.OnMouseUp)~="function" then
+		return -- Ignore OnMouseDown of OnMouseUp present
+	end
 	mps.OnMouseDown(self);
 end
 
