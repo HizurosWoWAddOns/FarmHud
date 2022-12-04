@@ -670,9 +670,9 @@ function FarmHudMixin:OnShow()
 	MinimapMT.SetParent(Minimap,FarmHud);
 	MinimapMT.ClearAllPoints(Minimap);
 	-- sometimes SetPoint produce error "because[SetPoint would result in anchor family connection]"
-	local f, err = loadstring('Minimap:SetPoint("CENTER",0,0)');
+	local f, err = loadstring('FarmHud.SetPoint(Minimap,"CENTER",0,0)');
 	if not err then f() else
- 		MinimapMT.SetAllPoints(Minimap); -- but SetAllPoints results in an offset for somebody
+		MinimapMT.SetAllPoints(Minimap); -- but SetAllPoints results in an offset for somebody
 		MinimapMT.ClearAllPoints(Minimap);
 		MinimapMT.SetPoint(Minimap,"CENTER",0,0); -- next try...
 	end
@@ -764,8 +764,8 @@ function FarmHudMixin:OnHide()
 		Minimap[k] = mps.replacements[k];
 	end
 
-	Minimap:SetParent(mps.parent);
-	Minimap.SetScale(Minimap,mps.scale);
+	MinimapMT.SetParent(Minimap,mps.parent);
+	MinimapMT.SetScale(Minimap,mps.scale);
 	MinimapMT.SetSize(Minimap,unpack(mps.size));
 	MinimapMT.SetFrameStrata(Minimap,mps.strata);
 	MinimapMT.SetFrameLevel(Minimap,mps.level);
@@ -790,9 +790,9 @@ function FarmHudMixin:OnHide()
 		end
 	end
 
-	Minimap:ClearAllPoints();
+	MinimapMT.ClearAllPoints(Minimap);
 	for i=1, #mps.anchors do
-		Minimap:SetPoint(unpack(mps.anchors[i]));
+		MinimapMT.SetPoint(Minimap,unpack(mps.anchors[i]));
 	end
 
 	-- move child frames and regions (textures/fontstrings) of a frame back agian to Minimap
