@@ -24,6 +24,9 @@ local media, media_blizz = "Interface\\AddOns\\"..addon.."\\media\\", "Interface
 local mps,Minimap,MinimapMT,mouseOnKeybind,Dummy = {},_G.Minimap,getmetatable(_G.Minimap).__index;
 local minimapScripts,cardinalTicker,coordsTicker = { --[["OnMouseUp",]] OnMouseDown="Dummy", OnDragStart="nil" };
 local playerDot_orig, playerDot_custom = "Interface\\Minimap\\MinimapArrow";
+if WOW_PROJECT_ID==WOW_PROJECT_MAINLINE then
+	playerDot_orig = "minimaparrow" -- blizzard using atlas entry of ObjectIconsAtlas.blp now
+end
 local TrackingIndex,timeTicker = {};
 local knownProblematicAddOns, knownProblematicAddOnsDetected = {BasicMinimap=true},{};
 local SetPointToken,SetParentToken = {},{};
