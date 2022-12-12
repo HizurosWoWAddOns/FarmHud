@@ -439,6 +439,11 @@ function FarmHudMixin:SetScales(enabled)
 	end
 	self:SetSize(size,size);
 
+	local PercentageHUDYpostion = GetScreenHeight()  * FarmHudDB.position_y 
+	local PercentageHUDXpostion = GetScreenWidth() * FarmHudDB.position_x
+
+	self:SetPoint("CENTER", parent, "CENTER", PercentageHUDXpostion,PercentageHUDYpostion);
+
 	local MinimapSize = size * FarmHudDB.hud_size;
 	local MinimapScaledSize =  MinimapSize / FarmHudDB.hud_scale;
 	MinimapMT.SetScale(Minimap,FarmHudDB.hud_scale);
@@ -571,6 +576,10 @@ do
 		elseif IsKey(key,"SuperTrackedQuest") and FarmHud_ToggleSuperTrackedQuest and FarmHud:IsShown() then
 			FarmHud_ToggleSuperTrackedQuest(ns.QuestArrowToken,FarmHudDB.SuperTrackedQuest);
 		elseif IsKey(key,"hud_size") then
+			FarmHud:SetScales();
+		elseif IsKey(key,"position_y") then
+			FarmHud:SetScales();
+		elseif IsKey(key,"position_x") then
 			FarmHud:SetScales();
 		end
 	end
