@@ -33,8 +33,8 @@ local excludeFrames = {}
 local isAddOnsLoadedForOption = {
 	SuperTrackedQuest = {
 		addon="FarmHud_QuestArrow",
-		descLoaded=GREEN_FONT_COLOR_CODE..L.ExtraAddOnLoaded:format("FarmHud [QuestArrow]").."|r",
-		descNotLoaded=ORANGE_FONT_COLOR_CODE..L.ExtraAddOnNotLoaded:format("FarmHud [QuestArrow]").."|r"
+		descLoaded=GREEN_FONT_COLOR_CODE..L["ExtraAddOnLoaded"]:format("FarmHud [QuestArrow]").."|r",
+		descNotLoaded=ORANGE_FONT_COLOR_CODE..L["ExtraAddOnNotLoaded"]:format("FarmHud [QuestArrow]").."|r"
 	}
 }
 
@@ -174,34 +174,34 @@ local options = {
 			args = {
 				MinimapIcon = {
 					type = "toggle", order = 1,
-					name = L.MinimapIcon, desc = L.MinimapIconDesc
+					name = L["MinimapIcon"], desc = L["MinimapIconDesc"]
 				},
 				AddOnLoaded = {
 					type = "toggle", order = 2,
-					name = L.AddOnLoaded, desc = L["AddOnLoadedDesc"].."|n|n|cff44ff44"..L["AddOnLoadedDescAlt"].."|r"
+					name = L["AddOnLoaded"], desc = L["AddOnLoadedDesc"].."|n|n|cff44ff44"..L["AddOnLoadedDescAlt"].."|r"
 				},
 				rotation = {
 					type = "toggle", order = 3, width="full",
-					name = L.Rotation, desc = L.RotationDesc
+					name = L["Rotation"], desc = L["RotationDesc"]
 				},
 				hud_scale = {
 					type = "range", order = 11,
-					name = L.HudSymbolScale, desc = L.HudSymbolScaleDesc,
+					name = L["HudSymbolScale"], desc = L["HudSymbolScaleDesc"],
 					min = 1, max = 2.5, step = 0.1, isPercent = true
 				},
 				hud_size = {
 					type = "range", order = 12,
-					name = L.HudSize, desc = L.HudSizeDesc,
+					name = L["HudSize"], desc = L["HudSizeDesc"],
 					min = 0.4, max = 1, step = 0.1, isPercent = true
 				},
 				text_scale = {
 					type = "range", order = 13,
-					name = L.TextScale, desc = L.TextScaleDesc,
+					name = L["TextScale"], desc = L["TextScaleDesc"],
 					min = 1, max = 2.5, step = 0.1, isPercent = true
 				},
 				background_alpha = {
 					type = "range", order = 14,
-					name = L.BgTransparency, --desc = L.BgTransparencyDesc
+					name = L["BgTransparency"], --desc = L["BgTransparencyDesc"]
 					min = 0.0, max = 1, step = 0.1, isPercent = true,
 					get = function()
 						return 1-FarmHudDB.background_alpha
@@ -213,35 +213,35 @@ local options = {
 				},
 				player_dot = {
 					type = "select", order = 15,
-					name = L.PlayerDot, desc = L.PlayerDotDesc,
+					name = L["PlayerDot"], desc = L["PlayerDotDesc"],
 					values = playerDot_textures
 				},
 				placeholder = {
 					type = "group", order = 98, inline = true,
-					name = L.Placeholder,
+					name = L["Placeholder"],
 					args = {
 						desc = {
 							type = "description", order = 0, fontSize = "medium",
-							name = L.PlaceholderDesc
+							name = L["PlaceholderDesc"]
 						},
 						showDummy = {
 							type = "toggle", order = 1,
-							name = L.ShowPlaceholder, desc = L.ShowPlaceholderDesc
+							name = L["ShowPlaceholder"], desc = L["ShowPlaceholderDesc"]
 						},
 						showDummyBg = {
 							type = "toggle", order = 2,
-							name = L.ShowPlaceholderBg, desc = L.ShowPlaceholderBgDesc
-						}
+							name = L["ShowPlaceholderBg"], desc = L["ShowPlaceholderBgDesc"]
+						},
 					}
 				},
 				mouseover = {
 					type = "group", order = 99, inline=true,
-					name = L.MouseOver,
+					name = L["MouseOver"],
 					args = {
 						holdKeyForMouseOn = {
 							type = "select", order = 3, width="double";
-							name = L.MouseOverOnHold,
-							desc = L.MouseOverOnHoldDesc,
+							name = L["MouseOverOnHold"],
+							desc = L["MouseOverOnHoldDesc"],
 							values = {
 								["_NONE"] = NONE.."/"..ADDON_DISABLED,
 								A  = ALT_KEY,
@@ -257,12 +257,12 @@ local options = {
 						},
 						mouseoverinfo_color = {
 							type = "color", order = 1,
-							name = COLOR, desc = L.MouseOverInfoColorDesc,
+							name = COLOR, desc = L["MouseOverInfoColorDesc"],
 							hasAlpha = true
 						},
 						mouseoverinfo_resetcolor = {
 							type = "execute", order = 2,
-							name = L.ResetColor, --desc = L.ResetColorDesc
+							name = L["ResetColor"], --desc = L["ResetColorDesc"]
 						},
 					}
 				}
@@ -271,7 +271,7 @@ local options = {
 		----------------------------------------------
 		SuperTrackedQuest = {
 			type = "group", order = 1,
-			name = L.QuestArrow,
+			name = L["QuestArrow"],
 			args = {
 				desc = {
 					type = "description", order=1, fontSize="medium",
@@ -290,188 +290,188 @@ local options = {
 		},
 		rangecircles = {
 			type = "group", order = 2,
-			name = L.RangeCircles,
+			name = L["RangeCircles"],
 			args = {
 				-- gathercircle
 				gathercircle = {
 					type = "header", order = 10,
-					name = L.GatherCircle,
+					name = L["GatherCircle"],
 				},
 				gathercircle_desc = {
 					type = "description", order = 11, fontSize = "medium",
-					name = L.GatherCircleDesc
+					name = L["GatherCircleDesc"]
 				},
 				gathercircle_show = {
 					type = "toggle", order = 12, width = "double",
-					name = L.GatherCircleShow, desc = L.GatherCircleShowDesc
+					name = L["GatherCircleShow"], desc = L["GatherCircleShowDesc"]
 				},
 				gathercircle_color = {
 					type = "color", order = 13,
-					name = COLOR, desc = L.GatherCircleColorDesc,
+					name = COLOR, desc = L["GatherCircleColorDesc"],
 					hasAlpha = true
 				},
 				gathercircle_resetcolor = {
 					type = "execute", order = 14,
-					name = L.ResetColor, --desc = L.ResetColorDesc
+					name = L["ResetColor"], --desc = L["ResetColorDesc"]
 				},
 				-- healcircle
 				healcircle = {
 					type = "header", order = 20,
-					name = L.HealCircle,
+					name = L["HealCircle"],
 				},
 				healcircle_desc = {
 					type = "description", order = 21, fontSize = "medium",
-					name = L.HealcircleDesc
+					name = L["HealcircleDesc"]
 				},
 				healcircle_show = {
 					type = "toggle", order = 22, width = "double",
-					name = L.HealcircleShow, desc = L.HealcircleShowDesc
+					name = L["HealcircleShow"], desc = L["HealcircleShowDesc"]
 				},
 				healcircle_color = {
 					type = "color", order = 23,
-					name = COLOR, desc = L.HealcircleColorDesc,
+					name = COLOR, desc = L["HealcircleColorDesc"],
 					hasAlpha = true
 				},
 				healcircle_resetcolor = {
 					type = "execute", order = 24,
-					name = L.ResetColor, --desc = L.ResetColorDesc
+					name = L["ResetColor"], --desc = L["ResetColorDesc"]
 				},
 			}
 		},
 		cardinalpoints = {
 			type = "group", order = 3,
-			name = L.CardinalPoints,
+			name = L["CardinalPoints"],
 			args = {
 				cardinalpoints_show = {
 					type = "toggle", order = 1, width = "double",
-					name = L.CardinalPointsShow, desc = L.CardinalPointsShowDesc,
+					name = L["CardinalPointsShow"], desc = L["CardinalPointsShowDesc"],
 				},
 				cardinalpoints_radius = {
 					type = "range", order = 2,
-					name = L.ChangeRadius, desc = L.ChangeRadiusDesc,
+					name = L["ChangeRadius"], desc = L["ChangeRadiusDesc"],
 					min = 0.1, max = 0.9, step=0.005, isPercent=true
 				},
 				cardinalpoints_header1 = {
 					type = "header", order = 3,
-					name = L.CardinalPointsGroup1
+					name = L["CardinalPointsGroup1"]
 				},
 				cardinalpoints_color1 = {
 					type = "color", order = 4, hasAlpha = true,
-					name = COLOR, desc = L.CardinalPointsColorDesc:format(L.CardinalPointsGroup1)
+					name = COLOR, desc = L["CardinalPointsColorDesc"]:format(L["CardinalPointsGroup1"])
 				},
 				cardinalpoints_resetcolor1 = {
 					type = "execute", order = 5,
-					name = L.ResetColor, desc = L.CardinalPointsColorResetDesc:format(L.CardinalPointsGroup1)
+					name = L["ResetColor"], desc = L["CardinalPointsColorResetDesc"]:format(L["CardinalPointsGroup1"])
 				},
 				cardinalpoints_header2 = {
 					type = "header", order = 6,
-					name = L.CardinalPointsGroup2
+					name = L["CardinalPointsGroup2"]
 				},
 				cardinalpoints_color2 = {
 					type = "color", order = 7, hasAlpha = true,
-					name = COLOR, desc = L.CardinalPointsColorDesc:format(L.CardinalPointsGroup2)
+					name = COLOR, desc = L["CardinalPointsColorDesc"]:format(L["CardinalPointsGroup2"])
 				},
 				cardinalpoints_resetcolor2 = {
 					type = "execute", order = 8,
-					name = L.ResetColor, desc = L.CardinalPointsColorResetDesc:format(L.CardinalPointsGroup2)
+					name = L["ResetColor"], desc = L["CardinalPointsColorResetDesc"]:format(L["CardinalPointsGroup2"])
 				}
 			}
 		},
 		coords = {
 			type = "group", order = 4,
-			name = L.Coords,
+			name = L["Coords"],
 			args = {
 				coords_show = {
 					type = "toggle", order = 1,
-					name = L.CoordsShow, desc = L.CoordsShowDesc
+					name = L["CoordsShow"], desc = L["CoordsShowDesc"]
 				},
 				coords_radius = {
 					type = "range", order = 2,
-					name = L.ChangeRadius, desc = L.ChangeRadiusDesc,
+					name = L["ChangeRadius"], desc = L["ChangeRadiusDesc"],
 					min = 0.1, max = 0.9, step=0.005, isPercent=true
 				},
 				coords_bottom = {
 					type = "toggle", order = 3, width = "double",
-					name = L.CoordsBottom, desc = L.CoordsBottomDesc
+					name = L["CoordsBottom"], desc = L["CoordsBottomDesc"]
 				},
 				coords_color = {
 					type = "color", order = 4, hasAlpha = true,
-					name = COLOR, desc = L.CoordsColorDesc
+					name = COLOR, desc = L["CoordsColorDesc"]
 				},
 				coords_resetcolor = {
 					type = "execute", order = 5,
-					name = L.ResetColor, desc = L.CoordsColorResetDesc
+					name = L["ResetColor"], desc = L["CoordsColorResetDesc"]
 				}
 			}
 		},
 		time = {
 			type = "group", order = 5,
-			name = L.Time,
+			name = L["Time"],
 			args = {
 				time_show = {
 					type = "toggle", order = 1, width = "full",
-					name = L.TimeShow, desc = L.TimeShowDesc
+					name = L["TimeShow"], desc = L["TimeShowDesc"]
 				},
 				time_server = {
 					type = "toggle", order = 2,
-					name = L.TimeServer, desc = L.TimeServerDesc
+					name = L["TimeServer"], desc = L["TimeServerDesc"]
 				},
 				time_local = {
 					type = "toggle", order = 3,
-					name = L.TimeLocal, desc = L.TimeLocalDesc
+					name = L["TimeLocal"], desc = L["TimeLocalDesc"]
 				},
 				time_radius = {
 					type = "range", order = 4,
-					name = L.ChangeRadius, desc = L.ChangeRadiusDesc,
+					name = L["ChangeRadius"], desc = L["ChangeRadiusDesc"],
 					min = 0.1, max = 0.9, step=0.005, isPercent=true
 				},
 				time_bottom = {
 					type = "toggle", order = 5, width = "double",
-					name = L.TimeBottom, desc = L.TimeBottomDesc
+					name = L["TimeBottom"], desc = L["TimeBottomDesc"]
 				},
 				time_color = {
 					type = "color", order = 6, hasAlpha = true,
-					name = COLOR, desc = L.TimeColorDesc
+					name = COLOR, desc = L["TimeColorDesc"]
 				},
 				time_resetcolor = {
 					type = "execute", order = 7,
-					name = L.ResetColor, desc = L.TimeColorResetDesc
+					name = L["ResetColor"], desc = L["TimeColorResetDesc"]
 				},
 			}
 		},
 		onscreenbuttons = {
 			type = "group", order = 6,
-			name = L.OnScreen,
+			name = L["OnScreen"],
 			args = {
 				buttons_show = {
 					type = "toggle", order = 1, width = "double",
-					name = L.OnScreenShow, desc = L.OnScreenShowDesc
+					name = L["OnScreenShow"], desc = L["OnScreenShowDesc"]
 				},
 				buttons_bottom = {
 					type = "toggle", order = 2, width = "double",
-					name = L.OnScreenBottom, desc = L.OnScreenBottomDesc,
+					name = L["OnScreenBottom"], desc = L["OnScreenBottomDesc"],
 				},
 				buttons_radius = {
 					type = "range", order = 3,
-					name = L.ChangeRadius, desc = L.ChangeRadiusDesc,
+					name = L["ChangeRadius"], desc = L["ChangeRadiusDesc"],
 					min = 0.1, max = 0.9, step=0.005, isPercent=true
 				},
 				buttons_alpha = {
 					type = "range", order = 4,
-					name = OPACITY, desc = L.OnScreenAlphaDesc,
+					name = OPACITY, desc = L["OnScreenAlphaDesc"],
 					min = 0, max = 1, step = 0.1, isPercent = true
 				}
 			}
 		},
 		tracking = {
 			type = "group", order = 8,
-			name = L.TrackingOptions,
+			name = L["TrackingOptions"],
 			get = optTracking, set = optTracking,
 			childGroups = "tab",
 			args = {
 				desc = {
 					type = "description", order = 1, fontSize = "medium",
-					name = L.TrackingOptionsDesc
+					name = L["TrackingOptionsDesc"]
 				},
 				misc = {
 					type = "group", order = 2,
@@ -499,15 +499,15 @@ local options = {
 			args = {
 				TOGGLEFARMHUD = {
 					type = "keybinding", order = 1, width = "double",
-					name = L.KeyBindToggle, desc = L.KeyBindToggleDesc
+					name = L["KeyBindToggle"], desc = L["KeyBindToggleDesc"]
 				},
 				TOGGLEFARMHUDMOUSE = {
 					type = "keybinding", order = 2, width = "double",
-					name = L.KeyBindMouse, desc = L.KeyBindMouseDesc
+					name = L["KeyBindMouse"], desc = L["KeyBindMouseDesc"]
 				},
 				TOGGLEFARMHUDBACKGROUND = {
 					type = "keybinding", order = 3, width = "double",
-					name = L.KeyBindBackground, desc = L.KeyBindBackgroundDesc
+					name = L["KeyBindBackground"], desc = L["KeyBindBackgroundDesc"]
 				},
 			}
 		},
