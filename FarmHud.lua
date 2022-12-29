@@ -22,7 +22,7 @@ local modEvents,events = {},{VARIABLES_LOADED=true,PLAYER_ENTERING_WORLD=true,PL
 local LibHijackMinimap_Token,TrackingIndex,LibHijackMinimap,_ = {},{};
 local media, media_blizz = "Interface\\AddOns\\"..addon.."\\media\\", "Interface\\Minimap\\";
 local mps,Minimap,MinimapMT,mouseOnKeybind,Dummy = {},_G.Minimap,getmetatable(_G.Minimap).__index;
-local minimapScripts,cardinalTicker,coordsTicker = { --[["OnMouseUp",]] OnMouseDown="Dummy", OnDragStart="nil" };
+local minimapScripts,cardinalTicker,coordsTicker = { --[["OnMouseUp",]] OnMouseDown="Dummy", OnDragStart="nil", OnDragStop="nil" };
 local playerDot_orig, playerDot_custom = "Interface\\Minimap\\MinimapArrow";
 if WOW_PROJECT_ID==WOW_PROJECT_MAINLINE then
 	playerDot_orig = "minimaparrow" -- blizzard using atlas entry of ObjectIconsAtlas.blp now
@@ -449,7 +449,7 @@ function FarmHudMixin:SetScales(enabled)
 	self.cluster:SetFrameStrata(Minimap:GetFrameStrata());
 	self.cluster:SetFrameLevel(Minimap:GetFrameLevel());
 
-	local gcSize = MinimapSize * 0.432;
+	local gcSize = MinimapSize * 0.6;
 	self.gatherCircle:SetSize(gcSize, gcSize);
 	self.healCircle:SetSize(gcSize/2.11, gcSize/2.11);
 
@@ -777,6 +777,7 @@ function FarmHudMixin:OnHide()
 	Dummy.bg:Hide();
 	Dummy:Hide();
 	self.cluster:Hide();
+	self.TextFrame.mouseWarn:Hide();
 
 	if mps.OnMouseUp then
 		MinimapMT.SetScript(Minimap,"OnMouseUp",mps.OnMouseUp);
