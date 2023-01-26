@@ -16,6 +16,7 @@ Turn your minimap into a hud for farming ore / herb.
 ## Minimap / Nodes / FarmHud
 Blizzard has designed the Minimap element as All-in-One (Terrain texture + Nodes).
 It could not be separated. It could not be copied. Minimap and FarmHud can't be displayed at the same time.
+While mouseover is activated (Mouse on), the area for access to the 3D world is limited to the left and right on the screen boundaries.
 *(It's like the Highlander: There can only be one.)*
 
 ## Contains
