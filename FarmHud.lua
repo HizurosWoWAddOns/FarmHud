@@ -18,7 +18,7 @@ local GetCVar, SetCVar = C_CVar.GetCVar, C_CVar.SetCVar;
 
 ns.QuestArrowToken = {};
 ns.modules = {};
-local modEvents,events = {},{VARIABLES_LOADED=true,PLAYER_ENTERING_WORLD=true,PLAYER_LOGIN=true,PLAYER_LOGOUT=true,MODIFIER_STATE_CHANGED=true};
+local modEvents,events = {},{ADDON_LOADED=true,PLAYER_ENTERING_WORLD=true,PLAYER_LOGIN=true,PLAYER_LOGOUT=true,MODIFIER_STATE_CHANGED=true};
 local LibHijackMinimap_Token,TrackingIndex,LibHijackMinimap,_ = {},{};
 local media, media_blizz = "Interface\\AddOns\\"..addon.."\\media\\", "Interface\\Minimap\\";
 local mps,Minimap,MinimapMT,mouseOnKeybind,Dummy = {},_G.Minimap,getmetatable(_G.Minimap).__index;
@@ -980,7 +980,7 @@ function FarmHudMixin:RegisterModule(name,module)
 end
 
 function FarmHudMixin:OnEvent(event,...)
-	if event=="VARIABLES_LOADED" then
+	if event=="ADDON_LOADED" and addon==... then
 		ns.RegisterOptions();
 		ns.RegisterDataBroker();
 		if FarmHudDB.AddOnLoaded or IsShiftKeyDown() then
