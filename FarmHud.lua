@@ -1100,8 +1100,15 @@ function FarmHudMixin:OnLoad()
 	if EditModeManagerFrame then
 		-- Close FarmHud on ShowUIPanel(EditModeManagerFrame) to prevent problems
 		hooksecurefunc(EditModeManagerFrame,"IsShown",function(self)
-			if debugstack():match("ShowUIPanel") then
+			local dbg = debugstack(); -- nil sucks
+			if dbg and dbg:match("ShowUIPanel") then
 				FarmHud:Toggle(false);
+			end
+		end);
+
+		hooksecurefunc(_G,"ShowUIPanel",function(frame)
+			if EditModeManagerFrame==frame or frame=="EditModeManagerFrame" then
+				FarmHud:Toggle(false)
 			end
 		end);
 	end
