@@ -17,8 +17,7 @@ local Minimap_UpdateRotationSetting = Minimap_UpdateRotationSetting or function(
 local GetCVar, SetCVar = C_CVar.GetCVar, C_CVar.SetCVar;
 
 ns.QuestArrowToken = {};
-ns.modules = {};
-local modEvents,events = {},{ADDON_LOADED=true,PLAYER_ENTERING_WORLD=true,PLAYER_LOGIN=true,PLAYER_LOGOUT=true,MODIFIER_STATE_CHANGED=true};
+local modEvents,events = {},{"ADDON_LOADED","PLAYER_ENTERING_WORLD","PLAYER_LOGIN","PLAYER_LOGOUT","MODIFIER_STATE_CHANGED"};
 local LibHijackMinimap_Token,TrackingIndex,LibHijackMinimap,_ = {},{};
 local media, media_blizz = "Interface\\AddOns\\"..addon.."\\media\\", "Interface\\Minimap\\";
 local mps,Minimap,MinimapMT,mouseOnKeybind,Dummy = {},_G.Minimap,getmetatable(_G.Minimap).__index;
@@ -90,6 +89,20 @@ local modifiers = {
 };
 local minimapCreateTextureTable = {};
 local trackEnableMouse,suppressNextMouseEnable = false,false; -- try to get more info for mouse enable bug
+
+ns.modules = setmetatable({},{
+	__newindex = function(t,name,module)
+		rawset(t,name,module)
+		for _,event in ipairs(events) do
+			if module[event] and type(module[event])=="function" then
+				if not modEvents[event] then
+					modEvents[event] = {}
+				end
+				tinsert(modEvents[event],name);
+			end
+		end
+	end
+})
 
 do
 	function ns.IsClassic()
@@ -967,16 +980,6 @@ end
 function FarmHudMixin:RegisterModule(name,module)
 	assert(type(name)=="string" and type(module)=="table", "FarmHud:RegisterModule(<moduleName[string]>, <module[table]>)" );
 	ns.modules[name] = module;
-
-	for event in pairs(events) do
-		if module[event] and type(module[event])=="function" then
-			tinsert(modEvents[event],module[event]);
-		end
-	end
-
-	if type(module.OnLoad)=="function" then
-		module:OnLoad();
-	end
 end
 
 function FarmHudMixin:OnEvent(event,...)
@@ -1048,9 +1051,11 @@ function FarmHudMixin:OnEvent(event,...)
 			self:ToggleMouse(down==0);
 		end
 	end
-	for _,modEventFunc in ipairs(modEvents[event])do
-		if modEventFunc then
-			modEventFunc(...);
+	if modEvents[event] then
+		for _,modName in pairs(modEvents[event])do
+			if ns.modules[modName] and ns.modules[modName][event] then
+				ns.modules[modName][event](...);
+			end
 		end
 	end
 end
@@ -1122,9 +1127,14 @@ function FarmHudMixin:OnLoad()
 		-- dummy
 	end
 
-	for event in pairs(events) do
+	for _,event in ipairs(events) do
 		self:RegisterEvent(event);
-		modEvents[event] = {};
+	end
+
+	for name, module in pairs(ns.modules)do
+		if type(module.OnLoad)=="function" then
+			module:OnLoad();
+		end
 	end
 
 	FarmHudMixin=nil;
