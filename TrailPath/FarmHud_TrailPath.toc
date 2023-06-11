@@ -3,16 +3,8 @@
 ## Interface-Classic: 11403
 ## Title: FarmHud [TrailPath]
 ## Version: @project-version@
-## Notes: [Experimental] Trail path on minimap
+## Notes: [Dummy] Folder 'Farmhud_TrailPath' can be deleted.
 ## Author: Hizuro
 ## Dependencies: FarmHud
-## DefaultState: enabled
+## DefaultState: disabled
 
-..\FarmHud\libs\LibStub\LibStub.lua
-..\FarmHud\libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
-..\FarmHud\libs\HereBeDragons\HereBeDragons-2.0.lua
-..\FarmHud\libs\HereBeDragons\HereBeDragons-Pins-2.0.lua
-..\FarmHud\libs\HereBeDragons\HereBeDragons-Migrate.lua
-..\FarmHud\libs\HizurosSharedTools\HizurosSharedTools.lua
-
-FarmHud_TrailPath.xml
