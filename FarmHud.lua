@@ -1097,7 +1097,7 @@ function FarmHudMixin:OnLoad()
 		ns:print(L.PleaseReportThisMessage,"<EnableMouse>",bool,"|n"..debugstack());
 	end);
 
-	if EditModeManagerFrame then
+	if EditModeManagerFrame and EditModeManagerFrame.IsShown then
 		-- Close FarmHud on ShowUIPanel(EditModeManagerFrame) to prevent problems
 		hooksecurefunc(EditModeManagerFrame,"IsShown",function(self)
 			local dbg = debugstack(); -- nil sucks
