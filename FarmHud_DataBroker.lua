@@ -5,7 +5,7 @@ local L=ns.L;
 function ns.RegisterDataBroker()
 	local LDB = LibStub("LibDataBroker-1.1"):NewDataObject(addon,{
 		type	= "launcher",
-		icon	= "Interface\\Icons\\INV_Misc_Herb_MountainSilverSage",
+		icon	= 134215,
 		label	= addon,
 		text	= addon,
 		OnTooltipShow = function(tt)

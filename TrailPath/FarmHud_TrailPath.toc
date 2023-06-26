@@ -1,8 +1,9 @@
-## Interface: 100007
-## Interface-Wrath: 30401
-## Interface-Classic: 11403
+## Interface: 0
+## Interface-Wrath: 0
+## Interface-Classic: 0
 ## Title: FarmHud [TrailPath]
 ## Version: @project-version@
+## IconTexture: 134215
 ## Notes: [Dummy] Folder 'Farmhud_TrailPath' can be deleted.
 ## Author: Hizuro
 ## Dependencies: FarmHud
