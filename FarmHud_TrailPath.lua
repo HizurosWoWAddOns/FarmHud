@@ -82,11 +82,17 @@ FarmHudTrailPathPinMixin.EnableMouse = function() end;
 
 function FarmHudTrailPathPinMixin:UpdatePin(facing,onCluster)
 	-- facing
+	-- Not everyone has rotateMinimap turned on. Handle both situations accordingly so icon rotates properly on HUD and on trailPathOnMinimap.
+	local rotateMiniMap = C_CVar.GetCVarBool("rotateMinimap");
 	if facing and onCluster then
-		self.pin.Facing.Rotate :SetRadians(self.info.f - facing);
-	end
+		if rotateMiniMap then
+			self.pin.Facing.Rotate:SetRadians(self.info.f - facing);
+		elseif not rotateMiniMap then
+			self.pin.Facing.Rotate:SetRadians(self.info.f);
+		end
+    end
 	-- texture
-	local pinIcon = (onCluster and FarmHudDB.rotation and FarmHudDB.trailPathIcon) or "dot2";
+	local pinIcon = (onCluster and FarmHudDB.rotation and FarmHudDB.trailPathIcon) or "dot02"; -- There is no "dot2"
 	if self.info.currentPinIcon ~= pinIcon then
 		local icon = trailPathIcons[pinIcon];
 		if icon then
@@ -135,7 +141,9 @@ local function TrailPath_TickerFunc()
 	local registerNew = true;
 	local currentTime = GetMicrotime();
 	local currentFacing = GetPlayerFacing() or 0; -- 0 - 6.5
-	local IsOnCluster = FarmHud:IsShown();
+	-- Make HUD icon settings apply to trailPathOnMinimap
+	local HUD = FarmHud:IsShown();
+	local IsOnCluster = HUD or (not HUD and FarmHudDB.trailPathOnMinimap);
 
 	-- check distance between current and prev. position; skip function
 	if trailPathActive[1] then
@@ -165,7 +173,7 @@ local function TrailPath_TickerFunc()
 		entry.info.y = y;
 		entry.info.f = currentFacing;
 		entry.info.t = currentTime;
-		entry:UpdatePin(nil,IsInCluster);
+		entry:UpdatePin(nil,IsOnCluster); -- There is no "IsInCluster"
 
 		-- register pin frame at HereBeDragon
 		HBDPins:AddMinimapIconWorld(FarmHud, entry, instance, x, y );
