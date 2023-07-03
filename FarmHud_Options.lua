@@ -645,3 +645,12 @@ function ns.RegisterOptions()
 
 	LibStub("HizurosSharedTools").AddCredit(addon,options.args.credits.args);
 end
+
+if AddonCompartmentFrame then
+	AddonCompartmentFrame:RegisterAddon({
+		icon = 134215,
+		text = addon,
+		notCheckable = true,
+		func = FarmHudMixin.ToggleOptions
+	 })
+end
