@@ -1,2 +1,0 @@
--- Dummy file
--- This folder can be removed
