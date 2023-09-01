@@ -684,7 +684,7 @@ function FarmHudMixin:OnShow()
 	MinimapMT.ClearAllPoints(Minimap);
 	-- sometimes SetPoint produce error "because[SetPoint would result in anchor family connection]"
 	local f, err = loadstring('FarmHud.SetPoint(Minimap,"CENTER",0,0)');
-	if not err then f() else
+	if f then f() else
 		MinimapMT.SetAllPoints(Minimap); -- but SetAllPoints results in an offset for somebody
 		MinimapMT.ClearAllPoints(Minimap);
 		MinimapMT.SetPoint(Minimap,"CENTER",0,0); -- next try...
