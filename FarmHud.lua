@@ -227,6 +227,7 @@ do
 		GetRight = function() return Dummy :GetRight() end,
 		GetBottom = function() return Dummy :GetBottom() end,
 		GetTop = function() return Dummy :GetTop() end,
+		SetZoom = function(m,z) end, -- prevent zoom
 	}
 	local function objHookStart(self)
 		if lockedBy~=false then return end
