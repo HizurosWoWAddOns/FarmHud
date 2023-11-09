@@ -36,6 +36,10 @@ externals:
     libs/HizurosSharedTools:
         url: https://github.com/HizurosWoWAddOns/HizurosSharedTools.git
 
+# missing externals on addon page
+required-dependencies:
+    - libstringcoloring-1-0
+
 move-folders:
     FarmHud/QuestArrow: FarmHud_QuestArrow
 
