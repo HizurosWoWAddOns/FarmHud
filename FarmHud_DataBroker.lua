@@ -3,7 +3,7 @@ local addon,ns=...;
 local L=ns.L;
 
 function ns.RegisterDataBroker()
-	local LDB = LibStub("LibDataBroker-1.1"):NewDataObject(addon,{
+	local LDBObject = {
 		type	= "launcher",
 		icon	= 134215,
 		label	= addon,
@@ -23,11 +23,11 @@ function ns.RegisterDataBroker()
 				FarmHud:ToggleOptions();
 			end
 		end
-	});
+	};
 
+	local LDB = LibStub("LibDataBroker-1.1"):NewDataObject(addon,LDBObject);
 	local LDBIcon = LDB and LibStub("LibDBIcon-1.0", true);
-
-	if (LDBIcon) then
+	if LDBIcon then
 		LDBIcon:Register(addon, LDB, FarmHudDB.MinimapIcon);
 	end
 end

@@ -1,5 +1,5 @@
 
-if not LibStub.libs["HizurosSharedTools"] or GetAddOnMetadata("FarmHud","Version")~="@project-version@" then
+if not LibStub.libs["HizurosSharedTools"] or C_AddOns.GetAddOnMetadata("FarmHud","Version")~="@project-version@" then
 	local FarmHudInvalidInstallation = "Your current installation of FarmHud is invalid. Please uninstall all other addons with 'FarmHud' in its name and reinstall FarmHud."
 	StaticPopupDialogs["FARMHUD_INVALID_INSTALLATION"] = {
 		text = FarmHudInvalidInstallation,

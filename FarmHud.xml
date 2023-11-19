@@ -3,6 +3,7 @@
 
 	<Script file="Localization.lua"/>
 	<!--@do-not-package@-->
+	<Script file="Localization.imported.lua"/>
 	<Script file="Localization.workfile.lua"/>
 	<!--@end-do-not-package@-->
 	<Script file="FarmHud.lua"/>

@@ -7,8 +7,7 @@ local HBD = LibStub("HereBeDragons-2.0")
 local HBDPins = LibStub("HereBeDragons-Pins-2.0")
 
 local EnableMouse, SetShown
-local pi2 = math.pi*2;
-local media, media_blizz = "Interface\\AddOns\\FarmHud\\media\\", "Interface\\Minimap\\";
+local media = "Interface\\AddOns\\FarmHud\\media\\";
 local minDistanceBetween = 12;
 local trailPathActive,trailPathPool,lastX,lastY,lastM,lastFacing,IsOpened = {},{},nil,nil,nil,nil,nil;
 local trailPathTicker,trailPathIcons = nil,{ -- coords_pos = { <left>, <right>, <top>, <bottom>, <sizeW>, <sizeH> }

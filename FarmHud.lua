@@ -5,35 +5,32 @@ ns.debugMode = "@project-version@"=="@".."project-version".."@";
 LibStub("HizurosSharedTools").RegisterPrint(ns,addon,"FH");
 
 local ACD = LibStub("AceConfigDialog-3.0");
-local HBD = LibStub("HereBeDragons-2.0")
 local HBDPins = LibStub("HereBeDragons-Pins-2.0")
 
 FarmHudMixin = {};
 
 local _G,type,wipe,tinsert,unpack,tostring = _G,type,wipe,tinsert,unpack,tostring;
 local GetPlayerFacing,C_Map = GetPlayerFacing,C_Map;
-local Minimap_OnClick = (MinimapMixin and MinimapMixin.Onclick) or Minimap_OnClick;
-local Minimap_UpdateRotationSetting = Minimap_UpdateRotationSetting or function() end -- dummy; removed in dragonflight
-local GetCVar, SetCVar = C_CVar.GetCVar, C_CVar.SetCVar;
+local Minimap_OnClick = (MinimapMixin and MinimapMixin.Onclick) or Minimap_OnClick; -- TODO: check it - needed for classic 1.15 / wotlk 3.4.3
+local Minimap_UpdateRotationSetting = Minimap_UpdateRotationSetting or function() end -- TODO: check it - need for classic 1.15 / wotlk 3.4.3
+local IsAddOnLoaded = IsAddOnLoaded or C_AddOns.IsAddOnLoaded; -- TODO: check it - classic deprecated 1.15; need for wotlk 3.4.3
 
 ns.QuestArrowToken = {};
 local modEvents,events = {},{"ADDON_LOADED","PLAYER_ENTERING_WORLD","PLAYER_LOGIN","PLAYER_LOGOUT","MODIFIER_STATE_CHANGED"};
-local LibHijackMinimap_Token,TrackingIndex,LibHijackMinimap,_ = {},{};
-local media, media_blizz = "Interface\\AddOns\\"..addon.."\\media\\", "Interface\\Minimap\\";
+local LibHijackMinimap_Token,LibHijackMinimap,_ = {};
+local media = "Interface\\AddOns\\"..addon.."\\media\\";
 local mps,Minimap,MinimapMT,mouseOnKeybind,Dummy = {},_G.Minimap,getmetatable(_G.Minimap).__index;
 local minimapScripts,cardinalTicker,coordsTicker = { --[["OnMouseUp",]] OnMouseDown="Dummy", OnDragStart="nil" };
 local playerDot_orig, playerDot_custom = "Interface\\Minimap\\MinimapArrow";
 if WOW_PROJECT_ID==WOW_PROJECT_MAINLINE then
 	playerDot_orig = "minimaparrow" -- blizzard using atlas entry of ObjectIconsAtlas.blp now
 end
-local TrackingIndex,timeTicker = {};
+local timeTicker;
 local knownProblematicAddOns, knownProblematicAddOnsDetected = {BasicMinimap=true},{};
 local SetPointToken,SetParentToken = {},{};
 local trackingTypes,trackingTypesStates,numTrackingTypes,trackingHookLocked = {},{},0,false;
 local MinimapFunctionHijacked --= {"SetParent","ClearAllPoints","SetAllPoints","GetPoint","GetNumPoints"};
-local PrintTokens,rotationMode,IsOpened = {
-	FarmHud_QuestArrow = {}
-};
+local rotationMode
 local foreignObjects,anchoredFrames = {},{ -- <name[string]>
 	-- Blizzard
 	"TimeManagerClockButton", -- required if foreign addon changed
@@ -132,12 +129,12 @@ end
 
 function ns.GetTrackingTypes()
 	if ns.IsClassic() then return {}; end
-	local num = (C_Minimap and C_Minimap.GetNumTrackingTypes or GetNumTrackingTypes)();
+	local num = C_Minimap.GetNumTrackingTypes();
 	if numTrackingTypes~=num then
 		numTrackingTypes = num;
 		wipe(trackingTypes);
 		for i=1, num do
-			local name, textureId, active, objType, objLevel, objId = (C_Minimap and C_Minimap.GetTrackingInfo or GetTrackingInfo)(i);
+			local name, textureId, active, objType, objLevel, objId = C_Minimap.GetTrackingInfo(i);
 			trackingTypes[textureId] = {index=i,name=name,active=active,level=objLevel};
 		end
 	end
@@ -148,22 +145,22 @@ local function TrackingTypes_Update(bool, id)
 	if ns.IsClassic() then return end
 	if tonumber(id) then
 		local key,data = "tracking^"..id,trackingTypes[id];
-		local _, _, active = (C_Minimap and C_Minimap.GetTrackingInfo or GetTrackingInfo)(data.index);
+		local _, _, active = C_Minimap.GetTrackingInfo(data.index);
 		trackingHookLocked = true;
 		if bool then
 			if FarmHudDB[key]=="client" then
 				if trackingTypesStates[data.index]~=nil then
-					(C_Minimap and C_Minimap.SetTracking or SetTracking)(data.index,trackingTypesStates[data.index]);
+					C_Minimap.SetTracking(data.index,trackingTypesStates[data.index]);
 					trackingTypesStates[data.index] = nil;
 				end
 			elseif FarmHudDB[key]~=tostring(active) then
 				if trackingTypesStates[data.index]==nil then
 					trackingTypesStates[data.index] = active;
 				end
-				(C_Minimap and C_Minimap.SetTracking or SetTracking)(data.index,FarmHudDB[key]=="true");
+				C_Minimap.SetTracking(data.index,FarmHudDB[key]=="true");
 			end
 		elseif not bool and trackingTypesStates[data.index]~=nil then
-			(C_Minimap and C_Minimap.SetTracking or SetTracking)(data.index,trackingTypesStates[data.index]);
+			C_Minimap.SetTracking(data.index,trackingTypesStates[data.index]);
 			trackingTypesStates[data.index] = nil;
 		end
 		trackingHookLocked = false;
@@ -580,7 +577,7 @@ do
 			TrackingTypes_Update(true,id);
 		elseif key:find("rotation") then
 			rotationMode = FarmHudDB.rotation and "1" or "0";
-			SetCVar("rotateMinimap", rotationMode, "ROTATE_MINIMAP");
+			C_CVar.SetCVar("rotateMinimap", rotationMode, "ROTATE_MINIMAP");
 			Minimap_UpdateRotationSetting();
 		elseif IsKey(key,"SuperTrackedQuest") and FarmHud_ToggleSuperTrackedQuest and FarmHud:IsShown() then
 			FarmHud_ToggleSuperTrackedQuest(ns.QuestArrowToken,FarmHudDB.SuperTrackedQuest);
@@ -723,10 +720,10 @@ function FarmHudMixin:OnShow()
 		MinimapCluster:EnableMouseWheel(false);
 	end
 
-	mps.rotation = GetCVar("rotateMinimap");
+	mps.rotation = C_CVar.GetCVar("rotateMinimap");
 	if FarmHudDB.rotation ~= (mps.rotation=="1") then
 		rotationMode = FarmHudDB.rotation and "1" or "0";
-		SetCVar("rotateMinimap", rotationMode, "ROTATE_MINIMAP");
+		C_CVar.SetCVar("rotateMinimap", rotationMode, "ROTATE_MINIMAP");
 		Minimap_UpdateRotationSetting();
 		if not ns.IsDragonFlight() then
 			MinimapCompassTexture:Hide(); -- Note: Compass Texture is the new border texture in dragonflight
@@ -766,7 +763,7 @@ end
 
 function FarmHudMixin:OnHide()
 	if rotationMode ~= mps.rotation then
-		SetCVar("rotateMinimap", mps.rotation, "ROTATE_MINIMAP");
+		C_CVar.SetCVar("rotateMinimap", mps.rotation, "ROTATE_MINIMAP");
 		rotationMode = mps.rotation
 		Minimap_UpdateRotationSetting();
 	end
@@ -1045,7 +1042,7 @@ function FarmHudMixin:OnEvent(event,...)
 		checkOnKnownProblematicAddOns()
 	elseif event=="PLAYER_LOGOUT" and mps.rotation and rotationMode and rotationMode~=mps.rotation then
 		-- reset rotation on logout and reload if FarmHud was open
-		SetCVar("rotateMinimap", mps.rotation, "ROTATE_MINIMAP");
+		C_CVar.SetCVar("rotateMinimap", mps.rotation, "ROTATE_MINIMAP");
 	elseif event=="MODIFIER_STATE_CHANGED" and self:IsShown() then
 		local key, down = ...;
 		if not mouseOnKeybind and modifiers[FarmHudDB.holdKeyForMouseOn] and modifiers[FarmHudDB.holdKeyForMouseOn][key]==1 then
@@ -1120,11 +1117,7 @@ function FarmHudMixin:OnLoad()
 				trackingTypesStates[index]=nil;
 			end
 		end
-		if C_Minimap and C_Minimap.SetTracking then
-			hooksecurefunc(C_Minimap,"SetTracking",hookSetTracking);
-		else
-			hooksecurefunc("SetTracking",hookSetTracking);
-		end
+		hooksecurefunc(C_Minimap,"SetTracking",hookSetTracking);
 	end
 
 	function self.cluster:GetZoom()
@@ -1145,6 +1138,5 @@ function FarmHudMixin:OnLoad()
 		end
 	end
 
-	FarmHudMixin=nil;
 end
 
