@@ -263,6 +263,11 @@ local function objectToDummy(object,enable,debugStr)
 		return;
 	end
 
+	local oType = object:GetObjectType();
+	if oType  == "Line" then -- unknown object type "Line" after install a new addon.
+		return;
+	end
+
 	-- == prepare == --
 	local changedSetParent,changedSetPoint,objType = false,false,object:GetObjectType()
 	if objSetParent[objType] == nil then
@@ -313,14 +318,16 @@ local function objectToDummy(object,enable,debugStr)
 	local changedSetPoint = false; -- reset for SetPoint
 
 	-- search and change anchors on minimap
-	for p=1, (object:GetNumPoints()) do
-		local point,relTo,relPoint,x,y = object:GetPoint(p);
-		if enable==true and relTo==Minimap then
-			objSetPoint[objType](object,point,Dummy,relPoint,x,y);
-			changedSetPoint=true;
-		elseif enable==false and relTo==Dummy then
-			objSetPoint[objType](object,point,Minimap,relPoint,x,y);
-			changedSetPoint=true;
+	if object.GetNumPoints then
+		for p=1, (object:GetNumPoints()) do
+			local point,relTo,relPoint,x,y = object:GetPoint(p);
+			if enable==true and relTo==Minimap then
+				objSetPoint[objType](object,point,Dummy,relPoint,x,y);
+				changedSetPoint=true;
+			elseif enable==false and relTo==Dummy then
+				objSetPoint[objType](object,point,Minimap,relPoint,x,y);
+				changedSetPoint=true;
+			end
 		end
 	end
 
@@ -459,6 +466,8 @@ function FarmHudMixin:SetScales(enabled)
 	self.cluster:SetSize(MinimapScaledSize, MinimapScaledSize);
 	self.cluster:SetFrameStrata(Minimap:GetFrameStrata());
 	self.cluster:SetFrameLevel(Minimap:GetFrameLevel());
+
+	self.size = MinimapSize
 
 	local gcSize = MinimapSize * 0.432;
 	self.gatherCircle:SetSize(gcSize, gcSize);
@@ -663,10 +672,10 @@ function FarmHudMixin:OnShow()
 
 	-- reanchor named frames that not have minimap as parent but anchored on it
 	mps.anchoredFrames = {};
-	for i=1, #anchoredFrames do
-		if _G[anchoredFrames[i]] then
-			mps.anchoredFrames[i]=true;
-			objectToDummy(_G[anchoredFrames[i]],true,"OnShow.anchoredFrames");
+	for _,frameName in ipairs(anchoredFrames) do
+		if _G[frameName] then
+			mps.anchoredFrames[frameName]=true;
+			objectToDummy(_G[frameName],true,"OnShow.anchoredFrames");
 		end
 	end
 
@@ -824,9 +833,9 @@ function FarmHudMixin:OnHide()
 	end
 
 	-- anchored frames by name
-	for i=1, #anchoredFrames do
-		if mps.anchoredFrames[i] then
-			objectToDummy(_G[anchoredFrames[i]],false,"OnHide.anchoredFrames");
+	for frameName in pairs(mps.anchoredFrames) do
+		if _G[frameName] then
+			objectToDummy(_G[frameName],false,"OnHide.anchoredFrames");
 		end
 	end
 
@@ -1004,7 +1013,7 @@ function FarmHudMixin:OnEvent(event,...)
 		self.gatherCircle:SetVertexColor(unpack(FarmHudDB.gathercircle_color));
 		self.healCircle:SetVertexColor(unpack(FarmHudDB.healcircle_color));
 
-		local radius = Minimap:GetWidth() * 0.214;
+		--local radius = Minimap:GetWidth() * 0.214;
 		for i, v in ipairs(self.TextFrame.cardinalPoints) do
 			local label = v:GetText();
 			v.NWSE = strlen(label)==1;
