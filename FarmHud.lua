@@ -596,6 +596,22 @@ do
 	end
 end
 
+local function Minimap_OnClick(self)
+	-- Copy of Minimap_OnClick. Require for replaced functions GetCenter and GetEffectiveScale
+	local x, y = GetCursorPosition();
+	local s, X,Y = MinimapMT.GetEffectiveScale(Minimap)
+	x = x / s;
+	y = y / s;
+
+	local cx, cy = MinimapMT.GetCenter(Minimap)
+	X = x - cx;
+	Y = y - cy;
+
+	if ( sqrt(X * X + Y * Y) < (self:GetWidth() / 2) ) then
+		Minimap:PingLocation(X, Y);
+	end
+end
+
 function FarmHudMixin:OnShow()
 	trackEnableMouse = true;
 
@@ -631,7 +647,7 @@ function FarmHudMixin:OnShow()
 	local OnMouseUp = Minimap:GetScript("OnMouseUp");
 	if OnMouseUp~=Minimap_OnClick then
 		mps.OnMouseUp = OnMouseUp;
-		MinimapMT.SetScript(Minimap,"OnMouseUp",Minimap_OnClick); -- TODO: currently not work on hud.
+		MinimapMT.SetScript(Minimap,"OnMouseUp",Minimap_OnClick);
 	end
 
 	-- cache non original frame script entries from foreign addons
