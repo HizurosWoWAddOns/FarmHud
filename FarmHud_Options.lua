@@ -90,9 +90,9 @@ end
 local function checkAddOnLoaded(info)
 	local key,pKey = info[#info],info[#info-1];
 	if isAddOnsLoadedForOption[key] then
-		return not IsAddOnLoaded(isAddOnsLoadedForOption[key].addon);
+		return not C_AddOns.IsAddOnLoaded(isAddOnsLoadedForOption[key].addon);
 	elseif isAddOnsLoadedForOption[pKey] then
-		local isLoaded = IsAddOnLoaded(isAddOnsLoadedForOption[pKey].addon) and "Loaded" or "NotLoaded";
+		local isLoaded = C_AddOns.IsAddOnLoaded(isAddOnsLoadedForOption[pKey].addon) and "Loaded" or "NotLoaded";
 		if isAddOnsLoadedForOption[pKey][key..isLoaded] then
 			return isAddOnsLoadedForOption[pKey][key..isLoaded];
 		elseif isAddOnsLoadedForOption[pKey][key] then
@@ -605,8 +605,10 @@ function ns.RegisterOptions()
 			if type(opts)=="table" then
 				for k,v in pairs(opts)do
 					options.args[k] = v;
-					v.order = modOptsOrder;
-					modOptsOrder = modOptsOrder + 1;
+					if v.order==nil then
+						v.order = modOptsOrder;
+						modOptsOrder = modOptsOrder + 1;
+					end
 				end
 			end
 		end
