@@ -1,6 +1,6 @@
-## Interface: 100207
+## Interface: 110000
 ## Interface-Cata: 40400
-## Interface-Classic: 11502
+## Interface-Classic: 11503
 ## Title: FarmHud [QuestArrow]
 ## Version: @project-version@
 ## Notes: Experimental way to suppress the quest arrow while FarmHud is active.
