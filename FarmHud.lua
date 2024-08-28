@@ -125,13 +125,11 @@ local function SetPlayerDotTexture(bool) -- executed by FarmHud:UpdateOptions(),
 end
 
 -- tracking options
- local function C_Minimap_GetTrackingInfo(index) -- Changed with 11.0; returns a table instead a list
-	if C_Minimap and C_Minimap.GetTrackingInfo then
+local C_Minimap_GetTrackingInfo = C_Minimap.GetTrackingInfo
+if WOW_PROJECT_ID~=WOW_PROJECT_MAINLINE then
+	function C_Minimap_GetTrackingInfo(index) -- nice blizzard. Added new function to cata classic but with old return values.
 		local info = {}
 		info.name, info.texture, info.active, info.type, info.subType, info.spellID = C_Minimap.GetTrackingInfo(index);
-		if not info.texture then
-			return info.name;
-		end
 		return info;
 	end
 end
