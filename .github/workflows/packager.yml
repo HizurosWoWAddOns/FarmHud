@@ -1,4 +1,5 @@
-name: build
+name: packager
+
 on:
   push:
     tags:
@@ -15,9 +16,12 @@ jobs:
       # setup under repo > settings > secrets
 
     steps:
+      - name: Install svn
+        run: sudo apt-get install -y subversion
+
       - name: Clone project
         uses: actions/checkout@v4
 
-      - name: Package and release (retail)
+      - name: Package and release
         uses: BigWigsMods/packager@v2
 
