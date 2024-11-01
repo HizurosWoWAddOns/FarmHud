@@ -125,15 +125,6 @@ local function SetPlayerDotTexture(bool) -- executed by FarmHud:UpdateOptions(),
 end
 
 -- tracking options
-local C_Minimap_GetTrackingInfo = C_Minimap.GetTrackingInfo
-if WOW_PROJECT_ID~=WOW_PROJECT_MAINLINE then
-	function C_Minimap_GetTrackingInfo(index) -- nice blizzard. Added new function to cata classic but with old return values.
-		local info = {}
-		info.name, info.texture, info.active, info.type, info.subType, info.spellID = C_Minimap.GetTrackingInfo(index);
-		return info;
-	end
-end
-
 function ns.GetTrackingTypes()
 	if ns.IsClassic() then return {}; end
 	local num = C_Minimap.GetNumTrackingTypes();
@@ -141,7 +132,7 @@ function ns.GetTrackingTypes()
 		numTrackingTypes = num;
 		wipe(trackingTypes);
 		for i=1, num do
-			local info = C_Minimap_GetTrackingInfo(i)
+			local info = C_Minimap.GetTrackingInfo(i)
 			trackingTypes[info.texture] = {index=i,name=info.name,active=info.active,level=info.subType}
 		end
 	end
@@ -150,35 +141,35 @@ end
 
 local function TrackingTypes_Update(bool, id)
 	if ns.IsClassic() then return end
-	if tonumber(id) then
-		local key,data = "tracking^"..id,trackingTypes[id];
-		local info = C_Minimap_GetTrackingInfo(data.index);
-		trackingHookLocked = true;
-		if bool then
-			if FarmHudDB[key]=="client" then
-				if trackingTypesStates[data.index]~=nil then
-					C_Minimap.SetTracking(data.index,trackingTypesStates[data.index]);
-					trackingTypesStates[data.index] = nil;
-				end
-			elseif FarmHudDB[key]~=tostring(info.active) then
-				if trackingTypesStates[data.index]==nil then
-					trackingTypesStates[data.index] = info.active;
-				end
-				C_Minimap.SetTracking(data.index,FarmHudDB[key]=="true");
-			end
-		elseif not bool and trackingTypesStates[data.index]~=nil then
-			C_Minimap.SetTracking(data.index,trackingTypesStates[data.index]);
-			trackingTypesStates[data.index] = nil;
-		end
-		trackingHookLocked = false;
-	else
+	if not id then
 		ns.GetTrackingTypes();
-		for id, data in pairs(trackingTypes) do
-			if FarmHudDB["tracking^"..id]=="true" or FarmHudDB["tracking^"..id]=="false" then
-				TrackingTypes_Update(bool, id);
+		for tId in pairs(trackingTypes) do
+			if FarmHudDB["tracking^"..tId]=="true" or FarmHudDB["tracking^"..tId]=="false" then
+				TrackingTypes_Update(bool, tId);
 			end
 		end
+		return;
 	end
+	local key,data = "tracking^"..id,trackingTypes[id];
+	local info = C_Minimap.GetTrackingInfo(data.index);
+	trackingHookLocked = true;
+	if bool then
+		if FarmHudDB[key]=="client" then
+			if trackingTypesStates[data.index]~=nil then
+				C_Minimap.SetTracking(data.index,trackingTypesStates[data.index]);
+				trackingTypesStates[data.index] = nil;
+			end
+		elseif FarmHudDB[key]~=tostring(info.active) then
+			if trackingTypesStates[data.index]==nil then
+				trackingTypesStates[data.index] = info.active;
+			end
+			C_Minimap.SetTracking(data.index,FarmHudDB[key]=="true");
+		end
+	elseif not bool and trackingTypesStates[data.index]~=nil then
+		C_Minimap.SetTracking(data.index,trackingTypesStates[data.index]);
+		trackingTypesStates[data.index] = nil;
+	end
+	trackingHookLocked = false;
 end
 
 
@@ -237,14 +228,12 @@ do
 		if lockedBy~=false then return end
 		lockedBy = self;
 		useDummy = true;
-		ns:debugPrint(self :GetDebugName(),true);
 	end
 	local function objHookStop(self)
 		if lockedBy~=self then
 			return
 		end
 		useDummy = false;
-		ns:debugPrint(self :GetDebugName(),false);
 	end
 	function addHooks(obj)
 		if alreadyHooked[obj] then
@@ -588,9 +577,10 @@ do
 		elseif IsKey(key,"showDummyBg") then
 			Dummy.bg:SetShown(FarmHudDB.showDummyBg and (not HybridMinimap or (HybridMinimap and not HybridMinimap:IsShown())) );
 		elseif key:find("tracking^%d+") and not ns.IsClassic() then
-			local _, id = strsplit("^",key);
-			id = tonumber(id);
-			TrackingTypes_Update(true,id);
+			local id = tonumber((key:match("^tracking%^(%d+)$")));
+			if id then
+				TrackingTypes_Update(true,id);
+			end
 		elseif key:find("rotation") then
 			rotationMode = FarmHudDB.rotation and "1" or "0";
 			C_CVar.SetCVar("rotateMinimap", rotationMode, "ROTATE_MINIMAP");
