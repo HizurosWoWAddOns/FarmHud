@@ -26,6 +26,7 @@ local dbDefaults = {
 	rotation=true, SuperTrackedQuest = true, showDummy = true, showDummyBg = true,
 	QuestArrowInfoMsg = false,
 	healcircle_show=true,healcircle_color={0,.7,1,0.5},
+	hideInInstance=false, hideInCombat=false,
 }
 local modDB = {};
 local excludeFrames = {}
@@ -214,6 +215,14 @@ local options = {
 					type = "select", order = 15,
 					name = L["PlayerDot"], desc = L["PlayerDotDesc"],
 					values = playerDot_textures
+				},
+				autohide = {
+					type="group", order = 20, inline=true,
+					name = L["AutoHide"],
+					args = {
+						hideInInstance = {type="toggle", order=1, name=L["HideInInstance"], desc=L["HideInInstanceDesc"]},
+						hideInCombat = {type="toggle", order=2, name=L["hideInCombat"], desc=L["hideInCombatDesc"]},
+					}
 				},
 				placeholder = {
 					type = "group", order = 98, inline = true,

@@ -15,7 +15,7 @@ local Minimap_OnClick = (MinimapMixin and MinimapMixin.Onclick) or Minimap_OnCli
 local Minimap_UpdateRotationSetting = Minimap_UpdateRotationSetting or function() end -- TODO: check it - need for classic 1.15 / wotlk 3.4.3
 
 ns.QuestArrowToken = {};
-local modEvents,events = {},{"ADDON_LOADED","PLAYER_ENTERING_WORLD","PLAYER_LOGIN","PLAYER_LOGOUT","MODIFIER_STATE_CHANGED"};
+local modEvents,events = {},{"ADDON_LOADED","PLAYER_ENTERING_WORLD","PLAYER_LOGIN","PLAYER_LOGOUT","MODIFIER_STATE_CHANGED","PLAYER_REGEN_DISABLED","PLAYER_REGEN_ENABLED"};
 local LibHijackMinimap_Token,LibHijackMinimap,_ = {};
 local media = "Interface\\AddOns\\"..addon.."\\media\\";
 local mps,Minimap,MinimapMT,mouseOnKeybind,Dummy = {},_G.Minimap,getmetatable(_G.Minimap).__index;
@@ -1074,6 +1074,24 @@ function FarmHudMixin:OnEvent(event,...)
 		if not mouseOnKeybind and modifiers[FarmHudDB.holdKeyForMouseOn] and modifiers[FarmHudDB.holdKeyForMouseOn][key]==1 then
 			self:ToggleMouse(down==0);
 		end
+	elseif event=="PLAYER_ENTERING_WORLD" then
+		if FarmHudDB.hideInInstance then
+			if IsInInstance() and FarmHud:IsShown() then
+				self.hideInInstanceActive = true;
+				self:Hide() -- hide FarmHud in Instance
+			elseif self.hideInInstanceActive then
+				self.hideInInstanceActive = nil;
+				self:Show(); -- restore visibility on leaving instance
+			end
+		end
+	elseif event=="PLAYER_REGEN_DISABLED" and FarmHudDB.hideInCombat and FarmHud:IsShown() then
+		self.hideInCombatActive = true;
+		self:Hide() -- hide FarmHud in combat
+		return
+	elseif event=="PLAYER_REGEN_ENABLED" and FarmHudDB.hideInCombat and self.hideInCombatActive then
+		self.hideInCombatActive = nil;
+		self:Show(); -- restore visibility after combat
+		return;
 	end
 	if modEvents[event] then
 		for _,modName in pairs(modEvents[event])do
