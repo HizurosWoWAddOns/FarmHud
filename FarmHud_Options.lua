@@ -192,7 +192,7 @@ local options = {
 				hud_size = {
 					type = "range", order = 12,
 					name = L["HudSize"], desc = L["HudSizeDesc"],
-					min = 0.4, max = 1, step = 0.1, isPercent = true
+					min = 0.1, max = 1, step = 0.1, isPercent = true
 				},
 				text_scale = {
 					type = "range", order = 13,
