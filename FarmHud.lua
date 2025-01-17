@@ -29,7 +29,7 @@ local knownProblematicAddOns, knownProblematicAddOnsDetected = {BasicMinimap=tru
 local SetPointToken,SetParentToken = {},{};
 local trackingTypes,trackingTypesStates,numTrackingTypes,trackingHookLocked = {},{},0,false;
 local MinimapFunctionHijacked --= {"SetParent","ClearAllPoints","SetAllPoints","GetPoint","GetNumPoints"};
-local rotationMode
+local rotationMode,mTI
 local foreignObjects,anchoredFrames = {},{ -- <name[string]>
 	-- Blizzard
 	"TimeManagerClockButton", -- required if foreign addon changed
@@ -148,6 +148,13 @@ local function TrackingTypes_Update(bool, id)
 				TrackingTypes_Update(bool, tId);
 			end
 		end
+
+		if bool==false and mps.minimapTrackedInfov3 then
+			-- try to restore on close. blizzard changing it outside the lua code area.
+			mTI = mps.minimapTrackedInfov3>0 and mps.minimapTrackedInfov3 or 1006319;
+			C_Timer.After(0.314159,function() C_CVar.SetCVar("minimapTrackedInfov3",mTI) end);
+		end
+
 		return;
 	end
 	local key,data = "tracking^"..id,trackingTypes[id];
@@ -639,6 +646,7 @@ function FarmHudMixin:OnShow()
 	mps.mousewheel = Minimap:IsMouseWheelEnabled();
 	mps.alpha = Minimap:GetAlpha();
 	mps.backdropMouse = MinimapBackdrop:IsMouseEnabled();
+	mps.minimapTrackedInfov3 = tonumber(GetCVar("minimapTrackedInfov3"));
 
 	-- cache mouse enable state
 	local OnMouseUp = Minimap:GetScript("OnMouseUp");
