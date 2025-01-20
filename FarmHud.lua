@@ -15,7 +15,7 @@ local Minimap_OnClick = (MinimapMixin and MinimapMixin.Onclick) or Minimap_OnCli
 local Minimap_UpdateRotationSetting = Minimap_UpdateRotationSetting or function() end -- TODO: check it - need for classic 1.15 / wotlk 3.4.3
 
 ns.QuestArrowToken = {};
-local modEvents,events = {},{"ADDON_LOADED","PLAYER_ENTERING_WORLD","PLAYER_LOGIN","PLAYER_LOGOUT","MODIFIER_STATE_CHANGED","PLAYER_REGEN_DISABLED","PLAYER_REGEN_ENABLED"};
+local modEvents,events = {},{"ADDON_LOADED","PLAYER_ENTERING_WORLD","PLAYER_LOGIN","PLAYER_LOGOUT","MODIFIER_STATE_CHANGED","PLAYER_REGEN_DISABLED","PLAYER_REGEN_ENABLED","ZONE_CHANGED"};
 local LibHijackMinimap_Token,LibHijackMinimap,_ = {};
 local media = "Interface\\AddOns\\"..addon.."\\media\\";
 local mps,Minimap,MinimapMT,mouseOnKeybind,Dummy = {},_G.Minimap,getmetatable(_G.Minimap).__index;
@@ -446,6 +446,38 @@ function FarmHudMinimapDummyMixin:OnMouseDown()
 	mps.OnMouseDown(self);
 end
 
+-- range circles
+
+FarmHudRangeCircleMixin = {}
+
+do
+	local sizeTWW = 0.81;
+	local sizeDF = 0.61;
+	local diffSizeByMapID = {
+		--[[df]] [2151]=sizeDF,[2022]=sizeDF,[2023]=sizeDF,[2024]=sizeDF,[2025]=sizeDF,[2239]=sizeDF,[2133]=sizeDF,[2200]=sizeDF,[2112]=sizeDF,
+		--[[tww]] [2248]=sizeTWW,[2214]=sizeTWW,[2215]=sizeTWW,[2339]=sizeTWW,
+	}
+
+	function FarmHudRangeCircleMixin:UpdateSize()
+		local FH,size,gcSize,hcSize = self:GetParent();
+		if FH.size then
+			FH.size = FH:GetSize()
+		end
+		gcSize = FH.size * 0.432;
+		hcSize = FH.size * 0.2047;
+		if FH.healCircle == self then
+			size = hcSize;
+		elseif FH.gatherCircle == self then
+			size = gcSize;
+			ns:debugPrint("UpdateSize",FH.currentMap)
+			if diffSizeByMapID[FH.currentMap] then
+				size = FH.size * diffSizeByMapID[FH.currentMap];
+			end
+		end
+		self:SetSize(size, size);
+	end
+end
+
 -- main frame mixin functions
 
 function FarmHudMixin:SetScales(enabled)
@@ -471,9 +503,8 @@ function FarmHudMixin:SetScales(enabled)
 
 	self.size = MinimapSize
 
-	local gcSize = MinimapSize * 0.432;
-	self.gatherCircle:SetSize(gcSize, gcSize);
-	self.healCircle:SetSize(gcSize/2.11, gcSize/2.11);
+	self.healCircle:UpdateSize();
+	self.gatherCircle:UpdateSize();
 
 	local y = (self:GetHeight()*FarmHudDB.buttons_radius) * 0.5;
 	if (FarmHudDB.buttons_bottom) then y = -y; end
@@ -786,8 +817,12 @@ function FarmHudMixin:OnShow()
 	for modName,mod in pairs(ns.modules)do
 		if type(mod.OnShow)=="function" then
 			mod.OnShow();
-		elseif type(mod.OnShow)=="table" and type(mod.OnShow.fnc)=="string" and FarmHud[mod.OnShow.fnc] then
-			FarmHud[mod.OnShow.fnc](unpack(mod.OnShow.args));
+		elseif type(mod.OnShow)=="table" and type(mod.OnShow.fnc)=="string" then
+			if mod.OnShow.elem and FarmHud[mod.OnShow.elem] and FarmHud[mod.OnShow.elem][mod.OnShow.fnc] then
+				FarmHud[mod.OnShow.elem][mod.OnShow.fnc](unpack(mod.OnShow.args))
+			elseif FarmHud[mod.OnShow.fnc] then
+				FarmHud[mod.OnShow.fnc](unpack(mod.OnShow.args));
+			end
 		end
 	end
 end
@@ -1082,6 +1117,7 @@ function FarmHudMixin:OnEvent(event,...)
 			self:ToggleMouse(down==0);
 		end
 	elseif event=="PLAYER_ENTERING_WORLD" then
+		self.currentMap = C_Map.GetBestMapForUnit("player");
 		if FarmHudDB.hideInInstance then
 			if IsInInstance() and FarmHud:IsShown() then
 				self.hideInInstanceActive = true;
@@ -1099,6 +1135,10 @@ function FarmHudMixin:OnEvent(event,...)
 		self.hideInCombatActive = nil;
 		self:Show(); -- restore visibility after combat
 		return;
+	elseif event=="ZONE_CHANGED" then
+		self.currentMap = C_Map.GetBestMapForUnit("player");
+		self.gatherCircle:UpdateSize()
+		self.healCircle:UpdateSize()
 	end
 	if modEvents[event] then
 		for _,modName in pairs(modEvents[event])do

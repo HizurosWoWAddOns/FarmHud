@@ -73,6 +73,12 @@
 		</Frames>
 	</Frame>
 
+	<Texture name="FarmHudRangeCircleTemplate" parentArray="RangeCirclePool" mixin="FarmHudRangeCircleMixin" file="Interface\AddOns\FarmHud\media\gathercircle" alphaMode="ADD" virtual="true">
+		<Anchors>
+			<Anchor point="CENTER" />
+		</Anchors>
+	</Texture>
+
 	<Frame name="FarmHud" parent="UIParent" mixin="FarmHudMixin" frameStrata="BACKGROUND" alpha="1" hidden="true">
 		<Size x="140" y="140"/>
 		<Anchors>
@@ -80,18 +86,8 @@
 		</Anchors>
 		<Layers>
 			<Layer level="ARTWORK">
-				<Texture parentKey="gatherCircle" file="Interface\AddOns\FarmHud\media\gathercircle" alphaMode="ADD" hidden="true">
-					<Size x="60" y="60"/>
-					<Anchors>
-						<Anchor point="CENTER" />
-					</Anchors>
-				</Texture>
-				<Texture parentKey="healCircle" file="Interface\AddOns\FarmHud\media\gathercircle" alphaMode="ADD" hidden="true">
-					<Size x="30" y="30"/>
-					<Anchors>
-						<Anchor point="CENTER" />
-					</Anchors>
-				</Texture>
+				<Texture parentKey="gatherCircle" inherits="FarmHudRangeCircleTemplate" alphaMode="ADD" hidden="true"/>
+				<Texture parentKey="healCircle" inherits="FarmHudRangeCircleTemplate" alphaMode="ADD" hidden="true"/>
 			</Layer>
 		</Layers>
 		<Frames>
