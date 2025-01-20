@@ -460,7 +460,7 @@ do
 
 	function FarmHudRangeCircleMixin:UpdateSize()
 		local FH,size,gcSize,hcSize = self:GetParent();
-		if FH.size then
+		if not FH.size then
 			FH.size = FH:GetSize()
 		end
 		gcSize = FH.size * 0.432;
@@ -819,7 +819,7 @@ function FarmHudMixin:OnShow()
 			mod.OnShow();
 		elseif type(mod.OnShow)=="table" and type(mod.OnShow.fnc)=="string" then
 			if mod.OnShow.elem and FarmHud[mod.OnShow.elem] and FarmHud[mod.OnShow.elem][mod.OnShow.fnc] then
-				FarmHud[mod.OnShow.elem][mod.OnShow.fnc](unpack(mod.OnShow.args))
+				FarmHud[mod.OnShow.elem][mod.OnShow.fnc](FarmHud[mod.OnShow.elem],unpack(mod.OnShow.args))
 			elseif FarmHud[mod.OnShow.fnc] then
 				FarmHud[mod.OnShow.fnc](unpack(mod.OnShow.args));
 			end
