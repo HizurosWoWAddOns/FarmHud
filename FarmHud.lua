@@ -132,7 +132,7 @@ function ns.GetTrackingTypes()
 		numTrackingTypes = num;
 		wipe(trackingTypes);
 		for i=1, num do
-			local info = C_Minimap.GetTrackingInfo(i)
+			local info = C_Minimap.GetTrackingInfo(i) or {}
 			trackingTypes[info.texture] = {index=i,name=info.name,active=info.active,level=info.subType}
 		end
 	end
@@ -158,7 +158,7 @@ local function TrackingTypes_Update(bool, id)
 		return;
 	end
 	local key,data = "tracking^"..id,trackingTypes[id];
-	local info = C_Minimap.GetTrackingInfo(data.index);
+	local info = C_Minimap.GetTrackingInfo(data.index) or {};
 	trackingHookLocked = true;
 	if bool then
 		if FarmHudDB[key]=="client" then
@@ -185,7 +185,6 @@ end
 do
 	local Minimap_CreateTexture = Minimap.CreateTexture;
 	function Minimap:CreateTexture(...)
-		local byAddOn = ({strsplit("\\", ({strsplit("\n",debugstack())})[2] )})[3];
 		local tex = Minimap_CreateTexture(self,...);
 		tinsert(minimapCreateTextureTable,tex);
 		return tex;
@@ -509,14 +508,14 @@ end
 function FarmHudMixin:UpdateForeignAddOns(state)
 	local Map = state and self.cluster or Minimap;
 
-	if GatherMate2 then
-		GatherMate2:GetModule("Display"):ReparentMinimapPins(Map);
+	if _G["GatherMate2"] then
+		_G["GatherMate2"]:GetModule("Display"):ReparentMinimapPins(Map);
 	end
-	if Routes and Routes.ReparentMinimap then
-		Routes:ReparentMinimap(Map);
+	if _G["Routes"] and _G["Routes"].ReparentMinimap then
+		_G["Routes"]:ReparentMinimap(Map);
 	end
-	if Bloodhound2 and Bloodhound2.ReparentMinimap then
-		Bloodhound2.ReparentMinimap(Map,"Minimap");
+	if _G["Bloodhound2"] and _G["Bloodhound2"].ReparentMinimap then
+		_G["Bloodhound2"].ReparentMinimap(Map,"Minimap");
 	end
 	local HBD1 = LibStub.libs["HereBeDragons-Pins-1.0"];
 	if HBD1 and HBD1.SetMinimapObject then
@@ -590,7 +589,7 @@ do
 			end
 		elseif key:find("rotation") then
 			rotationMode = FarmHudDB.rotation and "1" or "0";
-			C_CVar.SetCVar("rotateMinimap", rotationMode, "ROTATE_MINIMAP");
+			C_CVar.SetCVar("rotateMinimap", rotationMode);
 			Minimap_UpdateRotationSetting();
 		elseif IsKey(key,"SuperTrackedQuest") and FarmHud_ToggleSuperTrackedQuest and FarmHud:IsShown() then
 			FarmHud_ToggleSuperTrackedQuest(ns.QuestArrowToken,FarmHudDB.SuperTrackedQuest);
@@ -734,12 +733,12 @@ function FarmHudMixin:OnShow()
 	end
 
 	-- elvui special
-	if _G.MMHolder and _G.MMHolder:IsMouseEnabled() then
+	if _G["MMHolder"] and _G["MMHolder"]:IsMouseEnabled() then
 		mps.mmholder_mouse = true;
-		_G.MMHolder:EnableMouse(false);
-	elseif _G.ElvUI_MinimapHolder and _G.ElvUI_MinimapHolder:IsMouseEnabled() then
+		_G["MMHolder"]:EnableMouse(false);
+	elseif _G["ElvUI_MinimapHolder"] and _G["ElvUI_MinimapHolder"]:IsMouseEnabled() then
 		mps.elvui_mmholder_mouse = true;
-		_G.ElvUI_MinimapHolder:EnableMouse(false);
+		_G["ElvUI_MinimapHolder"]:EnableMouse(false);
 	end
 
 	local mc_points = {MinimapCluster:GetPoint()};
@@ -753,7 +752,7 @@ function FarmHudMixin:OnShow()
 	mps.rotation = C_CVar.GetCVar("rotateMinimap");
 	if FarmHudDB.rotation ~= (mps.rotation=="1") then
 		rotationMode = FarmHudDB.rotation and "1" or "0";
-		C_CVar.SetCVar("rotateMinimap", rotationMode, "ROTATE_MINIMAP");
+		C_CVar.SetCVar("rotateMinimap", rotationMode);
 		Minimap_UpdateRotationSetting();
 		if not ns.IsDragonFlight() then
 			MinimapCompassTexture:Hide(); -- Note: Compass Texture is the new border texture in dragonflight
@@ -795,7 +794,7 @@ end
 
 function FarmHudMixin:OnHide()
 	if rotationMode ~= mps.rotation then
-		C_CVar.SetCVar("rotateMinimap", mps.rotation, "ROTATE_MINIMAP");
+		C_CVar.SetCVar("rotateMinimap", mps.rotation);
 		rotationMode = mps.rotation
 		Minimap_UpdateRotationSetting();
 	end
@@ -869,9 +868,9 @@ function FarmHudMixin:OnHide()
 
 	-- elvui special on hide hud
 	if mps.mmholder_mouse then
-		_G.MMHolder:EnableMouse(true);
+		_G["MMHolder"]:EnableMouse(true);
 	elseif mps.elvui_mmholder_mouse then
-		_G.ElvUI_MinimapHolder:EnableMouse(true);
+		_G["ElvUI_MinimapHolder"]:EnableMouse(true);
 	end
 
 	if mps.mc_mouse then
@@ -889,8 +888,6 @@ function FarmHudMixin:OnHide()
 		FarmHud_ToggleSuperTrackedQuest(ns.QuestArrowToken,false); -- FarmHud_QuestArrow
 	end
 
-	wipe(mps);
-
 	for modName,mod in pairs(ns.modules)do
 		if type(mod.OnHide)=="function" then
 			mod.OnHide();
@@ -901,6 +898,8 @@ function FarmHudMixin:OnHide()
 
 	SetPlayerDotTexture(false);
 	TrackingTypes_Update(false);
+
+	wipe(mps);
 
 	self:UpdateCardinalPoints(false);
 	self:UpdateCoords(false);
@@ -1069,14 +1068,14 @@ function FarmHudMixin:OnEvent(event,...)
 			LibHijackMinimap:RegisterHijacker(addon,LibHijackMinimap_Token);
 		end
 
-		if BasicMinimap and BasicMinimap.backdrop then
-			self:RegisterForeignAddOnObject(BasicMinimap.backdrop:GetParent(),"BasicMinimap");
+		if _G["BasicMinimap"] and _G["BasicMinimap"].backdrop then
+			self:RegisterForeignAddOnObject(_G["BasicMinimap"].backdrop:GetParent(),"BasicMinimap");
 		end
 
 		checkOnKnownProblematicAddOns()
 	elseif event=="PLAYER_LOGOUT" and mps.rotation and rotationMode and rotationMode~=mps.rotation then
 		-- reset rotation on logout and reload if FarmHud was open
-		C_CVar.SetCVar("rotateMinimap", mps.rotation, "ROTATE_MINIMAP");
+		C_CVar.SetCVar("rotateMinimap", mps.rotation);
 	elseif event=="MODIFIER_STATE_CHANGED" and self:IsShown() then
 		local key, down = ...;
 		if not mouseOnKeybind and modifiers[FarmHudDB.holdKeyForMouseOn] and modifiers[FarmHudDB.holdKeyForMouseOn][key]==1 then
