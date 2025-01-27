@@ -1163,7 +1163,7 @@ function FarmHudMixin:OnEvent(event,...)
 		self.hideInCombatActive = nil;
 		self:Show(); -- restore visibility after combat
 		return;
-	elseif event=="ZONE_CHANGED" and self:Isvisible() then
+	elseif event=="ZONE_CHANGED" and self:IsVisible() then
 		self.healCircle:Update()
 		self.gatherCircle:Update()
 	end
