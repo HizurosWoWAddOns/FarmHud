@@ -124,7 +124,24 @@ local function SetPlayerDotTexture(bool) -- executed by FarmHud:UpdateOptions(),
 	MinimapMT.SetPlayerTexture(Minimap,tex);
 end
 
+-- continent id of map id
+
+function ns.GetContinentID(mapID)
+	if not mapID then
+		mapID = C_Map.GetBestMapForUnit("player");
+		if not mapID then
+			return false;
+		end
+	end
+	local mapInfo = C_Map.GetMapInfo(mapID);
+	if mapInfo and mapInfo.parentMapID and mapInfo.mapType>2 then
+		return ns.GetContinentID(mapInfo.parentMapID);
+	end
+	return mapID
+end
+
 -- tracking options
+
 function ns.GetTrackingTypes()
 	if ns.IsClassic() then return {}; end
 	local num = C_Minimap.GetNumTrackingTypes();
@@ -255,6 +272,7 @@ do
 end
 
 -- move anchoring of objects from minimap to dummy and back
+
 local objSetPoint = {};
 local objSetParent = {};
 local function objectToDummy(object,enable,debugStr)
@@ -451,29 +469,39 @@ end
 FarmHudRangeCircleMixin = {}
 
 do
-	local sizeTWW = 0.81;
-	local sizeDF = 0.61;
-	local diffSizeByMapID = {
-		--[[df]] [2151]=sizeDF,[2022]=sizeDF,[2023]=sizeDF,[2024]=sizeDF,[2025]=sizeDF,[2239]=sizeDF,[2133]=sizeDF,[2200]=sizeDF,[2112]=sizeDF,
-		--[[tww]] [2248]=sizeTWW,[2214]=sizeTWW,[2215]=sizeTWW,[2339]=sizeTWW,
+	local hcScale = 0.2047; -- heal circle
+	local gcScale0 = 0.432; -- gathercircle default size.
+	local gcScale1 = 0.61; -- gathercircle increased 1th time (since dragonflight or with tww? i don't saw it while dragonflight).
+	local gcScale2 = 0.81; -- gathercircle increased 2th time.
+	local diffCircleScaleByMapID = {
+		-- for later single map changes
+		-- [<UiMapID(int)>] = gcScale[0-2],
 	}
 
-	function FarmHudRangeCircleMixin:UpdateSize()
-		local FH,size,gcSize,hcSize = self:GetParent();
-		if not FH.size then
-			FH.size = FH:GetSize()
+	function FarmHudRangeCircleMixin:Update()
+		local scale,FH = 1,self:GetParent();
+		local vis = FH:IsVisible();
+
+		self:SetShown(vis);
+		if not vis then
+			return;
 		end
-		gcSize = FH.size * 0.432;
-		hcSize = FH.size * 0.2047;
+
 		if FH.healCircle == self then
-			size = hcSize;
+			scale = hcScale;
 		elseif FH.gatherCircle == self then
-			size = gcSize;
-			ns:debugPrint("UpdateSize",FH.currentMap)
-			if diffSizeByMapID[FH.currentMap] then
-				size = FH.size * diffSizeByMapID[FH.currentMap];
+			scale = gcScale0;
+			local currentMap = C_Map.GetBestMapForUnit("player");
+			local currentContinent = ns.GetContinentID();
+			if diffCircleScaleByMapID[currentMap] then
+				scale = diffCircleScaleByMapID[currentMap];
+			elseif currentContinent==1978 then
+				scale = gcScale1; -- for df
+			elseif currentContinent>=2274 then
+				scale = gcScale2; -- new continents after tww expansion
 			end
 		end
+		local size = FH:GetWidth() * scale;
 		self:SetSize(size, size);
 	end
 end
@@ -481,7 +509,9 @@ end
 -- main frame mixin functions
 
 function FarmHudMixin:SetScales(enabled)
-	local self = FarmHud;
+	if self ~= FarmHud then
+		self = FarmHud
+	end
 	local eScale = UIParent:GetEffectiveScale();
 	local width,height,size = WorldFrame:GetSize();
 	width,height = width/eScale,height/eScale;
@@ -503,8 +533,8 @@ function FarmHudMixin:SetScales(enabled)
 
 	self.size = MinimapSize
 
-	self.healCircle:UpdateSize();
-	self.gatherCircle:UpdateSize();
+	self.healCircle:Update();
+	self.gatherCircle:Update();
 
 	local y = (self:GetHeight()*FarmHudDB.buttons_radius) * 0.5;
 	if (FarmHudDB.buttons_bottom) then y = -y; end
@@ -1058,13 +1088,6 @@ function FarmHudMixin:OnEvent(event,...)
 	elseif event=="PLAYER_LOGIN" then
 		self:SetFrameLevel(2);
 
-		if (FarmHudDB.gathercircle_show) then
-			self.gatherCircle:Show();
-		end
-		if (FarmHudDB.healcircle_show) then
-			self.healCircle:Show();
-		end
-
 		self.gatherCircle:SetVertexColor(unpack(FarmHudDB.gathercircle_color));
 		self.healCircle:SetVertexColor(unpack(FarmHudDB.healcircle_color));
 
@@ -1117,7 +1140,6 @@ function FarmHudMixin:OnEvent(event,...)
 			self:ToggleMouse(down==0);
 		end
 	elseif event=="PLAYER_ENTERING_WORLD" then
-		self.currentMap = C_Map.GetBestMapForUnit("player");
 		if FarmHudDB.hideInInstance then
 			if IsInInstance() and FarmHud:IsShown() then
 				self.hideInInstanceActive = true;
@@ -1127,6 +1149,12 @@ function FarmHudMixin:OnEvent(event,...)
 				self:Show(); -- restore visibility on leaving instance
 			end
 		end
+		if self:IsVisible() then
+			C_Timer.After(3,function()
+				self.healCircle:Update()
+				self.gatherCircle:Update()
+			end);
+		end
 	elseif event=="PLAYER_REGEN_DISABLED" and FarmHudDB.hideInCombat and FarmHud:IsShown() then
 		self.hideInCombatActive = true;
 		self:Hide() -- hide FarmHud in combat
@@ -1135,10 +1163,9 @@ function FarmHudMixin:OnEvent(event,...)
 		self.hideInCombatActive = nil;
 		self:Show(); -- restore visibility after combat
 		return;
-	elseif event=="ZONE_CHANGED" then
-		self.currentMap = C_Map.GetBestMapForUnit("player");
-		self.gatherCircle:UpdateSize()
-		self.healCircle:UpdateSize()
+	elseif event=="ZONE_CHANGED" and self:Isvisible() then
+		self.healCircle:Update()
+		self.gatherCircle:Update()
 	end
 	if modEvents[event] then
 		for _,modName in pairs(modEvents[event])do
