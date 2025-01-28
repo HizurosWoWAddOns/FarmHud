@@ -480,16 +480,14 @@ do
 
 	function FarmHudRangeCircleMixin:Update()
 		local scale,FH = 1,self:GetParent();
-		local vis = FH:IsVisible();
-
-		self:SetShown(vis);
-		if not vis then
+		local circle = (FH.healCircle==self and "heal") or (FH.gatherCircle==self and "gather") or false;
+		if not circle then
 			return;
 		end
 
-		if FH.healCircle == self then
+		if circle=="heal" then
 			scale = hcScale;
-		elseif FH.gatherCircle == self then
+		elseif circle=="gather" then
 			scale = gcScale0;
 			local currentMap = C_Map.GetBestMapForUnit("player");
 			local currentContinent = ns.GetContinentID();
@@ -501,8 +499,10 @@ do
 				scale = gcScale2; -- new continents after tww expansion
 			end
 		end
+
 		local size = FH:GetWidth() * scale;
 		self:SetSize(size, size);
+		self:SetShown(FarmHudDB[circle .. "circle_show"]);
 	end
 end
 
