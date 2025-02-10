@@ -37,7 +37,7 @@
 		</Scripts>
 	</Button>
 
-	<Button name="FarmHudMinimapDummy" mixin="FarmHudMinimapDummyMixin" hidden="true">
+	<Button name="FarmHudMinimapDummy" mixin="FarmHudMinimapDummyMixin" hidden="true" enableMouse="false">
 		<Layers>
 			<Layer level="BACKGROUND" textureSubLevel="-2">
 				<Texture file="interface/GLUES/CREDITS/Pandaria/Sha_SizeProgression_011" setallpoints="true" hidden="true" parentKey="bg" mask="interface/CHARACTERFRAME/TempPortraitAlphaMask" alpha="0.6">

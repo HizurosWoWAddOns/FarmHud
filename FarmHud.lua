@@ -24,26 +24,29 @@ local playerDot_orig, playerDot_custom = "Interface\\Minimap\\MinimapArrow";
 if WOW_PROJECT_ID==WOW_PROJECT_MAINLINE then
 	playerDot_orig = "minimaparrow" -- blizzard using atlas entry of ObjectIconsAtlas.blp now
 end
-local timeTicker;
+local timeTicker,cardinalTicker,coordsTicker;
 local knownProblematicAddOns, knownProblematicAddOnsDetected = {BasicMinimap=true},{};
 local SetPointToken,SetParentToken = {},{};
 local trackingTypes,trackingTypesStates,numTrackingTypes,trackingHookLocked = {},{},0,false;
 local MinimapFunctionHijacked --= {"SetParent","ClearAllPoints","SetAllPoints","GetPoint","GetNumPoints"};
 local rotationMode,mTI
-local foreignObjects,anchoredFrames = {},{ -- <name[string]>
+local foreignObjects = {}
+local anchoredFrames = { -- frames there aren't childs of minimap but anchored it.
+	-- <name[string]> - Could be a path from _G delimited by dots.
 	-- Blizzard
-	"TimeManagerClockButton", -- required if foreign addon changed
 	"GameTimeFrame", -- required if foreign addon changed
-	"TimerTracker",
+	"GarrisonLandingPageMinimapButton",
+	"MinimapCluster.InstanceDifficulty", -- required if foreign addon changed (ElvUI)
 	"MinimapBackdrop", -- required if foreign addon changed
-	"MinimapNorthTag",
 	"MinimapCompassTexture",
+	"MinimapNorthTag",
 	"MiniMapTracking",
+	"MiniMapWorldMapButton",
+	"MinimapZoneText",
 	"MinimapZoomIn",
 	"MinimapZoomOut",
-	"MinimapZoneText",
-	"MiniMapWorldMapButton",
-	"GarrisonLandingPageMinimapButton",
+	"TimeManagerClockButton", -- required if foreign addon changed
+	"TimerTracker",
 	-- MinimapButtonFrame
 	--"MBB_MinimapButtonFrame",
 	-- SexyMap
@@ -83,6 +86,12 @@ local modifiers = {
 	SL = {LSHIFT=1},
 	SR = {RSHIFT=1},
 };
+local minimapScripts = {
+	-- <ScriptFunctionName> = <action[CurrenctlyNotImplemented]>
+	OnMouseDown="Dummy",
+	OnDragStart="nil",
+	OnDragStop="nil"
+}
 local minimapCreateTextureTable = {};
 local trackEnableMouse,suppressNextMouseEnable = false,false; -- try to get more info for mouse enable bug
 
@@ -283,13 +292,13 @@ local function objectToDummy(object,enable,debugStr)
 		return;
 	end
 
-	local oType = object:GetObjectType();
-	if oType  == "Line" then -- unknown object type "Line" after install a new addon.
+	local objType = object:GetObjectType();
+	if objType  == "Line" then -- ignore object type "Line"
 		return;
 	end
 
 	-- == prepare == --
-	local changedSetParent,changedSetPoint,objType = false,false,object:GetObjectType()
+	local changedSetParent,changedSetPoint = false,false;
 	if objSetParent[objType] == nil then
 		objSetParent[objType] = getmetatable(object).__index.SetParent;
 	end
@@ -708,16 +717,22 @@ function FarmHudMixin:OnShow()
 	mps.backdropMouse = MinimapBackdrop:IsMouseEnabled();
 	mps.minimapTrackedInfov3 = tonumber(GetCVar("minimapTrackedInfov3"));
 
-	-- cache mouse enable state
+
+	-- cache script entries
 	local OnMouseUp = Minimap:GetScript("OnMouseUp");
-	if OnMouseUp~=Minimap_OnClick then
+	local OnMouseDown = Minimap:GetScript("OnMouseDown");
+	if OnMouseDown and OnMouseUp==nil then -- for ElvUI. They added to OnMouseUp a dummy function and using OnMouseDown instead.
+		mps.OnMouseDown = OnMouseDown;
+		MinimapMT.SetScript(Minimap,"OnMouseDown",Minimap_OnClick);
+	elseif OnMouseUp~=Minimap_OnClick then
 		mps.OnMouseUp = OnMouseUp;
 		MinimapMT.SetScript(Minimap,"OnMouseUp",Minimap_OnClick);
 	end
-
-	-- cache non original frame script entries from foreign addons
 	for name, todo in pairs(minimapScripts)do
-		local fnc = Minimap:GetScript(name);
+		local fnc
+		if name=="OnMouseDown" and not mps.OnMouseDown then
+			fnc = Minimap:GetScript(name);
+		end
 		if fnc then
 			mps[name] = fnc;
 			MinimapMT.SetScript(Minimap,name,nil);
@@ -754,9 +769,25 @@ function FarmHudMixin:OnShow()
 	-- reanchor named frames that not have minimap as parent but anchored on it
 	mps.anchoredFrames = {};
 	for _,frameName in ipairs(anchoredFrames) do
+		local frame;
+		if frameName:match("%.") then
+			local path = {strsplit(".",frameName)};
+			if _G[path[1]] then
+				local f = _G[path[1]]
+				for i=2, #path do
+					if f[path[i]] then
+						f = f[path[i]];
+					end
+				end
+				frame = f;
+			end
+		end
 		if _G[frameName] then
+			frame = _G[frameName];
+		end
+		if frame then
 			mps.anchoredFrames[frameName]=true;
-			objectToDummy(_G[frameName],true,"OnShow.anchoredFrames");
+			objectToDummy(frame,true,"OnShow.anchoredFrames");
 		end
 	end
 
@@ -768,6 +799,7 @@ function FarmHudMixin:OnShow()
 	end
 
 	-- move and change minimap for FarmHud
+	Minimap:Hide();
 	MinimapMT.SetParent(Minimap,FarmHud);
 	MinimapMT.ClearAllPoints(Minimap);
 	-- sometimes SetPoint produce error "because[SetPoint would result in anchor family connection]"
@@ -855,6 +887,8 @@ function FarmHudMixin:OnShow()
 			end
 		end
 	end
+
+	Minimap:Show();
 end
 
 function FarmHudMixin:OnHide()
@@ -871,6 +905,7 @@ function FarmHudMixin:OnHide()
 		Minimap[k] = mps.replacements[k];
 	end
 
+	Minimap:Hide();
 	MinimapMT.SetParent(Minimap,mps.parent);
 	MinimapMT.SetScale(Minimap,mps.scale);
 	MinimapMT.SetSize(Minimap,unpack(mps.size));
@@ -880,13 +915,20 @@ function FarmHudMixin:OnHide()
 	MinimapMT.EnableMouseWheel(Minimap,mps.mousewheel);
 
 	MinimapMT.SetAlpha(Minimap,mps.alpha);
+	Minimap:Show();
 
 	Dummy.bg:Hide();
 	Dummy:Hide();
 	self.cluster:Hide();
 
-	if mps.OnMouseUp then
+	if mps.OnMouseDown and Minimap:GetScript("OnMouseDown")==nil then
 		MinimapMT.SetScript(Minimap,"OnMouseUp",mps.OnMouseUp);
+		MinimapMT.SetScript(Minimap,"OnMouseDown",mps.OnMouseDown);
+		FarmHudMinimapDummy: SetScript("OnMouseUp",nil);
+		FarmHudMinimapDummy: SetScript("OnMouseDown",nil);
+		FarmHudMinimapDummy: EnableMouse(false);
+	elseif mps.OnMouseUp then
+		MT.SetScript(Minimap,"OnMouseUp",mps.OnMouseUp);
 		FarmHudMinimapDummy: SetScript("OnMouseUp",nil);
 		FarmHudMinimapDummy: EnableMouse(false);
 	end
@@ -1150,7 +1192,7 @@ function FarmHudMixin:OnEvent(event,...)
 			end
 		end
 		if self:IsVisible() then
-			C_Timer.After(3,function()
+			C_Timer.After(.3,function()
 				self.healCircle:Update()
 				self.gatherCircle:Update()
 			end);
