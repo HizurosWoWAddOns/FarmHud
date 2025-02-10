@@ -951,7 +951,7 @@ function FarmHudMixin:OnHide()
 		FarmHudMinimapDummy: SetScript("OnMouseDown",nil);
 		FarmHudMinimapDummy: EnableMouse(false);
 	elseif mps.OnMouseUp then
-		MT.SetScript(Minimap,"OnMouseUp",mps.OnMouseUp);
+		MinimapMT.SetScript(Minimap,"OnMouseUp",mps.OnMouseUp);
 		FarmHudMinimapDummy: SetScript("OnMouseUp",nil);
 		FarmHudMinimapDummy: EnableMouse(false);
 	end
