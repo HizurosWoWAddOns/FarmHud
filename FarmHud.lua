@@ -256,27 +256,48 @@ do
 		GetTop = function() return Dummy :GetTop() end,
 		SetZoom = function(m,z) end, -- prevent zoom
 	}
-	local function objHookStart(self)
-		if lockedBy~=false then return end
-		lockedBy = self;
-		useDummy = true;
-	end
-	local function objHookStop(self)
-		if lockedBy~=self then
-			return
+
+	local objHookedFunctions = {
+		OnEnter=function(self,...)
+			if lockedBy~=false then
+				return alreadyHooked[self].OnEnter(self,...)
+			end
+			lockedBy = self;
+			useDummy = true;
+		end,
+		OnLeave=function(self,...)
+			if lockedBy~=self then
+				return alreadyHooked[self].OnLeave(self,...)
+			end
+			useDummy = false;
+		end,
+		OnDragStart=function(self,...)
+			if lockedBy~=false then
+				return alreadyHooked[self].OnDragStart(self,...)
+			end
+			lockedBy = self;
+			useDummy = true;
+		end,
+		OnDragStop=function(self,...)
+			if lockedBy~=self then
+				return alreadyHooked[self].OnDragStop(self,...)
+			end
+			useDummy = false;
 		end
-		useDummy = false;
-	end
+	}
+
 	function addHooks(obj)
 		if alreadyHooked[obj] then
 			return;
 		end
-		alreadyHooked[obj] = true;
-		local objMT = getmetatable(obj).__index;
-		objMT .HookScript(obj,"OnEnter",objHookStart);
-		objMT .HookScript(obj,"OnDragStart",objHookStart);
-		objMT .HookScript(obj,"OnLeave",objHookStop);
-		objMT .HookScript(obj,"OnDragStop",objHookStop);
+		alreadyHooked[obj] = {}
+		for e,f in pairs(objHookedFunctions) do
+			local func = obj:GetScript(e)
+			if func then
+				alreadyHooked[obj][e] = func;
+				obj:SetScript(e,f);
+			end
+		end
 	end
 end
 
@@ -292,6 +313,7 @@ local function objectToDummy(object,enable,debugStr)
 		return;
 	end
 
+	local objName = object:GetDebugName();
 	local objType = object:GetObjectType();
 	if objType  == "Line" then -- ignore object type "Line"
 		return;
@@ -327,6 +349,9 @@ local function objectToDummy(object,enable,debugStr)
 	end
 
 	if changedSetParent then
+		-- get mouse enabled boolean
+		local MouseEnabledState = object:IsMouseEnabled()
+
 		-- replace SetParent function
 		if enable then
 			object[SetParentToken],object.SetParent = object.SetParent,dummyOnly_SetParent;
@@ -340,6 +365,13 @@ local function objectToDummy(object,enable,debugStr)
 			object:SetFrameStrata(fstrata);
 			object:SetFrameLevel(flevel);
 			addHooks(object)
+		end
+
+		-- revert unwanted changed mouse enable status
+		if object:IsMouseEnabled()~=MouseEnabledState then
+			ns:debug("objectToDummy",objName,"unwanted mouse enabled... revert it!")
+			-- found problem with <frame>:HookScript. It enables mouse for frames on use. If this normal?
+			object:EnableMouse(MouseEnabledState)
 		end
 	end
 
@@ -825,15 +857,6 @@ function FarmHudMixin:OnShow()
 		MinimapBackdrop:EnableMouse(false);
 	end
 
-	-- elvui special
-	if _G["MMHolder"] and _G["MMHolder"]:IsMouseEnabled() then
-		mps.mmholder_mouse = true;
-		_G["MMHolder"]:EnableMouse(false);
-	elseif _G["ElvUI_MinimapHolder"] and _G["ElvUI_MinimapHolder"]:IsMouseEnabled() then
-		mps.elvui_mmholder_mouse = true;
-		_G["ElvUI_MinimapHolder"]:EnableMouse(false);
-	end
-
 	local mc_points = {MinimapCluster:GetPoint()};
 	if mc_points[2]==Minimap then
 		mps.mc_mouse = MinimapCluster:IsMouseEnabled();
@@ -971,13 +994,6 @@ function FarmHudMixin:OnHide()
 		for i=1, #minimapCreateTextureTable do
 			objectToDummy(minimapCreateTextureTable[i],false,"OnHide.minimapCreateTextureTable");
 		end
-	end
-
-	-- elvui special on hide hud
-	if mps.mmholder_mouse then
-		_G["MMHolder"]:EnableMouse(true);
-	elseif mps.elvui_mmholder_mouse then
-		_G["ElvUI_MinimapHolder"]:EnableMouse(true);
 	end
 
 	if mps.mc_mouse then
