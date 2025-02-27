@@ -1,6 +1,6 @@
-## Interface: 110002
-## Interface-Cata: 40400
-## Interface-Classic: 11503
+## Interface: 110100
+## Interface-Cata: 40401
+## Interface-Classic: 11506
 ## Title: FarmHud [QuestArrow]
 ## Version: @project-version@
 ## Notes: Experimental way to suppress the quest arrow while FarmHud is active.
@@ -8,6 +8,18 @@
 ## Author: Hizuro
 ## Dependencies: FarmHud
 ## DefaultState: enabled
+
+## Category-enUS: Map
+## Category-deDE: Karte
+## Category-esES: Mapa
+## Category-esMX: Mapa
+## Category-frFR: Carte
+## Category-itIT: Mappa
+## Category-koKR: 지도
+## Category-ptBR: Mapa
+## Category-ruRU: Карта
+## Category-zhCN: 地图
+## Category-zhTW: 地圖
 
 ..\FarmHud\libs\LibStub\LibStub.lua
 ..\FarmHud\libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
