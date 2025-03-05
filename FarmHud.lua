@@ -24,7 +24,7 @@ local playerDot_orig, playerDot_custom = "Interface\\Minimap\\MinimapArrow";
 if WOW_PROJECT_ID==WOW_PROJECT_MAINLINE then
 	playerDot_orig = "minimaparrow" -- blizzard using atlas entry of ObjectIconsAtlas.blp now
 end
-local timeTicker,cardinalTicker,coordsTicker;
+local timeTicker,cardinalTicker,coordsTicker,background_alpha_current;
 local knownProblematicAddOns, knownProblematicAddOnsDetected = {BasicMinimap=true},{};
 local SetPointToken,SetParentToken = {},{};
 local trackingTypes,trackingTypesStates,numTrackingTypes,trackingHookLocked = {},{},0,false;
@@ -147,6 +147,24 @@ function ns.GetContinentID(mapID)
 		return ns.GetContinentID(mapInfo.parentMapID);
 	end
 	return mapID
+end
+
+-- transparency options
+
+function FarmHudMixin:UpdateMapAlpha(by,force)
+	local alpha={
+		main = FarmHudDB.background_alpha,
+		alt = FarmHudDB.background_alpha2
+	}
+	if by=="OptChange" or by=="OnShow" or by=="ToggleBackground" then
+		if by=="OnShow" and FarmHudDB.background_alpha_default then
+			FarmHudDB.background_alpha_toggle = true
+		elseif by=="ToggleBackground" then
+			FarmHudDB.background_alpha_toggle = not FarmHudDB.background_alpha_toggle;
+		end
+		background_alpha_current = FarmHudDB.background_alpha_toggle and "main" or "alt";
+	end
+	MinimapMT.SetAlpha(Minimap,force and force or alpha[background_alpha_current]);
 end
 
 -- tracking options
@@ -645,8 +663,8 @@ do
 
 		self:SetScales(true);
 
-		if IsKey(key,"background_alpha") then
-			MinimapMT.SetAlpha(Minimap,FarmHudDB.background_alpha);
+		if IsKey(key,"background_alpha") or IsKey(key,"background_alpha2") or IsKey(key,"background_alpha_toggle") then
+			self:UpdateMapAlpha("OptChange")
 		elseif IsKey(key,"player_dot") then
 			SetPlayerDotTexture(true);
 		elseif IsKey(key,"mouseoverinfo_color") then
@@ -845,7 +863,7 @@ function FarmHudMixin:OnShow()
 	MinimapMT.SetFrameLevel(Minimap,1);
 	MinimapMT.SetScale(Minimap,1);
 	MinimapMT.SetZoom(Minimap,0);
-	MinimapMT.SetAlpha(Minimap,FarmHudDB.background_alpha);
+	self:UpdateMapAlpha("OnShow");
 
 	-- disable mouse enabled frames
 	suppressNextMouseEnable = true;
@@ -937,7 +955,7 @@ function FarmHudMixin:OnHide()
 	MinimapMT.EnableMouse(Minimap,mps.mouse);
 	MinimapMT.EnableMouseWheel(Minimap,mps.mousewheel);
 
-	MinimapMT.SetAlpha(Minimap,mps.alpha);
+	self:UpdateMapAlpha("OnHide",mps.alpha)
 	Minimap:Show();
 
 	Dummy.bg:Hide();
@@ -1111,7 +1129,7 @@ end
 
 function FarmHudMixin:ToggleBackground()
 	if Minimap:GetParent()==self then
-		MinimapMT.SetAlpha(Minimap,Minimap:GetAlpha()==0 and FarmHudDB.background_alpha or 0);
+		self:UpdateMapAlpha("ToggleBackground")
 	end
 end
 
@@ -1254,8 +1272,11 @@ function FarmHudMixin:OnLoad()
 	end);
 
 	hooksecurefunc(Minimap,"SetAlpha",function(_,level)
-		if FarmHud:IsVisible() and FarmHudDB.background_alpha~=level then
-			MinimapMT.SetAlpha(Minimap,FarmHudDB.background_alpha);
+		if not FarmHud:IsVisible() then
+			return; -- ignore
+		end
+		if FarmHudDB.background_alpha~=level then
+			FarmHud:UpdateMapAlpha("HookSetAlpha")
 		end
 	end);
 

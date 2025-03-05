@@ -22,11 +22,12 @@ local dbDefaults = {
 	buttons_show=false,buttons_buttom=false,buttons_alpha=0.6,buttons_radius=0.56,
 	time_show=true, time_server=true, time_local=true, time_radius = 0.48, time_bottom=false, time_color={1,0.82,0,0.7},
 	mouseoverinfo_color={1,0.82,0,0.7},
-	player_dot="blizz", background_alpha=0, holdKeyForMouseOn = "_none",
+	player_dot="blizz", holdKeyForMouseOn = "_none",
 	rotation=true, SuperTrackedQuest = true, showDummy = true, showDummyBg = true,
 	QuestArrowInfoMsg = false,
 	healcircle_show=true,healcircle_color={0,.7,1,0.5},
 	hideInInstance=false, hideInCombat=false,
+	background_alpha=0, background_alpha2=0.5, background_alpha_toggle=true, background_alpha_default=true,
 }
 local modDB = {};
 local excludeFrames = {}
@@ -199,18 +200,6 @@ local options = {
 					name = L["TextScale"], desc = L["TextScaleDesc"],
 					min = 1, max = 2.5, step = 0.1, isPercent = true
 				},
-				background_alpha = {
-					type = "range", order = 14,
-					name = L["BgTransparency"], --desc = L["BgTransparencyDesc"]
-					min = 0.0, max = 1, step = 0.1, isPercent = true,
-					get = function()
-						return 1-FarmHudDB.background_alpha
-					end,
-					set = function(info,value)
-						FarmHudDB.background_alpha = 1-value;
-						FarmHud:UpdateOptions("background_alpha");
-					end
-				},
 				player_dot = {
 					type = "select", order = 15,
 					name = L["PlayerDot"], desc = L["PlayerDotDesc"],
@@ -277,6 +266,45 @@ local options = {
 			}
 		},
 		----------------------------------------------
+		background = {
+			type="group", order = 1,
+			name=L["BgMinimap"],
+			args={
+				desc = {
+					type="description", order=0,
+					name=L["BgMinimapDesc"]
+				},
+				background_alpha = {
+					type = "range", order = 1,
+					name = L["BgTransparency1"], desc = L["BgTransparencyDesc1"],
+					min = 0.0, max = 1, step = 0.1, isPercent = true,
+					get = function()
+						return 1-FarmHudDB.background_alpha
+					end,
+					set = function(info,value)
+						FarmHudDB.background_alpha = 1-value;
+						FarmHud:UpdateOptions("background_alpha");
+					end
+				},
+				background_alpha2 = {
+					type = "range", order = 2,
+					name = L["BgTransparency2"], desc = L["BgTransparencyDesc2"],
+					min = 0.0, max = 1, step = 0.1, isPercent = true,
+					get = function()
+						return 1-FarmHudDB.background_alpha2
+					end,
+					set = function(info,value)
+						FarmHudDB.background_alpha2 = 1-value;
+						FarmHud:UpdateOptions("background_alpha2");
+					end
+				},
+				background_alpha_default = {
+					type = "toggle", order = 4,
+					name = L["BgAlphaDefault"],
+					desc = L["BgAlphaDefaultDesc"]
+				}
+			}
+		},
 		SuperTrackedQuest = {
 			type = "group", order = 1,
 			name = L["QuestArrow"],
