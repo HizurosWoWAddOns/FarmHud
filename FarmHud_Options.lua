@@ -185,6 +185,16 @@ local options = {
 					type = "toggle", order = 3, width="full",
 					name = L["Rotation"], desc = L["RotationDesc"]
 				},
+				position_x = {
+					type = "range", order = 4,
+					name = L.HudPositionX, desc = L.HudPositionXDesc,
+					min = -0.5, max = 0.5, step = 0.01, isPercent = true
+				},
+				position_y = {
+					type = "range", order = 5,
+					name = L.HudPositionY, desc = L.HudPositionYDesc,
+					min = -0.5, max = 0.5, step = 0.01, isPercent = true
+				},
 				hud_scale = {
 					type = "range", order = 11,
 					name = L["HudSymbolScale"], desc = L["HudSymbolScaleDesc"],
