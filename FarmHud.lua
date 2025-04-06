@@ -549,7 +549,7 @@ do
 		elseif circle=="gather" then
 			scale = gcScale0;
 			local currentMap = C_Map.GetBestMapForUnit("player");
-			local currentContinent = ns.GetContinentID();
+			local currentContinent = ns.GetContinentID() or 0;
 			if diffCircleScaleByMapID[currentMap] then
 				scale = diffCircleScaleByMapID[currentMap];
 			elseif currentContinent==1978 then
