@@ -9,7 +9,7 @@
 	<Script file="FarmHud.lua"/>
 	<Script file="FarmHud_Options.lua"/>
 	<Script file="FarmHud_DataBroker.lua"/>
-	<Script file="FarmHud_TrailPath.lua"/>
+	<Script file="modules/TrailPath.lua"/>
 
 	<FontString name="FarmHudFont" inherits="SystemFont_Small2" outline="THICK" hidden="true" virtual="true">
 		<Shadow>

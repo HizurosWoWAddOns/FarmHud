@@ -9,18 +9,17 @@ local HBDPins = LibStub("HereBeDragons-Pins-2.0")
 
 FarmHudMixin = {};
 
-local _G,type,wipe,tinsert,unpack,tostring = _G,type,wipe,tinsert,unpack,tostring;
+local _G,type,wipe,tinsert,unpack,tostring = _G,type,wipe,table.insert,unpack,tostring;
 local GetPlayerFacing,C_Map = GetPlayerFacing,C_Map;
 local Minimap_OnClick = (MinimapMixin and MinimapMixin.Onclick) or Minimap_OnClick; -- TODO: check it - needed for classic 1.15 / wotlk 3.4.3
 local Minimap_UpdateRotationSetting = Minimap_UpdateRotationSetting or function() end -- TODO: check it - need for classic 1.15 / wotlk 3.4.3
 
 ns.QuestArrowToken = {};
-local modEvents,events = {},{"ADDON_LOADED","PLAYER_ENTERING_WORLD","PLAYER_LOGIN","PLAYER_LOGOUT","MODIFIER_STATE_CHANGED","PLAYER_REGEN_DISABLED","PLAYER_REGEN_ENABLED","ZONE_CHANGED"};
-local LibHijackMinimap_Token,LibHijackMinimap,_ = {};
+local events = {"ADDON_LOADED","PLAYER_ENTERING_WORLD","PLAYER_LOGIN","PLAYER_LOGOUT","MODIFIER_STATE_CHANGED","PLAYER_REGEN_DISABLED","PLAYER_REGEN_ENABLED","ZONE_CHANGED"};
+local LibHijackMinimap_Token,LibHijackMinimap,_ = {},nil,nil;
 local media = "Interface\\AddOns\\"..addon.."\\media\\";
-local mps,Minimap,MinimapMT,mouseOnKeybind,Dummy = {},_G.Minimap,getmetatable(_G.Minimap).__index;
-local minimapScripts,cardinalTicker,coordsTicker = { --[["OnMouseUp",]] OnMouseDown="Dummy", OnDragStart="nil" };
-local playerDot_orig, playerDot_custom = "Interface\\Minimap\\MinimapArrow";
+local mps,Minimap,MinimapMT,mouseOnKeybind = {},_G.Minimap,getmetatable(_G.Minimap).__index,nil;
+local playerDot_orig, playerDot_custom = "Interface\\Minimap\\MinimapArrow",nil;
 if WOW_PROJECT_ID==WOW_PROJECT_MAINLINE then
 	playerDot_orig = "minimaparrow" -- blizzard using atlas entry of ObjectIconsAtlas.blp now
 end
@@ -94,16 +93,51 @@ local minimapScripts = {
 }
 local minimapCreateTextureTable = {};
 local trackEnableMouse,suppressNextMouseEnable = false,false; -- try to get more info for mouse enable bug
+local excludeInstance = { -- exclude instance from hideInInstace option
+
+}
+
+local function moduleEventFunc(self,event,...)
+	if self.module[event] then
+		self.module[event](self.module.eventFrame,...)
+	end
+end
 
 ns.modules = setmetatable({},{
 	__newindex = function(t,name,module)
 		rawset(t,name,module)
 		for _,event in ipairs(events) do
 			if module[event] and type(module[event])=="function" then
-				if not modEvents[event] then
-					modEvents[event] = {}
+				if not module.eventFrame then
+					module.eventFrame = CreateFrame("Frame");
+					module.eventFrame.module = module;
+					module.eventFrame.moduleName = name;
+					module.eventFrame:SetScript("OnEvent",moduleEventFunc)
 				end
-				tinsert(modEvents[event],name);
+				module.eventFrame:RegisterEvent(event);
+			end
+		end
+	end,
+	__call = function(t,arg1,...)
+		ns:debug("<nsModulesCall>",arg1)
+		for modName,mod in pairs(t)do
+			local modObj = mod[arg1];
+			if modObj then
+				local objType = type(modObj);
+				if objType=="function" then
+					modObj(...);
+				elseif objType=="string" and type(mod[modObj])=="function" then
+					mod[modObj](...);
+				elseif objType=="table" then
+					ns:debug("<nsModulesCall>",arg1,objType,modObj.frame)
+					local frame = type(modObj.frame)=="string" and (_G[modObj.frame] or FarmHud[modObj.frame]) or false;
+					if frame and frame.GetObjectType and frame:GetObjectType()=="Frame" and frame[modObj.func] then
+						frame[modObj.func](frame,...)
+					end
+				end
+			elseif arg1=="Event" and mod[arg1] then
+				ns:debug("<nsModulesCall>",arg1)
+				mod[arg1](FarmHud,arg1,...);
 			end
 		end
 	end
@@ -225,28 +259,25 @@ end
 
 
 -- repalce CreateTexture function from Minimap to get access on nameless texture created by foreign addons; i hate such activity but forced to do...
-
 do
-	local Minimap_CreateTexture = Minimap.CreateTexture;
 	function Minimap:CreateTexture(...)
-		local tex = Minimap_CreateTexture(self,...);
+		local tex = MinimapMT.CreateTexture(self,...);
 		tinsert(minimapCreateTextureTable,tex);
 		return tex;
 	end
 end
 
 -- dummyOnly; prevent changes by foreign addons while farmhud is visible
-
 local function dummyOnly_SetPoint(self,point,relTo,relPoint,x,y)
 	if relTo==Minimap or relTo=="Minimap" then
-		relTo = Dummy
+		relTo = FarmHudMinimapDummy
 	end
 	return self[SetPointToken](self,point,relTo,relPoint,x,y);
 end
 
 local function dummyOnly_SetParent(self,parent)
 	if parent==Minimap or parent=="Minimap" then
-		parent = Dummy;
+		parent = FarmHudMinimapDummy;
 	end
 	return self[SetParentToken](self,parent);
 end
@@ -255,10 +286,10 @@ end
 -- Should prevent problems with repositioning of minimap buttons from other addons.
 local replacements,addHooks
 do
-	local alreadyHooked,useDummy,lockedBy = {};
+	local alreadyHooked,useDummy,lockedBy = {},nil,nil;
 	local function MinimapOrDummy(func,...)
 		if useDummy then
-			return Dummy[func](Dummy,...);
+			return FarmHudMinimapDummy[func](FarmHudMinimapDummy,...);
 		end
 		return MinimapMT[func](Minimap,...);
 	end
@@ -266,12 +297,12 @@ do
 		GetWidth = function() return MinimapOrDummy("GetWidth") end,
 		GetHeight = function() return MinimapOrDummy("GetHeight") end,
 		GetSize = function() return MinimapOrDummy("GetSize") end,
-		GetCenter = function() return Dummy :GetCenter() end,
-		GetEffectiveScale = function() return Dummy :GetEffectiveScale() end,
-		GetLeft = function() return Dummy :GetLeft() end,
-		GetRight = function() return Dummy :GetRight() end,
-		GetBottom = function() return Dummy :GetBottom() end,
-		GetTop = function() return Dummy :GetTop() end,
+		GetCenter = function() return FarmHudMinimapDummy :GetCenter() end,
+		GetEffectiveScale = function() return FarmHudMinimapDummy :GetEffectiveScale() end,
+		GetLeft = function() return FarmHudMinimapDummy :GetLeft() end,
+		GetRight = function() return FarmHudMinimapDummy :GetRight() end,
+		GetBottom = function() return FarmHudMinimapDummy :GetBottom() end,
+		GetTop = function() return FarmHudMinimapDummy :GetTop() end,
 		SetZoom = function(m,z) end, -- prevent zoom
 	}
 
@@ -320,20 +351,17 @@ do
 end
 
 -- move anchoring of objects from minimap to dummy and back
-
 local objSetPoint = {};
 local objSetParent = {};
 local function objectToDummy(object,enable,debugStr)
+	local objName = object:GetDebugName();
+	local objType = object:GetObjectType();
 
 	-- == ignore == --
 	if (HBDPins and HBDPins.minimapPins[object]) -- ignore herebedragons pins
+	or objType=="Line" -- ignore object type "Line"
+	or (ignoreFrames[objName])
 	then
-		return;
-	end
-
-	local objName = object:GetDebugName();
-	local objType = object:GetObjectType();
-	if objType  == "Line" then -- ignore object type "Line"
 		return;
 	end
 
@@ -359,9 +387,9 @@ local function objectToDummy(object,enable,debugStr)
 
 	local parent = object:GetParent();
 	if enable==true and parent==Minimap then
-		objSetParent[objType](object,Dummy);
+		objSetParent[objType](object,FarmHudMinimapDummy);
 		changedSetParent = true;
-	elseif enable==false and parent==Dummy then
+	elseif enable==false and parent==FarmHudMinimapDummy then
 		objSetParent[objType](object,Minimap);
 		changedSetParent = true;
 	end
@@ -401,9 +429,9 @@ local function objectToDummy(object,enable,debugStr)
 		for p=1, (object:GetNumPoints()) do
 			local point,relTo,relPoint,x,y = object:GetPoint(p);
 			if enable==true and relTo==Minimap then
-				objSetPoint[objType](object,point,Dummy,relPoint,x,y);
+				objSetPoint[objType](object,point,FarmHudMinimapDummy,relPoint,x,y);
 				changedSetPoint=true;
-			elseif enable==false and relTo==Dummy then
+			elseif enable==false and relTo==FarmHudMinimapDummy then
 				objSetPoint[objType](object,point,Minimap,relPoint,x,y);
 				changedSetPoint=true;
 			end
@@ -571,19 +599,21 @@ function FarmHudMixin:SetScales(enabled)
 	if self ~= FarmHud then
 		self = FarmHud
 	end
+
+	-- using WorldFrame size for changable view port by users
 	local eScale = UIParent:GetEffectiveScale();
-	local width,height,size = WorldFrame:GetSize();
+	local width,height = WorldFrame:GetSize();
 	width,height = width/eScale,height/eScale;
-	size = height;
-	if width<height then
-		size = width;
-	end
+	local size = min(width,height);
+
 	self:SetSize(size,size);
 
 	local MinimapSize = size * FarmHudDB.hud_size;
 	local MinimapScaledSize =  MinimapSize / FarmHudDB.hud_scale;
 	MinimapMT.SetScale(Minimap,FarmHudDB.hud_scale);
 	MinimapMT.SetSize(Minimap,MinimapScaledSize, MinimapScaledSize);
+
+	self.size = MinimapSize;
 
 	self.cluster:SetScale(FarmHudDB.hud_scale);
 	self.cluster:SetSize(MinimapScaledSize, MinimapScaledSize);
@@ -699,9 +729,9 @@ do
 		elseif IsKey(key,"buttons_alpha") then
 			self.onScreenButtons:SetAlpha(FarmHudDB.buttons_alpha);
 		elseif IsKey(key,"showDummy") then
-			Dummy:SetShown(FarmHudDB.showDummy);
+			FarmHudMinimapDummy:SetShown(FarmHudDB.showDummy);
 		elseif IsKey(key,"showDummyBg") then
-			Dummy.bg:SetShown(FarmHudDB.showDummyBg and (not HybridMinimap or (HybridMinimap and not HybridMinimap:IsShown())) );
+			FarmHudMinimapDummy.bg:SetShown(FarmHudDB.showDummyBg and (not HybridMinimap or (HybridMinimap and not HybridMinimap:IsShown())) );
 		elseif key:find("tracking^%d+") and not ns.IsClassic() then
 			local id = tonumber((key:match("^tracking%^(%d+)$")));
 			if id then
@@ -738,17 +768,17 @@ end
 function FarmHudMixin:OnShow()
 	trackEnableMouse = true;
 
-	Dummy:SetParent(Minimap:GetParent());
-	Dummy:SetScale(Minimap:GetScale());
-	Dummy:SetSize(Minimap:GetSize());
-	Dummy:SetFrameStrata(Minimap:GetFrameStrata());
-	Dummy:SetFrameLevel(Minimap:GetFrameLevel());
-	Dummy:ClearAllPoints();
+	FarmHudMinimapDummy:SetParent(Minimap:GetParent());
+	FarmHudMinimapDummy:SetScale(Minimap:GetScale());
+	FarmHudMinimapDummy:SetSize(Minimap:GetSize());
+	FarmHudMinimapDummy:SetFrameStrata(Minimap:GetFrameStrata());
+	FarmHudMinimapDummy:SetFrameLevel(Minimap:GetFrameLevel());
+	FarmHudMinimapDummy:ClearAllPoints();
 	for i=1, Minimap:GetNumPoints() do
-		Dummy:SetPoint(Minimap:GetPoint(i));
+		FarmHudMinimapDummy:SetPoint(Minimap:GetPoint(i));
 	end
-	Dummy.bg:SetShown(FarmHudDB.showDummyBg and (not HybridMinimap or (HybridMinimap and not HybridMinimap:IsShown())) );
-	Dummy:SetShown(FarmHudDB.showDummy);
+	FarmHudMinimapDummy.bg:SetShown(FarmHudDB.showDummyBg and (not HybridMinimap or (HybridMinimap and not HybridMinimap:IsShown())) );
+	FarmHudMinimapDummy:SetShown(FarmHudDB.showDummy);
 	self.cluster:Show();
 
 	-- cache some data from minimap
@@ -800,9 +830,11 @@ function FarmHudMixin:OnShow()
 		-- childs
 		local childs = {object:GetChildren()};
 		for i=1, #childs do
-			parent,point = objectToDummy(childs[i],true,"OnShow.GetChildren");
-			if parent or point then
-				tinsert(movedElements.childs,childs[i]);
+			if not ignoreFrames[childs[i]:GetName()] then
+				parent,point = objectToDummy(childs[i],true,"OnShow.GetChildren");
+				if parent or point then
+					tinsert(movedElements.childs,childs[i]);
+				end
 			end
 		end
 
@@ -835,9 +867,8 @@ function FarmHudMixin:OnShow()
 		if _G[frameName] then
 			frame = _G[frameName];
 		end
-		if frame then
+		if frame and objectToDummy(frame,true,"OnShow.anchoredFrames") then
 			mps.anchoredFrames[frameName]=true;
-			objectToDummy(frame,true,"OnShow.anchoredFrames");
 		end
 	end
 
@@ -917,17 +948,7 @@ function FarmHudMixin:OnShow()
 	MinimapMT.EnableMouse(Minimap,false);
 	MinimapMT.EnableMouseWheel(Minimap,false);
 
-	for modName,mod in pairs(ns.modules)do
-		if type(mod.OnShow)=="function" then
-			mod.OnShow();
-		elseif type(mod.OnShow)=="table" and type(mod.OnShow.fnc)=="string" then
-			if mod.OnShow.elem and FarmHud[mod.OnShow.elem] and FarmHud[mod.OnShow.elem][mod.OnShow.fnc] then
-				FarmHud[mod.OnShow.elem][mod.OnShow.fnc](FarmHud[mod.OnShow.elem],unpack(mod.OnShow.args))
-			elseif FarmHud[mod.OnShow.fnc] then
-				FarmHud[mod.OnShow.fnc](unpack(mod.OnShow.args));
-			end
-		end
-	end
+	ns.modules("OnShow",true)
 
 	Minimap:Show();
 end
@@ -958,20 +979,20 @@ function FarmHudMixin:OnHide()
 	self:UpdateMapAlpha("OnHide",mps.alpha)
 	Minimap:Show();
 
-	Dummy.bg:Hide();
-	Dummy:Hide();
+	FarmHudMinimapDummy.bg:Hide();
+	FarmHudMinimapDummy:Hide();
 	self.cluster:Hide();
 
 	if mps.OnMouseDown and Minimap:GetScript("OnMouseDown")==nil then
 		MinimapMT.SetScript(Minimap,"OnMouseUp",mps.OnMouseUp);
 		MinimapMT.SetScript(Minimap,"OnMouseDown",mps.OnMouseDown);
-		FarmHudMinimapDummy: SetScript("OnMouseUp",nil);
-		FarmHudMinimapDummy: SetScript("OnMouseDown",nil);
-		FarmHudMinimapDummy: EnableMouse(false);
+		FarmHudMinimapDummy:SetScript("OnMouseUp",nil);
+		FarmHudMinimapDummy:SetScript("OnMouseDown",nil);
+		FarmHudMinimapDummy:EnableMouse(false);
 	elseif mps.OnMouseUp then
 		MinimapMT.SetScript(Minimap,"OnMouseUp",mps.OnMouseUp);
-		FarmHudMinimapDummy: SetScript("OnMouseUp",nil);
-		FarmHudMinimapDummy: EnableMouse(false);
+		FarmHudMinimapDummy:SetScript("OnMouseUp",nil);
+		FarmHudMinimapDummy:EnableMouse(false);
 	end
 
 	for name,todo in pairs(minimapScripts)do
@@ -1029,13 +1050,7 @@ function FarmHudMixin:OnHide()
 		FarmHud_ToggleSuperTrackedQuest(ns.QuestArrowToken,false); -- FarmHud_QuestArrow
 	end
 
-	for modName,mod in pairs(ns.modules)do
-		if type(mod.OnHide)=="function" then
-			mod.OnHide();
-		elseif type(mod.OnHide)=="table" and type(mod.OnHide.fnc)=="string" and FarmHud[mod.OnHide.fnc] then
-			FarmHud[mod.OnHide.fnc](unpack(mod.OnHide.args));
-		end
-	end
+	ns.modules("OnHide");
 
 	SetPlayerDotTexture(false);
 	TrackingTypes_Update(false);
@@ -1207,6 +1222,7 @@ function FarmHudMixin:OnEvent(event,...)
 		end
 
 		checkOnKnownProblematicAddOns()
+		self.playerIsLoggedIn = true
 	elseif event=="PLAYER_LOGOUT" and mps.rotation and rotationMode and rotationMode~=mps.rotation then
 		-- reset rotation on logout and reload if FarmHud was open
 		C_CVar.SetCVar("rotateMinimap", mps.rotation);
@@ -1217,7 +1233,7 @@ function FarmHudMixin:OnEvent(event,...)
 		end
 	elseif event=="PLAYER_ENTERING_WORLD" then
 		if FarmHudDB.hideInInstance then
-			if IsInInstance() and FarmHud:IsShown() then
+			if IsInInstance() and FarmHud:IsShown() and not excludeInstance[1] then
 				self.hideInInstanceActive = true;
 				self:Hide() -- hide FarmHud in Instance
 			elseif self.hideInInstanceActive then
@@ -1243,18 +1259,10 @@ function FarmHudMixin:OnEvent(event,...)
 		self.healCircle:Update()
 		self.gatherCircle:Update()
 	end
-	if modEvents[event] then
-		for _,modName in pairs(modEvents[event])do
-			if ns.modules[modName] and ns.modules[modName][event] then
-				ns.modules[modName][event](...);
-			end
-		end
-	end
 end
 
 function FarmHudMixin:OnLoad()
-	Dummy = FarmHudMinimapDummy;
-	Dummy.bg:SetMask("interface/CHARACTERFRAME/TempPortraitAlphaMask");
+	FarmHudMinimapDummy.bg:SetMask("interface/CHARACTERFRAME/TempPortraitAlphaMask");
 
 	self:RegisterForeignAddOnObject(Minimap,addon);
 
@@ -1281,7 +1289,7 @@ function FarmHudMixin:OnLoad()
 	end);
 
 	hooksecurefunc(Minimap,"SetMaskTexture",function(_,texture)
-		Dummy.bg:SetMask(texture);
+		FarmHudMinimapDummy.bg:SetMask(texture);
 	end);
 
 	hooksecurefunc(Minimap,"EnableMouse",function(_,bool)
@@ -1329,11 +1337,6 @@ function FarmHudMixin:OnLoad()
 		self:RegisterEvent(event);
 	end
 
-	for name, module in pairs(ns.modules)do
-		if type(module.OnLoad)=="function" then
-			module:OnLoad();
-		end
-	end
-
+	ns.modules("OnLoad");
 end
 
