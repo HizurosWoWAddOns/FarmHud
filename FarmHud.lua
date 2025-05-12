@@ -69,6 +69,7 @@ local anchoredFrames = { -- frames there aren't childs of minimap but anchored i
 	"BtWQuestsMinimapButton",
 	-- GW2_UI
 	"GwQuestTracker",
+	"Minimap.gwTrackingButton", -- added with parent key, without SetParent, but with SetAllPoints to the Minimap. Has prevented mouse interaction with 3d world.
 	"GwAddonToggle",
 	"GwCalendarButton",
 	"GwGarrisonButton",
