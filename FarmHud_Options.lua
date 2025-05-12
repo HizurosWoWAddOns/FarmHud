@@ -324,8 +324,8 @@ local options = {
 				}
 			}
 		},
-		rangecircles = {
-			type = "group", order = 2,
+		rangecircles_old = {
+			type = "group", order = 2, hidden=true,
 			name = L["RangeCircles"],
 			args = {
 				-- gathercircle

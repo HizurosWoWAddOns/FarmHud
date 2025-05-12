@@ -10,6 +10,7 @@
 	<Script file="FarmHud_Options.lua"/>
 	<Script file="FarmHud_DataBroker.lua"/>
 	<Script file="modules/TrailPath.lua"/>
+	<Script file="modules/RangeCircles.lua" />
 
 	<FontString name="FarmHudFont" inherits="SystemFont_Small2" outline="THICK" hidden="true" virtual="true">
 		<Shadow>
@@ -73,23 +74,21 @@
 		</Frames>
 	</Frame>
 
-	<Texture name="FarmHudRangeCircleTemplate" parentArray="CirclePool" mixin="FarmHudRangeCircleMixin" file="Interface\AddOns\FarmHud\media\gathercircle" alphaMode="ADD" virtual="true" hidden="true">
+	<Frame name="FarmHudCircleLineTemplate" mixin="FarmHudCircleLineMixin" virtual="true">
+		<Size x=".1" y=".1" />
 		<Anchors>
 			<Anchor point="CENTER" />
 		</Anchors>
-	</Texture>
+	</Frame>
+
+	<Frame name="FarmHudRangeCircles" mixin="FarmHudRangeCirclesMixin" scale=".25" setallpoints="true" />
 
 	<Frame name="FarmHud" parent="UIParent" mixin="FarmHudMixin" frameStrata="BACKGROUND" alpha="1" hidden="true">
 		<Size x="140" y="140"/>
 		<Anchors>
+			<!-- Anchored to WorldFrame for view port changed by users -->
 			<Anchor point="CENTER" relativeTo="WorldFrame" relativePoint="CENTER" />
 		</Anchors>
-		<Layers>
-			<Layer level="ARTWORK">
-				<Texture parentKey="gatherCircle" inherits="FarmHudRangeCircleTemplate" alphaMode="ADD" />
-				<Texture parentKey="healCircle" inherits="FarmHudRangeCircleTemplate" alphaMode="ADD" />
-			</Layer>
-		</Layers>
 		<Frames>
 			<Frame parentKey="cluster">
 				<Anchors>

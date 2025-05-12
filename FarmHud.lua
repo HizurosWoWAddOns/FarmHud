@@ -74,6 +74,9 @@ local anchoredFrames = { -- frames there aren't childs of minimap but anchored i
 	"GwGarrisonButton",
 	"GwMailButton",
 };
+local ignoreFrames = {
+	FarmHudRangeCircles=true
+}
 local modifiers = {
 	A  = {LALT=1,RALT=1},
 	AL = {LALT=1},
@@ -551,47 +554,6 @@ function FarmHudMinimapDummyMixin:OnMouseDown()
 	mps.OnMouseDown(self);
 end
 
--- range circles
-
-FarmHudRangeCircleMixin = {}
-
-do
-	local hcScale = 0.2047; -- heal circle
-	local gcScale0 = 0.432; -- gathercircle default size.
-	local gcScale1 = 0.61; -- gathercircle increased 1th time (since dragonflight or with tww? i don't saw it while dragonflight).
-	local gcScale2 = 0.81; -- gathercircle increased 2th time.
-	local diffCircleScaleByMapID = {
-		-- for later single map changes
-		-- [<UiMapID(int)>] = gcScale[0-2],
-	}
-
-	function FarmHudRangeCircleMixin:Update()
-		local scale,FH = 1,self:GetParent();
-		local circle = (FH.healCircle==self and "heal") or (FH.gatherCircle==self and "gather") or false;
-		if not circle then
-			return;
-		end
-
-		if circle=="heal" then
-			scale = hcScale;
-		elseif circle=="gather" then
-			scale = gcScale0;
-			local currentMap = C_Map.GetBestMapForUnit("player");
-			local currentContinent = ns.GetContinentID() or 0;
-			if diffCircleScaleByMapID[currentMap] then
-				scale = diffCircleScaleByMapID[currentMap];
-			elseif currentContinent==1978 then
-				scale = gcScale1; -- for df
-			elseif currentContinent>=2274 then
-				scale = gcScale2; -- new continents after tww expansion
-			end
-		end
-
-		local size = FH:GetWidth() * scale;
-		self:SetSize(size, size);
-		self:SetShown(FarmHudDB[circle .. "circle_show"]);
-	end
-end
 
 -- main frame mixin functions
 
@@ -620,10 +582,7 @@ function FarmHudMixin:SetScales(enabled)
 	self.cluster:SetFrameStrata(Minimap:GetFrameStrata());
 	self.cluster:SetFrameLevel(Minimap:GetFrameLevel());
 
-	self.size = MinimapSize
-
-	self.healCircle:Update();
-	self.gatherCircle:Update();
+	ns.modules("Update",enabled)
 
 	local y = (self:GetHeight()*FarmHudDB.buttons_radius) * 0.5;
 	if (FarmHudDB.buttons_bottom) then y = -y; end
@@ -699,14 +658,6 @@ do
 			SetPlayerDotTexture(true);
 		elseif IsKey(key,"mouseoverinfo_color") then
 			self.TextFrame.mouseWarn:SetTextColor(unpack(FarmHudDB.mouseoverinfo_color));
-		elseif IsKey(key,"gathercircle_show") then
-			self.gatherCircle:SetShown(FarmHudDB.gathercircle_show);
-		elseif IsKey(key,"gathercircle_color") or key=="gathercircle_resetcolor" then
-			self.gatherCircle:SetVertexColor(unpack(FarmHudDB.gathercircle_color));
-		elseif IsKey(key,"healcircle_show") then
-			self.healCircle:SetShown(FarmHudDB.healcircle_show);
-		elseif IsKey(key,"healcircle_color") or key=="healcircle_resetcolor" then
-			self.healCircle:SetVertexColor(unpack(FarmHudDB.healcircle_color));
 		elseif IsKey(key,"cardinalpoints_show") then
 			self:UpdateCardinalPoints(FarmHudDB.cardinalpoints_show);
 		elseif IsKey(key,"cardinalpoints_color1") or IsKey(key,"cardinalpoints_color2") then
@@ -1179,9 +1130,6 @@ function FarmHudMixin:OnEvent(event,...)
 	elseif event=="PLAYER_LOGIN" then
 		self:SetFrameLevel(2);
 
-		self.gatherCircle:SetVertexColor(unpack(FarmHudDB.gathercircle_color));
-		self.healCircle:SetVertexColor(unpack(FarmHudDB.healcircle_color));
-
 		--local radius = Minimap:GetWidth() * 0.214;
 		for i, v in ipairs(self.TextFrame.cardinalPoints) do
 			local label = v:GetText();
@@ -1241,12 +1189,6 @@ function FarmHudMixin:OnEvent(event,...)
 				self:Show(); -- restore visibility on leaving instance
 			end
 		end
-		if self:IsVisible() then
-			C_Timer.After(.3,function()
-				self.healCircle:Update()
-				self.gatherCircle:Update()
-			end);
-		end
 	elseif event=="PLAYER_REGEN_DISABLED" and FarmHudDB.hideInCombat and FarmHud:IsShown() then
 		self.hideInCombatActive = true;
 		self:Hide() -- hide FarmHud in combat
@@ -1255,9 +1197,6 @@ function FarmHudMixin:OnEvent(event,...)
 		self.hideInCombatActive = nil;
 		self:Show(); -- restore visibility after combat
 		return;
-	elseif event=="ZONE_CHANGED" and self:IsVisible() then
-		self.healCircle:Update()
-		self.gatherCircle:Update()
 	end
 end
 
