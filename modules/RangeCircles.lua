@@ -27,7 +27,7 @@ local module = {
 	OnShow = {frame="FarmHudRangeCircles",func="Update"},
 	OnHide = {frame="FarmHudRangeCircles",func="Update"},
 	Update = {frame="FarmHudRangeCircles",func="Update"},
-
+	events = {}
 }
 
 local function UpdateCircle(parent,circleType,index,force)
@@ -212,7 +212,7 @@ local options = {
 			},
 			defaultCirclesHeader = {
 				type="header", order = 3,
-				name=L["RangeCirclesDefault"]
+				name=DEFAULT, --L["RangeCirclesDefault"]
 			},
 			defaultCircles = {
 				type = "group", order = 4, inline = true,
@@ -224,7 +224,7 @@ local options = {
 			},
 			customCirclesHeader = {
 				type="header", order = 5,
-				name=L["RangeCirclesCustom"]
+				name=CHANNEL_CATEGORY_CUSTOM or VIDEO_QUALITY_LABEL6, --L["RangeCirclesCustom"]
 			},
 			add_circle = {
 				type = "execute", order = 6,
@@ -359,7 +359,7 @@ function module.AddOptions()
 	return options
 end
 
-function module.PLAYER_LOGIN()
+function module.events.PLAYER_LOGIN()
 	if not FarmHudDB.defaultCircles then
 		FarmHudDB.defaultCircles = {}
 	end
@@ -378,7 +378,7 @@ function module.PLAYER_LOGIN()
 	FarmHudRangeCircles:Update();
 end
 
-function module.PLAYER_ENTERING_WORLD()
+function module.events.PLAYER_ENTERING_WORLD()
 	if FarmHud:IsVisible() then
 		C_Timer.After(.3,function()
 			FarmHudRangeCircles:Update();
@@ -386,7 +386,7 @@ function module.PLAYER_ENTERING_WORLD()
 	end
 end
 
-function module.ZONE_CHANGED()
+function module.events.ZONE_CHANGED()
 	if not FarmHud.playerIsLoggedIn then return end
 	FarmHudRangeCircles:Update()
 end

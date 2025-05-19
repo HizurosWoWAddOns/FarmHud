@@ -9,13 +9,11 @@ local HBDPins = LibStub("HereBeDragons-Pins-2.0")
 
 FarmHudMixin = {};
 
-local _G,type,wipe,tinsert,unpack,tostring = _G,type,wipe,table.insert,unpack,tostring;
-local GetPlayerFacing,C_Map = GetPlayerFacing,C_Map;
+local _G,type,wipe,tinsert,unpack,tostring,C_Map = _G,type,wipe,table.insert,unpack,tostring,C_Map;
 local Minimap_OnClick = (MinimapMixin and MinimapMixin.Onclick) or Minimap_OnClick; -- TODO: check it - needed for classic 1.15 / wotlk 3.4.3
 local Minimap_UpdateRotationSetting = Minimap_UpdateRotationSetting or function() end -- TODO: check it - need for classic 1.15 / wotlk 3.4.3
 
 ns.QuestArrowToken = {};
-local events = {"ADDON_LOADED","PLAYER_ENTERING_WORLD","PLAYER_LOGIN","PLAYER_LOGOUT","MODIFIER_STATE_CHANGED","PLAYER_REGEN_DISABLED","PLAYER_REGEN_ENABLED","ZONE_CHANGED"};
 local LibHijackMinimap_Token,LibHijackMinimap,_ = {},nil,nil;
 local media = "Interface\\AddOns\\"..addon.."\\media\\";
 local mps,Minimap,MinimapMT,mouseOnKeybind = {},_G.Minimap,getmetatable(_G.Minimap).__index,nil;
@@ -102,23 +100,27 @@ local excludeInstance = { -- exclude instance from hideInInstace option
 }
 
 local function moduleEventFunc(self,event,...)
-	if self.module[event] then
-		self.module[event](self.module.eventFrame,...)
+	if self.module.events[event] then
+		self.module.events[event](self.module.eventFrame,...)
 	end
 end
 
 ns.modules = setmetatable({},{
 	__newindex = function(t,name,module)
 		rawset(t,name,module)
-		for _,event in ipairs(events) do
-			if module[event] and type(module[event])=="function" then
-				if not module.eventFrame then
-					module.eventFrame = CreateFrame("Frame");
-					module.eventFrame.module = module;
-					module.eventFrame.moduleName = name;
-					module.eventFrame:SetScript("OnEvent",moduleEventFunc)
+		if module.events then
+			local c=0;
+			for event,func in pairs(module.events) do
+				c=c+1;
+				if type(func)=="function" then
+					if not module.eventFrame then
+						module.eventFrame = CreateFrame("Frame");
+						module.eventFrame.module = module;
+						module.eventFrame.moduleName = name;
+						module.eventFrame:SetScript("OnEvent",moduleEventFunc)
+					end
+					module.eventFrame:RegisterEvent(event);
 				end
-				module.eventFrame:RegisterEvent(event);
 			end
 		end
 	end,
@@ -1273,9 +1275,15 @@ function FarmHudMixin:OnLoad()
 		-- dummy
 	end
 
-	for _,event in ipairs(events) do
-		self:RegisterEvent(event);
-	end
+	self:RegisterEvent("ADDON_LOADED");
+	self:RegisterEvent("PLAYER_LOGIN");
+	self:RegisterEvent("PLAYER_ENTERING_WORLD");
+	self:RegisterEvent("PLAYER_LOGOUT");
+
+	self:RegisterEvent("MODIFIER_STATE_CHANGED");
+
+	self:RegisterEvent("PLAYER_REGEN_DISABLED");
+	self:RegisterEvent("PLAYER_REGEN_ENABLED");
 
 	ns.modules("OnLoad");
 end
