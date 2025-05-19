@@ -456,35 +456,6 @@ local function objectToDummy(object,enable,debugStr)
 	return changedSetParent,changedSetPoint;
 end
 
--- cardinal points
-
-local function CardinalPointsUpdate_TickerFunc()
-	local bearing = GetPlayerFacing();
-	local scaledRadius = FarmHud.TextFrame.ScaledHeight * FarmHudDB.cardinalpoints_radius;
-	for i=1, #FarmHud.TextFrame.cardinalPoints do
-		local v = FarmHud.TextFrame.cardinalPoints[i];
-		v:ClearAllPoints();
-		if bearing then
-			v:SetPoint("CENTER", FarmHud, "CENTER", math.sin(v.rot+bearing)*scaledRadius, math.cos(v.rot+bearing)*scaledRadius);
-		end
-	end
-end
-
-function FarmHudMixin:UpdateCardinalPoints(state)
-	if not cardinalTicker and state~=false then
-		cardinalTicker = C_Timer.NewTicker(1/24, CardinalPointsUpdate_TickerFunc);
-	elseif cardinalTicker and state==false then
-		cardinalTicker:Cancel();
-		cardinalTicker = nil;
-	end
-	if not GetPlayerFacing() then
-		state = false;
-	end
-	for i,e in ipairs(self.TextFrame.cardinalPoints) do
-		e:SetShown(state);
-	end
-end
-
 -- coordinates
 
 local function CoordsUpdate_TickerFunc()
@@ -661,15 +632,6 @@ do
 			SetPlayerDotTexture(true);
 		elseif IsKey(key,"mouseoverinfo_color") then
 			self.TextFrame.mouseWarn:SetTextColor(unpack(FarmHudDB.mouseoverinfo_color));
-		elseif IsKey(key,"cardinalpoints_show") then
-			self:UpdateCardinalPoints(FarmHudDB.cardinalpoints_show);
-		elseif IsKey(key,"cardinalpoints_color1") or IsKey(key,"cardinalpoints_color2") then
-			local col = key=="cardinalpoints_color1";
-			for i,e in ipairs(self.TextFrame.cardinalPoints) do
-				if e.NWSE==col then
-					e:SetTextColor(unpack(FarmHudDB["cardinalpoints_color"..(col and 1 or 2)]));
-				end
-			end
 		elseif IsKey(key,"coords_show") then
 			self.TextFrame.coords:SetShown(FarmHudDB.coords_show);
 		elseif IsKey(key,"coords_color") then
@@ -893,7 +855,6 @@ function FarmHudMixin:OnShow()
 	TrackingTypes_Update(true);
 
 	self:SetScales(true);
-	self:UpdateCardinalPoints(FarmHudDB.cardinalpoints_show);
 	self:UpdateCoords(FarmHudDB.coords_show);
 	self:UpdateTime(FarmHudDB.time_show);
 
@@ -1011,7 +972,6 @@ function FarmHudMixin:OnHide()
 
 	wipe(mps);
 
-	self:UpdateCardinalPoints(false);
 	self:UpdateCoords(false);
 	self:UpdateTime(false);
 	self:UpdateForeignAddOns(false);

@@ -9,6 +9,7 @@
 	<Script file="FarmHud.lua"/>
 	<Script file="FarmHud_Options.lua"/>
 	<Script file="FarmHud_DataBroker.lua"/>
+	<Script file="modules/CardinalPoints.lua"/>
 	<Script file="modules/TrailPath.lua"/>
 	<Script file="modules/RangeCircles.lua" />
 

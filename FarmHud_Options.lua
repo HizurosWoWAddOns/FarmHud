@@ -372,45 +372,6 @@ local options = {
 				},
 			}
 		},
-		cardinalpoints = {
-			type = "group", order = 3,
-			name = L["CardinalPoints"],
-			args = {
-				cardinalpoints_show = {
-					type = "toggle", order = 1, width = "double",
-					name = L["CardinalPointsShow"], desc = L["CardinalPointsShowDesc"],
-				},
-				cardinalpoints_radius = {
-					type = "range", order = 2,
-					name = L["ChangeRadius"], desc = L["ChangeRadiusDesc"],
-					min = 0.1, max = 0.9, step=0.005, isPercent=true
-				},
-				cardinalpoints_header1 = {
-					type = "header", order = 3,
-					name = L["CardinalPointsGroup1"]
-				},
-				cardinalpoints_color1 = {
-					type = "color", order = 4, hasAlpha = true,
-					name = COLOR, desc = L["CardinalPointsColorDesc"]:format(L["CardinalPointsGroup1"])
-				},
-				cardinalpoints_resetcolor1 = {
-					type = "execute", order = 5,
-					name = L["ResetColor"], desc = L["CardinalPointsColorResetDesc"]:format(L["CardinalPointsGroup1"])
-				},
-				cardinalpoints_header2 = {
-					type = "header", order = 6,
-					name = L["CardinalPointsGroup2"]
-				},
-				cardinalpoints_color2 = {
-					type = "color", order = 7, hasAlpha = true,
-					name = COLOR, desc = L["CardinalPointsColorDesc"]:format(L["CardinalPointsGroup2"])
-				},
-				cardinalpoints_resetcolor2 = {
-					type = "execute", order = 8,
-					name = L["ResetColor"], desc = L["CardinalPointsColorResetDesc"]:format(L["CardinalPointsGroup2"])
-				}
-			}
-		},
 		coords = {
 			type = "group", order = 4,
 			name = L["Coords"],
