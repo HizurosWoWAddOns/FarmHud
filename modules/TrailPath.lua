@@ -213,7 +213,7 @@ local function UpdateTrailPath(force)
 end
 
 local module = {};
-
+module.events = {};
 module.dbDefaults = {
 	trailPathShow = true,
 	trailPathOnMinimap = true,
@@ -229,14 +229,48 @@ function module.AddOptions()
 		trial = {
 			type = "group", --order = 9,
 			name = L["TrailPath"],
+			childGroups = "tab",
 			args = {
-				trailPathShow = {
-					type = "toggle", order = 1,
-					name = L["TrailPathShow"], -- desc = L["TrailPathShowDesc"],
+				onWorldmap = {
+					type = "group", inline = true,
+					name = L["TrailPathOnWorldmap"],
+					args = {
+						trailPathShow = {
+							type = "toggle", order = 1,
+							name = L["TrailPathShow"], -- desc = L["TrailPathShowDesc"],
+						},
+						trailPathIcon = {
+							type = "select", order = 5,
+							name = L["TrailPathIcon"], desc = L["TrailPathIconDesc"],
+							values = TrailPathIconValues
+						},
+						trailPathScale = {
+							type = "range", order = 6,
+							name = L["TrailPathScale"], desc = L["TrailPathScaleDesc"],
+							min=0.1, step=0.1, max=1, isPercent = true
+						},
+					}
 				},
-				trailPathOnMinimap = {
-					type = "toggle", order = 2,
-					name = L["TrailPathOnMinimap"], desc = L["TrailPathOnMinimapDesc"],
+				onMinimap = {
+					type = "group", inline = true,
+					name = L["TrailPathOnMinimap"],
+					desc = L["TrailPathOnMinimapDesc"],
+					args = {
+						trailPathOnMinimap = {
+							type = "toggle", order = 2,
+							name = SHOW,
+						},
+						trailPathMinimapIcon = {
+							type = "select", order = 5,
+							name = L["TrailPathMinimapIcon"], desc = L["TrailPathMinimapIconDesc"],
+							values = TrailPathIconValues
+						},
+						trailPathMinimapScale = {
+							type = "range", order = 6,
+							name = L["TrailPathMinimapScale"], desc = L["TrailPathMinimapScaleDesc"],
+							min=0.1, step=0.1, max=1, isPercent = true
+						},
+					}
 				},
 				trailPathCount = {
 					type = "range", order = 3,
@@ -249,16 +283,6 @@ function module.AddOptions()
 					min = 10, step = 10, max = 600,
 				},
 				-- TODO: header ?
-				trailPathIcon = {
-					type = "select", order = 5,
-					name = L["TrailPathIcon"], desc = L["TrailPathIconDesc"],
-					values = TrailPathIconValues
-				},
-				trailPathScale = {
-					type = "range", order = 6,
-					name = L["TrailPathScale"], desc = L["TrailPathScaleDesc"],
-					min=0.1, step=0.1, max=1, isPercent = true
-				},
 				-- TODO: Little description for LibSharedMedia support... maybe later?
 				--[[
 				trailPathColorMode = {
@@ -306,7 +330,7 @@ function module.UpdateOptions(key,value)
 	end
 end
 
-function module.PLAYER_ENTERING_WORLD()
+function module.events.PLAYER_ENTERING_WORLD()
 	if IsInInstance() then
 		UpdateTrailPath(false)
 	else
@@ -314,7 +338,7 @@ function module.PLAYER_ENTERING_WORLD()
 	end
 end
 
-function module.PLAYER_LOGIN()
+function module.events.PLAYER_LOGIN()
 	local mt = getmetatable(FarmHud).__index;
 	EnableMouse,SetShown = mt.EnableMouse, mt.SetShown;
 

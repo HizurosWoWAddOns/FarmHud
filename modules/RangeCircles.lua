@@ -91,7 +91,6 @@ function FarmHudRangeCirclesMixin:Update(...)
 
 	local s = min(_G["Minimap"]:GetSize());
 	self:SetSize(s*4,s*4); -- frame is scaled to 0.25. size must be multiplied. makes the lines a little bit smoother.
-	ns:debug("=",s,s,Minimap:GetScale())
 
 	local force = false;
 	if self.lastSize ~= Minimap:GetWidth() then
