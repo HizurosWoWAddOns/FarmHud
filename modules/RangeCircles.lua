@@ -431,6 +431,7 @@ function FarmHudCircleLineMixin:UpdateDraw(force)
 	end
 
 	local radius, Steps, step = GetRadiusAndSteps(self)
+	local half_step = step*self.info.lineScale/2;
 
 	-- check to update part of line
 	local updateLine,updateThickness,updateColor = force or false,force or false,force or false;
@@ -468,7 +469,6 @@ function FarmHudCircleLineMixin:UpdateDraw(force)
 		end
 		-- update circle line position
 		if updateLine or forceUpdate then
-			local half_step = step*self.info.lineScale/2;
 			circleLine:SetStartPoint("CENTER", self, radius*math.cos(angle-half_step), radius*math.sin(angle-half_step));
 			circleLine:SetEndPoint(  "CENTER", self, radius*math.cos(angle+half_step), radius*math.sin(angle+half_step));
 			circleLine:Show();
