@@ -430,6 +430,9 @@ function FarmHudCircleLineMixin:UpdateDraw(force)
 		self.linePool[i].dirty=true;
 	end
 
+	if self.info.lineScale==nil then
+		self.info.lineScale = 1;
+	end
 	local radius, Steps, step = GetRadiusAndSteps(self)
 	local half_step = step*self.info.lineScale/2;
 
