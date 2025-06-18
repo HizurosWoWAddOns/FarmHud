@@ -1,5 +1,5 @@
 # FarmHud (WoW AddOn)
-![Build](https://github.com/HizurosWoWAddOns/FarmHud/actions/workflows/bigwigsmods-packager.yml/badge.svg)
+![Build](https://img.shields.io/github/actions/workflow/status/HizurosWoWAddOns/FarmHud/packager.yml?style=flat-square)
 ![Tag](https://img.shields.io/github/v/tag/HizurosWoWAddOns/FarmHud?style=flat-square)
 ![Downloads](https://img.shields.io/github/downloads/HizurosWoWAddOns/FarmHud/total?style=flat-square)
 ![Downloads](https://img.shields.io/github/downloads/HizurosWoWAddOns/FarmHud/latest/total?style=flat-square)
