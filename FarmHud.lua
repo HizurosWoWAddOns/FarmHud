@@ -681,6 +681,30 @@ local function Minimap_OnClick(self)
 	end
 end
 
+local msap_try,MinimapSetAllPoints=0;
+
+function MinimapSetAllPoints(act)
+	-- sometimes SetPoint produce error "because[SetPoint would result in anchor family connection]"
+	ns:debug("<MinimapSetAllPoints>","<test>",tostring(act),msap_try)
+	if act==nil then
+		msap_try = 0;
+		act=false;
+	elseif type(msap_try)=="number" and msap_try>=3 then
+		return;
+	end
+	if act==false then
+		msap_try=msap_try+1;
+		local retOK,ret1 = pcall(MinimapSetAllPoints,true);
+		if not retOK then
+			ns:debug("<MinimapSetAllPoints>","<error>",ret1,msap_try)
+			MinimapSetAllPoints(false);
+		end
+	elseif act==true then
+		MinimapMT.ClearAllPoints(Minimap);
+		MinimapMT.SetAllPoints(Minimap);
+	end
+end
+
 function FarmHudMixin:OnShow()
 	trackEnableMouse = true;
 
@@ -798,14 +822,7 @@ function FarmHudMixin:OnShow()
 	-- move and change minimap for FarmHud
 	Minimap:Hide();
 	MinimapMT.SetParent(Minimap,FarmHud);
-	MinimapMT.ClearAllPoints(Minimap);
-	-- sometimes SetPoint produce error "because[SetPoint would result in anchor family connection]"
-	local f, err = loadstring('FarmHud.SetPoint(Minimap,"CENTER",0,0)');
-	if f then f() else
-		MinimapMT.SetAllPoints(Minimap); -- but SetAllPoints results in an offset for somebody
-		MinimapMT.ClearAllPoints(Minimap);
-		MinimapMT.SetPoint(Minimap,"CENTER",0,0); -- next try...
-	end
+	MinimapSetAllPoints()
 	MinimapMT.SetFrameStrata(Minimap,"BACKGROUND");
 	MinimapMT.SetFrameLevel(Minimap,1);
 	MinimapMT.SetScale(Minimap,1);
