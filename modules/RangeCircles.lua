@@ -423,6 +423,7 @@ function FarmHudCircleLineMixin:UpdateDraw(force)
 	-- create line pools
 	if not self.linePool then
 		self.linePool={};
+		self.linePoolUnused={};
 	end
 
 	-- flag all lines as dirty; used later to hide unused lines
@@ -459,7 +460,11 @@ function FarmHudCircleLineMixin:UpdateDraw(force)
 		local angle = i*step;
 		-- get current line
 		local forceUpdate,circleLine = false,self.linePool[lineIndex];
-		if not circleLine then
+		if not circleLine and #self.linePoolUnused>0 then
+			circleLine = tremove(self.linePoolUnused,1);
+			tinsert(self.linePool,circleLine);
+			forceUpdate = true;
+		elseif not circleLine then
 			-- create new line
 			circleLine = self:CreateLine();
 			circleLine.info = {}
@@ -494,14 +499,13 @@ function FarmHudCircleLineMixin:UpdateDraw(force)
 	end
 
 	-- hide not used lines
-	local cHide = 0;
-	for _,line in ipairs(self.linePool) do
+	for i=#self.linePool, 1, -1 do
+		local line = self.linePool[i];
 		if line.dirty==true then
-			--line:ClearAllPoints(); -- this function doesn't have any effect on line elements...
-			--line:SetColorTexture(0,0,0,0)
 			line:Hide();
 			wipe(line.info)
 			line.dirty=nil;
+			tinsert(self.linePoolUnused,tremove(self.linePool,i))
 		end
 	end
 end
