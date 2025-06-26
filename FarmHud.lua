@@ -681,26 +681,28 @@ local function Minimap_OnClick(self)
 	end
 end
 
-local msap_try,MinimapSetAllPoints=0;
-
-function MinimapSetAllPoints(act)
+local MinimapSetAllPoints;
+function MinimapSetAllPoints(try)
 	-- sometimes SetPoint produce error "because[SetPoint would result in anchor family connection]"
-	ns:debug("<MinimapSetAllPoints>","<test>",tostring(act),msap_try)
-	if act==nil then
-		msap_try = 0;
-		act=false;
-	elseif type(msap_try)=="number" and msap_try>=3 then
+	ns:debug("<MinimapSetAllPoints>",tostring(try))
+	if try==nil then
+		for i=1, 3 do
+			local retOK,ret1 = pcall(MinimapSetAllPoints,i);
+			if retOK then
+				return true;
+--@do-not-package@
+			else
+				local parent = Minimap:GetParent();
+				ns:debug("<MinimapSetAllPoints>","<try:"..i..">","<failed>",ret1,parent:GetDebugName())
+--@end-do-not-package@
+			end
+		end
 		return;
 	end
-	if act==false then
-		msap_try=msap_try+1;
-		local retOK,ret1 = pcall(MinimapSetAllPoints,true);
-		if not retOK then
-			ns:debug("<MinimapSetAllPoints>","<error>",ret1,msap_try)
-			MinimapSetAllPoints(false);
-		end
-	elseif act==true then
-		MinimapMT.ClearAllPoints(Minimap);
+	MinimapMT.ClearAllPoints(Minimap);
+	if try<3 then
+		MinimapMT.SetPoint(Minimap,"CENTER",FarmHud,"CENTER",0,0);
+	else
 		MinimapMT.SetAllPoints(Minimap);
 	end
 end
