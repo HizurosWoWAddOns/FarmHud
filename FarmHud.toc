@@ -1,6 +1,4 @@
-## Interface: 110107
-## Interface-Cata: 40402
-## Interface-Classic: 11507
+## Interface: 110107, 50500, 40402, 11507
 ## Title: FarmHud
 ## Version: @project-version@
 
