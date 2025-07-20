@@ -89,8 +89,8 @@ function FarmHudRangeCirclesMixin:Update(...)
 		self:SetPoint("CENTER")
 	end
 
-	local s = min(_G["Minimap"]:GetSize());
-	self:SetSize(s*4,s*4); -- frame is scaled to 0.25. size must be multiplied. makes the lines a little bit smoother.
+	local s = min(_G[self.currentParent]:GetSize());
+	self:SetSize(s,s);
 
 	local force = false;
 	if self.lastSize ~= Minimap:GetWidth() then
@@ -487,7 +487,7 @@ function FarmHudCircleLineMixin:UpdateDraw(force)
 		-- update line thickness
 		if updateThickness or forceUpdate then
 			-- the line is 4 times thicker than visible because the parent frame is scaled down to 25% to get a smoother line.
-			circleLine:SetThickness(4*self.info.thickness)
+			circleLine:SetThickness(self.info.thickness)
 			circleLine.info.thickness = self.info.thickness;
 		end
 		-- update color of circle

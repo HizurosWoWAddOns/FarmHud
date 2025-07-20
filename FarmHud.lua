@@ -822,7 +822,7 @@ function FarmHudMixin:OnShow()
 	end
 
 	-- move and change minimap for FarmHud
-	Minimap:Hide();
+	MinimapMT.Hide(Minimap);
 	MinimapMT.SetParent(Minimap,FarmHud);
 	MinimapSetAllPoints()
 	MinimapMT.SetFrameStrata(Minimap,"BACKGROUND");
@@ -884,7 +884,7 @@ function FarmHudMixin:OnShow()
 
 	ns.modules("OnShow",true)
 
-	Minimap:Show();
+	MinimapMT.Show(Minimap);
 end
 
 function FarmHudMixin:OnHide()

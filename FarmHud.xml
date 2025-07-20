@@ -82,7 +82,7 @@
 		</Anchors>
 	</Frame>
 
-	<Frame name="FarmHudRangeCircles" mixin="FarmHudRangeCirclesMixin" scale=".25" setallpoints="true" />
+	<Frame name="FarmHudRangeCircles" mixin="FarmHudRangeCirclesMixin" />
 
 	<Frame name="FarmHud" parent="UIParent" mixin="FarmHudMixin" frameStrata="BACKGROUND" alpha="1" hidden="true">
 		<Size x="140" y="140"/>

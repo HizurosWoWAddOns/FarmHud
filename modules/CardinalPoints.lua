@@ -29,7 +29,7 @@ local function CardinalPointsUpdate_TickerFunc()
 		if FarmHudDB.cardinalpoints_gathercircle_pos=="inside" then
 			distance = -distance;
 		end
-		scaledRadius = radius*0.179375 + distance;
+		scaledRadius = radius * 0.725 + distance;
 	else
 		scaledRadius = FarmHud.TextFrame.ScaledHeight * FarmHudDB.cardinalpoints_radius;
 	end
