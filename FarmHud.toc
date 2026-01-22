@@ -1,4 +1,4 @@
-## Interface: 110200, 50500, 11507
+## Interface: 120001, 120000, 50503, 38000, 20505, 11508
 ## Title: FarmHud
 ## Version: @project-version@
 
