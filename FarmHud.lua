@@ -365,6 +365,7 @@ local function objectToDummy(object,enable,debugStr)
 
 	-- == ignore == --
 	if (HBDPins and HBDPins.minimapPins[object]) -- ignore herebedragons pins
+	or (_G["GatherMate2"] and objName:match("GatherMatePin")) -- ignore Gathermate2Pins
 	or objType=="Line" -- ignore object type "Line"
 	or (ignoreFrames[objName])
 	then
@@ -590,7 +591,6 @@ end
 
 function FarmHudMixin:UpdateForeignAddOns(state)
 	local Map = state and self.cluster or Minimap;
-
 	if _G["GatherMate2"] then
 		_G["GatherMate2"]:GetModule("Display"):ReparentMinimapPins(Map);
 	end
