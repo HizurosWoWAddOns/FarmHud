@@ -13,6 +13,15 @@ Turn your minimap into a hud for farming ore / herb.
 
 ![FarmHud Screenshot1](./.github/media/farmhud1.jpg) ![FarmHud Screenshot2](./.github/media/farmhud2.jpg)
 
+## WARNING: ADDON_ACTION_FORBIDDIN with Midnight
+Unfortunately, I have to disable the ping function for FarmHud, and it will remain disabled until /reload is executed.
+
+The reason: The PingLocation function is now a protected function. Unfortunately, I currently see no other way to prevent ADDON_ACTION_FORBIDDEN.
+
+__Classic clients are not currently affected.__
+
+**I'm currently frustrated and angry with Blizzard. Not a good state to be in when contacting Blizzard.**
+
 ## Minimap / Nodes / FarmHud
 Blizzard has designed the Minimap element as All-in-One (Terrain texture + Nodes).
 It could not be separated. It could not be copied. Minimap and FarmHud can't be displayed at the same time.

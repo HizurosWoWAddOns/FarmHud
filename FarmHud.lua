@@ -741,14 +741,19 @@ function FarmHudMixin:OnShow()
 
 
 	-- cache script entries
-	local OnMouseUp = Minimap:GetScript("OnMouseUp");
-	local OnMouseDown = Minimap:GetScript("OnMouseDown");
-	if OnMouseDown and OnMouseUp==nil then -- for ElvUI. They added to OnMouseUp a dummy function and using OnMouseDown instead.
-		mps.OnMouseDown = OnMouseDown;
-		MinimapMT.SetScript(Minimap,"OnMouseDown",Minimap_OnClick);
-	elseif OnMouseUp~=Minimap_OnClick then
-		mps.OnMouseUp = OnMouseUp;
-		MinimapMT.SetScript(Minimap,"OnMouseUp",Minimap_OnClick);
+	if WOW_PROJECT_ID==WOW_PROJECT_MAINLINE then
+		MinimapMT.SetScript(Minimap,"OnMouseUp",nil);
+	else
+		local OnMouseUp = Minimap:GetScript("OnMouseUp");
+		local OnMouseDown = Minimap:GetScript("OnMouseDown");
+
+		if OnMouseDown and OnMouseUp==nil then -- for ElvUI. They added to OnMouseUp a dummy function and using OnMouseDown instead.
+			mps.OnMouseDown = OnMouseDown;
+			MinimapMT.SetScript(Minimap,"OnMouseDown",Minimap_OnClick);
+		elseif OnMouseUp~=Minimap_OnClick then
+			mps.OnMouseUp = OnMouseUp;
+			MinimapMT.SetScript(Minimap,"OnMouseUp",Minimap_OnClick);
+		end
 	end
 	for name, todo in pairs(minimapScripts)do
 		local fnc
