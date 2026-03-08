@@ -234,9 +234,10 @@ local function TrackingTypes_Update(bool, id)
 		end
 
 		if bool==false and mps.minimapTrackedInfov3 then
-			-- try to restore on close. blizzard changing it outside the lua code area.
+			-- Restore minimap tracked info (quest areas, POI, etc.) on close. Blizzard can change it outside Lua.
 			mTI = mps.minimapTrackedInfov3>0 and mps.minimapTrackedInfov3 or 1006319;
-			C_Timer.After(0.314159,function() C_CVar.SetCVar("minimapTrackedInfov3",mTI) end);
+			C_CVar.SetCVar("minimapTrackedInfov3", mTI);
+			C_Timer.After(0.314159, function() C_CVar.SetCVar("minimapTrackedInfov3", mTI) end);
 		end
 
 		return;
@@ -1243,12 +1244,12 @@ function FarmHudMixin:OnLoad()
 	end
 
 	if not ns.IsClassic() then
-		local function hookSetTracking(index,bool)
-			if not trackingHookLocked and FarmHud:IsVisible() and trackingTypesStates[index]~=nil then
-				trackingTypesStates[index]=nil;
-			end
-		end
-		hooksecurefunc(C_Minimap,"SetTracking",hookSetTracking);
+		-- Do NOT clear trackingTypesStates when the game or other addons call SetTracking.
+		-- Clearing caused overridden tracking (e.g. quest area) to never be restored on hide,
+		-- and caused tracking options to "drop" (e.g. mining suddenly disabled).
+		-- We always restore saved state on FarmHud hide so the real minimap matches pre-show state.
+		-- (If the user changes tracking via Blizzard UI while FarmHud is open, we will overwrite
+		-- that on hide; that is acceptable to avoid broken quest areas and dropped tracking.)
 	end
 
 	function self.cluster:GetZoom()
