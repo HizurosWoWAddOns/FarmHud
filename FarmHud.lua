@@ -8,10 +8,12 @@ local ACD = LibStub("AceConfigDialog-3.0");
 local HBDPins = LibStub("HereBeDragons-Pins-2.0")
 
 FarmHudMixin = {};
+FarmHudWarningMixin = {};
 
 local _G,type,wipe,tinsert,unpack,tostring,C_Map = _G,type,wipe,table.insert,unpack,tostring,C_Map;
 local Minimap_OnClick = (MinimapMixin and MinimapMixin.Onclick) or Minimap_OnClick; -- TODO: check it - needed for classic 1.15 / wotlk 3.4.3
 local Minimap_UpdateRotationSetting = Minimap_UpdateRotationSetting or function() end -- TODO: check it - need for classic 1.15 / wotlk 3.4.3
+local isPingLocationForbidden = WOW_PROJECT_ID==WOW_PROJECT_MAINLINE;
 
 ns.QuestArrowToken = {};
 local LibHijackMinimap_Token,LibHijackMinimap,_ = {},nil,nil;
@@ -666,6 +668,10 @@ do
 end
 
 local function Minimap_OnClick(self)
+	if isPingLocationForbidden then
+		FarmHudWarning:Show();
+		return;
+	end
 	-- Copy of Minimap_OnClick. Require for replaced functions GetCenter and GetEffectiveScale
 	local x, y = GetCursorPosition();
 	local s, X,Y = MinimapMT.GetEffectiveScale(Minimap)
@@ -707,6 +713,17 @@ function MinimapSetAllPoints(try)
 	end
 end
 
+function FarmHudWarningMixin:OnLoad()
+end
+
+function FarmHudWarningMixin:OnShow()
+	self.Text:SetText(L["PingLocationForbidden"])
+	C_Timer.After(7,function() self:Hide() end)
+end
+
+function FarmHudWarningMixin:OnHide()
+end
+
 function FarmHudMixin:OnShow()
 	trackEnableMouse = true;
 
@@ -741,19 +758,15 @@ function FarmHudMixin:OnShow()
 
 
 	-- cache script entries
-	if WOW_PROJECT_ID==WOW_PROJECT_MAINLINE then
-		MinimapMT.SetScript(Minimap,"OnMouseUp",nil);
-	else
-		local OnMouseUp = Minimap:GetScript("OnMouseUp");
-		local OnMouseDown = Minimap:GetScript("OnMouseDown");
+	local OnMouseUp = Minimap:GetScript("OnMouseUp");
+	local OnMouseDown = Minimap:GetScript("OnMouseDown");
 
-		if OnMouseDown and OnMouseUp==nil then -- for ElvUI. They added to OnMouseUp a dummy function and using OnMouseDown instead.
-			mps.OnMouseDown = OnMouseDown;
-			MinimapMT.SetScript(Minimap,"OnMouseDown",Minimap_OnClick);
-		elseif OnMouseUp~=Minimap_OnClick then
-			mps.OnMouseUp = OnMouseUp;
-			MinimapMT.SetScript(Minimap,"OnMouseUp",Minimap_OnClick);
-		end
+	if OnMouseDown and OnMouseUp==nil then -- for ElvUI. They added to OnMouseUp a dummy function and using OnMouseDown instead.
+		mps.OnMouseDown = OnMouseDown;
+		MinimapMT.SetScript(Minimap,"OnMouseDown",Minimap_OnClick);
+	elseif OnMouseUp~=Minimap_OnClick then
+		mps.OnMouseUp = OnMouseUp;
+		MinimapMT.SetScript(Minimap,"OnMouseUp",Minimap_OnClick);
 	end
 	for name, todo in pairs(minimapScripts)do
 		local fnc
@@ -923,13 +936,17 @@ function FarmHudMixin:OnHide()
 	self.cluster:Hide();
 
 	if mps.OnMouseDown and Minimap:GetScript("OnMouseDown")==nil then
-		MinimapMT.SetScript(Minimap,"OnMouseUp",mps.OnMouseUp);
-		MinimapMT.SetScript(Minimap,"OnMouseDown",mps.OnMouseDown);
+		if not isPingLocationForbidden then
+			MinimapMT.SetScript(Minimap,"OnMouseUp",mps.OnMouseUp);
+			MinimapMT.SetScript(Minimap,"OnMouseDown",mps.OnMouseDown);
+		end
 		FarmHudMinimapDummy:SetScript("OnMouseUp",nil);
 		FarmHudMinimapDummy:SetScript("OnMouseDown",nil);
 		FarmHudMinimapDummy:EnableMouse(false);
 	elseif mps.OnMouseUp then
-		MinimapMT.SetScript(Minimap,"OnMouseUp",mps.OnMouseUp);
+		if not isPingLocationForbidden then
+			MinimapMT.SetScript(Minimap,"OnMouseUp",mps.OnMouseUp);
+		end
 		FarmHudMinimapDummy:SetScript("OnMouseUp",nil);
 		FarmHudMinimapDummy:EnableMouse(false);
 	end
