@@ -84,7 +84,7 @@
 
 	<Frame name="FarmHudRangeCircles" mixin="FarmHudRangeCirclesMixin" />
 
-	<Frame name="FarmHudWarning" parent="MinimapCluster" mixin="FarmHudWarningMixin" inherits="GlowBoxTemplate" frameStrata="TOOLTIP" toplevel="true"> <!-- hidden="true" -->
+	<Frame name="FarmHudWarning" parent="MinimapCluster" mixin="FarmHudWarningMixin" inherits="GlowBoxTemplate" frameStrata="TOOLTIP" toplevel="true" hidden="true">
 		<Size x="220" y="100" />
 		<Anchors>
 			<Anchor point="TOP" x="10" y="0" />
