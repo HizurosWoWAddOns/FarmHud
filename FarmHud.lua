@@ -14,6 +14,7 @@ local _G,type,wipe,tinsert,unpack,tostring,C_Map = _G,type,wipe,table.insert,unp
 local Minimap_OnClick = (MinimapMixin and MinimapMixin.Onclick) or Minimap_OnClick; -- TODO: check it - needed for classic 1.15 / wotlk 3.4.3
 local Minimap_UpdateRotationSetting = Minimap_UpdateRotationSetting or function() end -- TODO: check it - need for classic 1.15 / wotlk 3.4.3
 local isPingLocationForbidden = WOW_PROJECT_ID==WOW_PROJECT_MAINLINE;
+local minimapTrackedInfoIsSecure = false;
 
 ns.QuestArrowToken = {};
 local LibHijackMinimap_Token,LibHijackMinimap,_ = {},nil,nil;
@@ -28,7 +29,7 @@ local knownProblematicAddOns, knownProblematicAddOnsDetected = {BasicMinimap=tru
 local SetPointToken,SetParentToken = {},{};
 local trackingTypes,trackingTypesStates,numTrackingTypes,trackingHookLocked = {},{},0,false;
 local MinimapFunctionHijacked --= {"SetParent","ClearAllPoints","SetAllPoints","GetPoint","GetNumPoints"};
-local rotationMode,mTI
+local rotationMode
 local foreignObjects = {}
 local anchoredFrames = { -- frames there aren't childs of minimap but anchored it.
 	-- <name[string]> - Could be a path from _G delimited by dots.
@@ -127,7 +128,6 @@ ns.modules = setmetatable({},{
 		end
 	end,
 	__call = function(t,arg1,...)
-		ns:debug("<nsModulesCall>",arg1)
 		for modName,mod in pairs(t)do
 			local modObj = mod[arg1];
 			if modObj then
@@ -137,14 +137,12 @@ ns.modules = setmetatable({},{
 				elseif objType=="string" and type(mod[modObj])=="function" then
 					mod[modObj](...);
 				elseif objType=="table" then
-					ns:debug("<nsModulesCall>",arg1,objType,modObj.frame)
 					local frame = type(modObj.frame)=="string" and (_G[modObj.frame] or FarmHud[modObj.frame]) or false;
 					if frame and frame.GetObjectType and frame:GetObjectType()=="Frame" and frame[modObj.func] then
 						frame[modObj.func](frame,...)
 					end
 				end
 			elseif arg1=="Event" and mod[arg1] then
-				ns:debug("<nsModulesCall>",arg1)
 				mod[arg1](FarmHud,arg1,...);
 			end
 		end
@@ -235,10 +233,27 @@ local function TrackingTypes_Update(bool, id)
 			end
 		end
 
-		if bool==false and mps.minimapTrackedInfov3 then
+		if bool and not minimapTrackedInfoIsSecure then
+			if C_CVar and C_CVar.GetCVarInfo then
+				-- test current used cvar value. blizzard has renamed minimapTrackedInfov%d other the time. (v2,v3,v4)
+				for i=10, 3, -1 do
+					local info = {}; info.value,info.defaultValue,info.isStoredServerAccount,info.isStoredServerCharacter,info.isLockedFromUser,info.isSecure,info.isReadOnly = C_CVar.GetCVarInfo("minimapTrackedInfov"..i)
+					if info then
+						if info.isSecure then
+							minimapTrackedInfoIsSecure = true;
+						elseif info.defaultValue then
+							mps.minimapTrackedInfo = { value=tonumber(info.value or info.defaultValue) or 0, version=i };
+						end
+						break;
+					end
+				end
+
+			end
+		elseif not bool and mps.minimapTrackedInfo then
 			-- try to restore on close. blizzard changing it outside the lua code area.
-			mTI = mps.minimapTrackedInfov3>0 and mps.minimapTrackedInfov3 or 1006319;
-			C_Timer.After(0.314159,function() C_CVar.SetCVar("minimapTrackedInfov3",mTI) end);
+			local mTI = mps.minimapTrackedInfo;
+			C_CVar.SetCVar("minimapTrackedInfov"..mTI.version,mTI.value);
+			C_Timer.After(0.314159,function() C_CVar.SetCVar("minimapTrackedInfov"..mTI.version,mTI.value) end);
 		end
 
 		return;
@@ -690,7 +705,6 @@ end
 local MinimapSetAllPoints;
 function MinimapSetAllPoints(try)
 	-- sometimes SetPoint produce error "because[SetPoint would result in anchor family connection]"
-	ns:debug("<MinimapSetAllPoints>",tostring(try))
 	if try==nil then
 		for i=1, 3 do
 			local retOK,ret1 = pcall(MinimapSetAllPoints,i);
@@ -754,8 +768,6 @@ function FarmHudMixin:OnShow()
 	mps.mousewheel = Minimap:IsMouseWheelEnabled();
 	mps.alpha = Minimap:GetAlpha();
 	mps.backdropMouse = MinimapBackdrop:IsMouseEnabled();
-	mps.minimapTrackedInfov3 = tonumber(GetCVar("minimapTrackedInfov3"));
-
 
 	-- cache script entries
 	local OnMouseUp = Minimap:GetScript("OnMouseUp");
