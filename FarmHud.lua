@@ -535,13 +535,21 @@ end
 FarmHudMinimapDummyMixin = {}
 
 function FarmHudMinimapDummyMixin:OnMouseUp()
-	if type(mps.OnMouseUp)~="function" then return end
+	if type(mps.OnMouseUp)~="function" then
+		return;
+	end
+	if 	(mps.OnMouseUp==_G.Minimap_OnClick or mps.OnMouseUp==Minimap.OnClick) and isPingLocationForbidden then
+		return;
+	end
 	mps.OnMouseUp(self);
 end
 
 function FarmHudMinimapDummyMixin:OnMouseDown()
 	if type(mps.OnMouseDown)~="function" and not type(mps.OnMouseUp)~="function" then
 		return -- Ignore OnMouseDown of OnMouseUp present
+	end
+	if 	(mps.OnMouseDown==_G.Minimap_OnClick or mps.OnMouseDown==Minimap.OnClick) and isPingLocationForbidden then
+		return;
 	end
 	mps.OnMouseDown(self);
 end
