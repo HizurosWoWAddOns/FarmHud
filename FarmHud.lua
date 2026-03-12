@@ -1274,7 +1274,7 @@ function FarmHudMixin:OnLoad()
 	if not ns.IsClassic() then
 		local function hookSetTracking(index,bool)
 			if not trackingHookLocked and FarmHud:IsVisible() and trackingTypesStates[index]~=nil then
-				trackingTypesStates[index]=nil;
+				trackingTypesStates[index]=bool;
 			end
 		end
 		hooksecurefunc(C_Minimap,"SetTracking",hookSetTracking);
