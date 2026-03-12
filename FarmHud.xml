@@ -84,6 +84,99 @@
 
 	<Frame name="FarmHudRangeCircles" mixin="FarmHudRangeCirclesMixin" />
 
+	<Frame name="FarmHudWarning" parent="MinimapCluster" mixin="FarmHudWarningMixin" inherits="GlowBoxTemplate" frameStrata="TOOLTIP" toplevel="true"> <!-- hidden="true" -->
+		<Size x="220" y="100" />
+		<Anchors>
+			<Anchor point="TOP" x="10" y="0" />
+		</Anchors>
+		<Layers>
+			<Layer level="OVERLAY">
+				<FontString parentKey="Header" inherits="GameFontNormalLarge" text="FarmHud">
+					<Size x="200" y="0"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="8" y="-6"/>
+						<Anchor point="RIGHT" y="-8"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Text" inherits="GameFontHighlightMedium">
+					<Size x="200" y="0"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Header" relativePoint="BOTTOMLEFT" x="8" y="-6"/>
+						<Anchor point="RIGHT" x="-8" y="-12"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame parentKey="Arrow" inherits="GlowBoxArrowTemplate">
+				<Anchors>
+					<Anchor point="TOP" relativePoint="BOTTOM" y="4"/>
+				</Anchors>
+			</Frame>
+		</Frames>
+		<Scripts>
+			<OnLoad method="OnLoad" />
+			<OnShow method="OnShow" />
+		</Scripts>
+	</Frame>
+		<Frame name="MicroButtonAlertTemplateopoj" inherits="GlowBoxTemplate" parent="UIParent" enableMouse="true" hidden="true" frameStrata="DIALOG" frameLevel="2" toplevel="true" virtual="true">
+		<Size x="220" y="100"/>
+		<!--KeyValues>
+			Optional
+			<KeyValue key="label" value="DISPLAY_STRING" type="global"/>
+			<KeyValue key="tutorialIndex" value="LE_FRAME_TUTORIAL_X" type="global"/>
+		</KeyValues-->
+		<Layers>
+			<Layer level="OVERLAY">
+				<FontString parentKey="Text" inherits="GameFontHighlightLeft" justifyV="TOP">
+					<Size x="188" y="0"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="16" y="-24"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Button parentKey="CloseButton" inherits="UIPanelCloseButton">
+				<Anchors>
+					<Anchor point="TOPRIGHT" x="6" y="6"/>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						self:GetParent():Hide();
+						--local tutIdx = self:GetParent().tutorialIndex;
+						--if ( tutIdx ) then
+						--SetCVarBitfield("closedInfoFrames", tutIdx, true);
+						--end
+					</OnClick>
+				</Scripts>
+			</Button>
+			<Frame parentKey="Arrow" inherits="GlowBoxArrowTemplate">
+				<Anchors>
+					<Anchor point="TOP" relativePoint="BOTTOM" y="4"/>
+				</Anchors>
+			</Frame>
+		</Frames>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
+		</Scripts>
+	</Frame>
+
+<!--
+			FarmHudWarningFrame = CreateFrame("Frame",nil,MinimapCluster,"");
+			FarmHudWarningFrame:SetPoint("TOP",MinimapCluster,"BOTTOM");
+			FarmHudWarningFrame:SetSize(200,50);
+			FarmHudWarningFrame.Bg = FarmHudWarningFrame:CreateTexture(nil,"BACKGROUND")
+			FarmHudWarningFrame.Bg:SetAllPoints();
+			FarmHudWarningFrame.Bg:SetVertexColor(0,0,0,.75)
+			FarmHudWarningFrame.Text = FarmHudWarningFrame:CreateFontString(nil,"ARTWORK","GameFontNormal")
+			FarmHudWarningFrame.Text:SetText(L["PingLocationForbiddin"])
+
+-->
+
+
 	<Frame name="FarmHud" parent="UIParent" mixin="FarmHudMixin" frameStrata="BACKGROUND" alpha="1" hidden="true">
 		<Size x="140" y="140"/>
 		<Anchors>
