@@ -238,6 +238,7 @@ local function TrackingTypes_Update(bool, id)
 			mTI = mps.minimapTrackedInfov3>0 and mps.minimapTrackedInfov3 or 1006319;
 			C_CVar.SetCVar("minimapTrackedInfov3", mTI);
 			C_Timer.After(0.314159, function() C_CVar.SetCVar("minimapTrackedInfov3", mTI) end);
+			C_Timer.After(1.5, function() C_CVar.SetCVar("minimapTrackedInfov3", mTI) end);
 		end
 
 		return;
@@ -245,21 +246,22 @@ local function TrackingTypes_Update(bool, id)
 	local key,data = "tracking^"..id,trackingTypes[id];
 	local info = C_Minimap.GetTrackingInfo(data.index) or {};
 	trackingHookLocked = true;
+	-- Key by texture id (id), not index: Blizzard can change tracking order (e.g. zone/quest), so index at hide may differ from show.
 	if bool then
 		if FarmHudDB[key]=="client" then
-			if trackingTypesStates[data.index]~=nil then
-				C_Minimap.SetTracking(data.index,trackingTypesStates[data.index]);
-				trackingTypesStates[data.index] = nil;
+			if trackingTypesStates[id]~=nil then
+				C_Minimap.SetTracking(data.index,trackingTypesStates[id]);
+				trackingTypesStates[id] = nil;
 			end
 		elseif FarmHudDB[key]~=tostring(info.active) then
-			if trackingTypesStates[data.index]==nil then
-				trackingTypesStates[data.index] = info.active;
+			if trackingTypesStates[id]==nil then
+				trackingTypesStates[id] = info.active;
 			end
 			C_Minimap.SetTracking(data.index,FarmHudDB[key]=="true");
 		end
-	elseif not bool and trackingTypesStates[data.index]~=nil then
-		C_Minimap.SetTracking(data.index,trackingTypesStates[data.index]);
-		trackingTypesStates[data.index] = nil;
+	elseif not bool and trackingTypesStates[id]~=nil then
+		C_Minimap.SetTracking(data.index,trackingTypesStates[id]);
+		trackingTypesStates[id] = nil;
 	end
 	trackingHookLocked = false;
 end
