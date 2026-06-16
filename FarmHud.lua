@@ -682,8 +682,6 @@ do
 			rotationMode = FarmHudDB.rotation and "1" or "0";
 			C_CVar.SetCVar("rotateMinimap", rotationMode);
 			Minimap_UpdateRotationSetting();
-		elseif IsKey(key,"SuperTrackedQuest") and FarmHud_ToggleSuperTrackedQuest and FarmHud:IsShown() then
-			FarmHud_ToggleSuperTrackedQuest(ns.QuestArrowToken,FarmHudDB.SuperTrackedQuest);
 		elseif IsKey(key,"hud_size") then
 			FarmHud:SetScales();
 		end
@@ -904,10 +902,6 @@ function FarmHudMixin:OnShow()
 		Minimap[k] = v;
 	end
 
-	if FarmHud_ToggleSuperTrackedQuest and FarmHudDB.SuperTrackedQuest then
-		FarmHud_ToggleSuperTrackedQuest(ns.QuestArrowToken,true); -- FarmHud_QuestArrow
-	end
-
 	SetPlayerDotTexture(true);
 	TrackingTypes_Update(true);
 
@@ -1021,10 +1015,6 @@ function FarmHudMixin:OnHide()
 	local maxLevels = Minimap:GetZoomLevels();
 	if mps.zoom>maxLevels then mps.zoom = maxLevels; end
 	MinimapMT.SetZoom(Minimap,mps.zoom);
-
-	if FarmHud_ToggleSuperTrackedQuest and FarmHudDB.SuperTrackedQuest then
-		FarmHud_ToggleSuperTrackedQuest(ns.QuestArrowToken,false); -- FarmHud_QuestArrow
-	end
 
 	ns.modules("OnHide");
 

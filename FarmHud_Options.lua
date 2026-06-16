@@ -22,7 +22,7 @@ local dbDefaults = {
 	time_show=true, time_server=true, time_local=true, time_radius = 0.48, time_bottom=false, time_color={1,0.82,0,0.7},
 	mouseoverinfo_color={1,0.82,0,0.7},
 	player_dot="blizz", holdKeyForMouseOn = "_none",
-	rotation=true, SuperTrackedQuest = true, showDummy = true, showDummyBg = true,
+	rotation=true, showDummy = true, showDummyBg = true,
 	QuestArrowInfoMsg = false,
 	hideInInstance=false, hideInCombat=false,
 	background_alpha=0, background_alpha2=0.5, background_alpha_toggle=true, background_alpha_default=true,
@@ -30,11 +30,6 @@ local dbDefaults = {
 local modDB = {};
 local excludeFrames = {}
 local isAddOnsLoadedForOption = {
-	SuperTrackedQuest = {
-		addon="FarmHud_QuestArrow",
-		descLoaded=GREEN_FONT_COLOR_CODE..L["ExtraAddOnLoaded"]:format("FarmHud [QuestArrow]").."|r",
-		descNotLoaded=ORANGE_FONT_COLOR_CODE..L["ExtraAddOnNotLoaded"]:format("FarmHud [QuestArrow]").."|r"
-	}
 }
 
 local function printFrames(key,value)
