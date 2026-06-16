@@ -308,25 +308,6 @@ local options = {
 				}
 			}
 		},
-		SuperTrackedQuest = {
-			type = "group", order = 1,
-			name = L["QuestArrow"],
-			args = {
-				desc = {
-					type = "description", order=1, fontSize="medium",
-					name = checkAddOnLoaded,-- ({"SuperTrackedQuest","desc"}),
-				},
-				SuperTrackedQuest = {
-					type = "toggle", order = 2, width = "full",
-					name = L["QuestArrowHide"], --desc = L["QuestArrowHideDesc"],
-					disabled = checkAddOnLoaded
-				},
-				QuestArrowInfoMsg = {
-					type = "toggle", order = 3, width = "full",
-					name = L["QuestArrowInfoMsg"], desc = L["QuestArrowInfoMsgDesc"]
-				}
-			}
-		},
 		rangecircles_old = {
 			type = "group", order = 2, hidden=true,
 			name = L["RangeCircles"],
