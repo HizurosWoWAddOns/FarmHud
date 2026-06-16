@@ -196,7 +196,17 @@ local options = {
 				player_dot = {
 					type = "select", order = 15,
 					name = L["PlayerDot"], desc = L["PlayerDotDesc"],
-					values = playerDot_textures
+					values = playerDot_textures,
+					hidden = function()
+						return ns.sickMove1
+					end
+				},
+				player_dot_sickMove = {
+					type "desciption", order=15, width="normal",
+					name = L["PlayerDotNoLongerChangable"],
+					hidden = function()
+						return not ns.sickMove1
+					end
 				},
 				autohide = {
 					type="group", order = 20, inline=true,

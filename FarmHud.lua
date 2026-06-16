@@ -170,7 +170,10 @@ local function SetPlayerDotTexture(bool) -- executed by FarmHud:UpdateOptions(),
 	if FarmHudDB.player_dot=="blizz" or not bool then
 		tex = playerDot_custom or playerDot_orig;
 	end
-	MinimapMT.SetPlayerTexture(Minimap,tex);
+	if MinimapMT.SetPlayerTexture then
+		-- 12.0.7 - no longer able to change the player texture on minimap.
+		MinimapMT.SetPlayerTexture(Minimap,tex);
+	end
 end
 
 -- continent id of map id
@@ -1219,12 +1222,16 @@ function FarmHudMixin:OnLoad()
 
 	self:RegisterForeignAddOnObject(Minimap,addon);
 
-	hooksecurefunc(Minimap,"SetPlayerTexture",function(_,texture)
-		if FarmHud:IsVisible() then
-			playerDot_custom = texture;
-			SetPlayerDotTexture(true);
-		end
-	end);
+	if Minimap.SetPlayerTexture then
+		hooksecurefunc(Minimap,"SetPlayerTexture",function(_,texture)
+			if FarmHud:IsVisible() then
+				playerDot_custom = texture;
+				SetPlayerDotTexture(true);
+			end
+		end);
+	else
+		ns.sickMove1 = true
+	end
 
 	hooksecurefunc(Minimap,"SetZoom",function(_,level)
 		if FarmHud:IsVisible() and level~=0 then
