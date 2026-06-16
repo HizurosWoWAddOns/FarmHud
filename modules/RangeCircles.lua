@@ -39,8 +39,10 @@ local function UpdateCircle(parent,circleType,index,force)
 			scale = gcScale[1];
 			if currentContinent==1978 then
 				scale = gcScale[2];
-			elseif currentContinent>=2274 then
+			elseif currentContinent>=2274 and currentContinent<=2393 then -- tww & silvermoon city
 				scale = gcScale[3];
+			elseif currentContinent>2393 then
+				scale = gcScale[2];
 			end
 		elseif index==2 then
 			scale = hcScale;
