@@ -1270,12 +1270,11 @@ function FarmHudMixin:OnLoad()
 	end
 
 	if not ns.IsClassic() then
-		local function hookSetTracking(index,bool)
+		hooksecurefunc(C_Minimap,"SetTracking",function(index,bool)
 			if not trackingHookLocked and FarmHud:IsVisible() and trackingTypesStates[index]~=nil then
 				trackingTypesStates[index]=bool;
 			end
-		end
-		hooksecurefunc(C_Minimap,"SetTracking",hookSetTracking);
+		end);
 	end
 
 	function self.cluster:GetZoom()
