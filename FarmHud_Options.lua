@@ -202,7 +202,7 @@ local options = {
 					end
 				},
 				player_dot_sickMove = {
-					type "desciption", order=15, width="normal",
+					type = "description", order=15, width="normal",
 					name = L["PlayerDotNoLongerChangable"],
 					hidden = function()
 						return not ns.sickMove1
