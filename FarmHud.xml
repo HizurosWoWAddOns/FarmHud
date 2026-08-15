@@ -12,6 +12,7 @@
 	<Script file="modules/CardinalPoints.lua"/>
 	<Script file="modules/TrailPath.lua"/>
 	<Script file="modules/RangeCircles.lua" />
+	<Script file="modules/TomTom.lua" />
 
 	<FontString name="FarmHudFont" inherits="SystemFont_Small2" outline="THICK" hidden="true" virtual="true">
 		<Shadow>
