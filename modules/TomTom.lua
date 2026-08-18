@@ -1,3 +1,6 @@
+
+-- module created by Mayron@github.
+
 local _, ns = ...;
 local L = ns.L;
 
@@ -17,7 +20,7 @@ local function IsTomTomAvailable()
 end
 
 local function InstallShowHook()
-	if hookInstalled or not _G.TomTomCrazyArrow then
+	if not _G.TomTomCrazyArrow then
 		return;
 	end
 	hooksecurefunc(_G.TomTomCrazyArrow, "Show", function(self)
@@ -25,7 +28,6 @@ local function InstallShowHook()
 			self:Hide();
 		end
 	end);
-	hookInstalled = true;
 end
 
 local function SetSuppressed(state)
@@ -33,7 +35,10 @@ local function SetSuppressed(state)
 		return;
 	end
 
-	InstallShowHook();
+	if InstallShowHook then
+		InstallShowHook();
+		InstallShowHook = nil
+	end
 	suppressArrow = state;
 
 	if state then
@@ -45,10 +50,6 @@ end
 
 local function ShouldSuppress()
 	return FarmHudDB.hideTomTomArrow and IsTomTomAvailable();
-end
-
-local function ApplySuppression()
-	SetSuppressed(ShouldSuppress());
 end
 
 function module.OnShow()
@@ -65,12 +66,14 @@ end
 
 function module.UpdateOptions(key)
 	if key == "hideTomTomArrow" then
-		ApplySuppression();
+		SetSuppressed(ShouldSuppress());
 	end
 end
 
-function module.events.ADDON_LOADED(loadedAddon)
-	if loadedAddon == "TomTom" and FarmHud:IsShown() and FarmHudDB.hideTomTomArrow then
+function module.events.ADDON_LOADED(eventFrame,loadedAddon)
+	if loadedAddon ~= "TomTom" then return end
+	eventFrame:UnregisterEvent("ADDON_LOADED")
+	if FarmHud:IsShown() and FarmHudDB.hideTomTomArrow then
 		SetSuppressed(true);
 	end
 end
@@ -84,30 +87,28 @@ local function opt(info, value)
 	return FarmHudDB[key];
 end
 
-local options = {
-	integrations = {
-		type = "group",
-		order = 98,
-		name = "TomTom",
-		hidden = function()
-			return not IsTomTomAvailable();
-		end,
-		get = opt,
-		set = opt,
-		args = {
-			hideTomTomArrow = {
-				type = "toggle",
-				order = 1,
-				width = "full",
-				name = L["HideTomTomArrow"],
-				desc = L["HideTomTomArrowDesc"],
+function module.AddOptions()
+	return {
+		tomtom_integrations = {
+			type = "group",
+			order = 98,
+			name = "TomTom",
+			hidden = function()
+				return not IsTomTomAvailable();
+			end,
+			get = opt,
+			set = opt,
+			args = {
+				hideTomTomArrow = {
+					type = "toggle",
+					order = 1,
+					width = "full",
+					name = L["TomTomHideArrow"],
+					desc = L["TomTomHideArrowDesc"],
+				},
 			},
 		},
-	},
-};
-
-function module.AddOptions()
-	return options;
+	}
 end
 
 ns.modules["TomTomIntegration"] = module;
