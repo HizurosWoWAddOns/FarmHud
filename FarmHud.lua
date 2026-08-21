@@ -15,7 +15,18 @@ local Minimap_OnClick = (MinimapMixin and MinimapMixin.Onclick) or Minimap_OnCli
 local Minimap_UpdateRotationSetting = Minimap_UpdateRotationSetting or function() end -- TODO: check it - need for classic 1.15 / wotlk 3.4.3
 local isPingLocationForbidden = WOW_PROJECT_ID==WOW_PROJECT_MAINLINE;
 local minimapTrackedInfoIsSecure = false;
-
+local strata = {
+	-- https://warcraft.wiki.gg/wiki/Frame_Strata
+	--   WORLD [reserved]
+	L1 = "BACKGROUND",
+	L2 = "LOW",
+	L3 = "MEDIUM",
+	L4 = "HIGH",
+	L5 = "DIALOG",
+	L6 = "FULLSCREEN",
+	L7 = "FULLSCREEN_DIALOG",
+	L8 = "TOOLTIP"
+}
 ns.QuestArrowToken = {};
 local LibHijackMinimap_Token,LibHijackMinimap,_ = {},nil,nil;
 local media = "Interface\\AddOns\\"..addon.."\\media\\";
@@ -676,6 +687,9 @@ do
 			FarmHudMinimapDummy:SetShown(FarmHudDB.showDummy);
 		elseif IsKey(key,"showDummyBg") then
 			FarmHudMinimapDummy.bg:SetShown(FarmHudDB.showDummyBg and (not HybridMinimap or (HybridMinimap and not HybridMinimap:IsShown())) );
+		elseif IsKey(key,"strata") then
+			MinimapMT.SetFrameStrata(Minimap,strata[FarmHudDB.strata]);
+			MinimapMT.SetFrameStrata(self,strata[FarmHudDB.strata]);
 		elseif key:find("tracking^%d+") and not ns.IsClassic() then
 			local id = tonumber((key:match("^tracking%^(%d+)$")));
 			if id then
@@ -864,7 +878,8 @@ function FarmHudMixin:OnShow()
 	MinimapMT.Hide(Minimap);
 	MinimapMT.SetParent(Minimap,FarmHud);
 	MinimapSetAllPoints()
-	MinimapMT.SetFrameStrata(Minimap,"BACKGROUND");
+	MinimapMT.SetFrameStrata(Minimap,strata[FarmHudDB.strata]);
+	MinimapMT.SetFrameStrata(self,strata[FarmHudDB.strata]);
 	MinimapMT.SetFrameLevel(Minimap,1);
 	MinimapMT.SetScale(Minimap,1);
 	MinimapMT.SetZoom(Minimap,0);

@@ -14,6 +14,18 @@ local TrackingValues = {
 	["false"] = HIDE,
 	["client"] = L["TrackingOptionsLikeMinimap"]
 }
+local framestrataValues = {
+	-- https://warcraft.wiki.gg/wiki/Frame_Strata
+	--   WORLD [reserved]
+	L1 = L["Background"], -- BACKGROUND
+	L2 = L["Low"],    -- LOW
+	L3 = L["Medium"], -- MEDIUM
+	L4 = L["High"],   -- HIGH
+	L5 = L["Higher"], -- DIALOG
+	--   FULLSCREEN
+	--   FULLSCREEN_DIALOG
+	L8 = L["Highest"] -- TOOLTIP
+}
 local dbDefaults = {
 	hud_scale=1.4, text_scale=1.4, hud_size=1,
 	cardinalpoints_show=true,cardinalpoints_color1={1,0.82,0,0.7},cardinalpoints_color2={1,0.82,0,0.7},cardinalpoints_radius=0.47,
@@ -26,6 +38,7 @@ local dbDefaults = {
 	QuestArrowInfoMsg = false,
 	hideInInstance=false, hideInCombat=false,
 	background_alpha=0, background_alpha2=0.5, background_alpha_toggle=true, background_alpha_default=true,
+	strata="L1"
 }
 local modDB = {};
 local excludeFrames = {}
@@ -177,6 +190,11 @@ local options = {
 				rotation = {
 					type = "toggle", order = 3, width="full",
 					name = L["Rotation"], desc = L["RotationDesc"]
+				},
+				strata = {
+					type = "select", order = 4,
+					name = L["Strata"], desc = L["StrataDesc"],
+					values = framestrataValues
 				},
 				hud_scale = {
 					type = "range", order = 11,
