@@ -14,7 +14,6 @@ local _G,type,wipe,tinsert,unpack,tostring,C_Map = _G,type,wipe,table.insert,unp
 local Minimap_OnClick = (MinimapMixin and MinimapMixin.Onclick) or Minimap_OnClick; -- TODO: check it - needed for classic 1.15 / wotlk 3.4.3
 local Minimap_UpdateRotationSetting = Minimap_UpdateRotationSetting or function() end -- TODO: check it - need for classic 1.15 / wotlk 3.4.3
 local isPingLocationForbidden = WOW_PROJECT_ID==WOW_PROJECT_MAINLINE;
-local minimapTrackedInfoIsSecure = false;
 local strata = {
 	-- https://warcraft.wiki.gg/wiki/Frame_Strata
 	--   WORLD [reserved]
@@ -246,30 +245,6 @@ local function TrackingTypes_Update(bool, id)
 				TrackingTypes_Update(bool, tId);
 			end
 		end
-
-		if bool and not minimapTrackedInfoIsSecure then
-			if C_CVar and C_CVar.GetCVarInfo then
-				-- test current used cvar value. blizzard has renamed minimapTrackedInfov%d other the time. (v2,v3,v4)
-				for i=10, 3, -1 do
-					local info = {}; info.value,info.defaultValue,info.isStoredServerAccount,info.isStoredServerCharacter,info.isLockedFromUser,info.isSecure,info.isReadOnly = C_CVar.GetCVarInfo("minimapTrackedInfov"..i)
-					if info then
-						if info.isSecure then
-							minimapTrackedInfoIsSecure = true;
-						elseif info.defaultValue then
-							mps.minimapTrackedInfo = { value=tonumber(info.value or info.defaultValue) or 0, version=i };
-						end
-						break;
-					end
-				end
-
-			end
-		elseif not bool and mps.minimapTrackedInfo then
-			-- try to restore on close. blizzard changing it outside the lua code area.
-			local mTI = mps.minimapTrackedInfo;
-			C_CVar.SetCVar("minimapTrackedInfov"..mTI.version,mTI.value);
-			C_Timer.After(0.314159,function() C_CVar.SetCVar("minimapTrackedInfov"..mTI.version,mTI.value) end);
-		end
-
 		return;
 	end
 	local key,data = "tracking^"..id,trackingTypes[id];
