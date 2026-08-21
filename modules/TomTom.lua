@@ -5,7 +5,6 @@ local _, ns = ...;
 local L = ns.L;
 
 local suppressArrow = false;
-local hookInstalled = false;
 
 local module = {
 	dbDefaults = {

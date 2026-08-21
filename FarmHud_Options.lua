@@ -220,7 +220,7 @@ local options = {
 					end
 				},
 				player_dot_sickMove = {
-					type = "description", order=15, width="normal",
+					type = "description", order=15, --width="normal",
 					name = L["PlayerDotNoLongerChangable"],
 					hidden = function()
 						return not ns.sickMove1
@@ -530,7 +530,8 @@ local options = {
 			name = L["Credits"],
 			args = {}
 		},
-	}
+	},
+	plugins = {}
 };
 
 local trackingTypes,trackingOpts,trackingTemplate = {},{},{
@@ -602,8 +603,8 @@ function ns.RegisterOptions()
 		if mod.AddOptions then
 			local opts = mod.AddOptions()
 			if type(opts)=="table" then
-				for k,v in pairs(opts)do
-					options.args[k] = v;
+				options.plugins[modName] = opts
+				for k,v in pairs(options.plugins[modName])do
 					if v.order==nil then
 						v.order = modOptsOrder;
 						modOptsOrder = modOptsOrder + 1;
