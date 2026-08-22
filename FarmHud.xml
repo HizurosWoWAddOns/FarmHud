@@ -11,7 +11,7 @@
 	<Script file="FarmHud_DataBroker.lua"/>
 	<Script file="modules/CardinalPoints.lua"/>
 	<Include file="modules/TrailPath.xml"/>
-	<Script file="modules/RangeCircles.lua" />
+	<Include file="modules/RangeCircles.xml" />
 	<Include file="modules/OnScreenButtons.xml"/>
 	<Script file="modules/TomTom.lua" />
 
@@ -35,15 +35,6 @@
 			<OnMouseDown method="OnMouseDown"/>
 		</Scripts>
 	</Button>
-
-	<Frame name="FarmHudCircleLineTemplate" mixin="FarmHudCircleLineMixin" virtual="true">
-		<Size x=".1" y=".1" />
-		<Anchors>
-			<Anchor point="CENTER" />
-		</Anchors>
-	</Frame>
-
-	<Frame name="FarmHudRangeCircles" mixin="FarmHudRangeCirclesMixin" />
 
 	<Frame name="FarmHudWarning" parent="MinimapCluster" mixin="FarmHudWarningMixin" inherits="GlowBoxTemplate" frameStrata="TOOLTIP" toplevel="true" hidden="true">
 		<Size x="220" y="100" />
