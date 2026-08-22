@@ -331,7 +331,8 @@ function module.UpdateOptions(key,value)
 end
 
 function module.events.PLAYER_ENTERING_WORLD()
-	if IsInInstance() then
+	local x,y,instance = HBD:GetPlayerWorldPosition()
+	if x==nil then
 		UpdateTrailPath(false)
 	else
 		UpdateTrailPath()
