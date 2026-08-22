@@ -1,0 +1,15 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+	<Script file="OnScreenButtons.lua"/>
+
+	<Button name="FarmHudonScreenButtonTemplate" virtual="true">
+		<Size x="20" y="20"/>
+		<HighlightTexture file="Interface\Buttons\UI-Panel-MinimizeButton-Highlight" alphaMode="ADD"/>
+	</Button>
+
+	<Frame name="FarmHudOnScreenButtonsTemplate" virtual="true">
+		<Size x="1" y="1" />
+	</Frame>
+
+</Ui>

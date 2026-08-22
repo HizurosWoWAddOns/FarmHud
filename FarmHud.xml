@@ -12,6 +12,7 @@
 	<Script file="modules/CardinalPoints.lua"/>
 	<Script file="modules/TrailPath.lua"/>
 	<Script file="modules/RangeCircles.lua" />
+	<Include file="modules/OnScreenButtons.xml"/>
 	<Script file="modules/TomTom.lua" />
 
 	<FontString name="FarmHudFont" inherits="SystemFont_Small2" outline="THICK" hidden="true" virtual="true">
@@ -20,25 +21,6 @@
 			<Color r="0" g="0" b="0"/>
 		</Shadow>
 	</FontString>
-
-	<Button name="FarmHudonScreenButtonTemplate" virtual="true">
-		<Size x="20" y="20"/>
-		<HighlightTexture file="Interface\Buttons\UI-Panel-MinimizeButton-Highlight" alphaMode="ADD"/>
-		<Scripts>
-			<OnClick>
-				local id = self:GetID();
-				if id==1 then
-					FarmHud:ToggleMouse();
-				elseif id==2 then
-					FarmHud:ToggleBackground();
-				elseif id==3 then
-					FarmHud:ToggleOptions();
-				elseif id==4 then
-					FarmHud:Toggle(false)
-				end
-			</OnClick>
-		</Scripts>
-	</Button>
 
 	<Button name="FarmHudMinimapDummy" mixin="FarmHudMinimapDummyMixin" hidden="true" enableMouse="false">
 		<Layers>
@@ -206,39 +188,6 @@
 						<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="NW" />
 					</Layer>
 				</Layers>
-			</Frame>
-			<Frame parentKey="onScreenButtons" hidden="true">
-				<Size x="1" y="1" />
-				<Frames>
-					<Button parentKey="mouseButton" inherits="FarmHudonScreenButtonTemplate" id="1">
-						<Anchors>
-							<Anchor point="CENTER" x="-34"/>
-						</Anchors>
-						<NormalTexture file="Interface\AddOns\FarmHud\media\Mouse-Normal"/>
-						<PushedTexture file="Interface\AddOns\FarmHud\media\Mouse-Pushed"/>
-					</Button>
-					<Button parentKey="backgroundButton" inherits="FarmHudonScreenButtonTemplate" id="2">
-						<Anchors>
-							<Anchor point="CENTER" x="-12"/>
-						</Anchors>
-						<NormalTexture file="Interface\WorldMap\WorldMap-Icon" />
-						<PushedTexture file="Interface\WorldMap\WorldMap-Icon" desaturated="true" />
-					</Button>
-					<Button parentKey="optionsButton" inherits="FarmHudonScreenButtonTemplate" id="3">
-						<Anchors>
-							<Anchor point="CENTER" x="12"/>
-						</Anchors>
-						<NormalTexture file="Interface\AddOns\FarmHud\media\options" />
-						<PushedTexture file="Interface\AddOns\FarmHud\media\options" desaturated="true" />
-					</Button>
-					<Button parentKey="closeButton" inherits="FarmHudonScreenButtonTemplate" id="4">
-						<Anchors>
-							<Anchor point="CENTER" x="34"/>
-						</Anchors>
-						<NormalTexture file="Interface\Buttons\UI-Panel-MinimizeButton-Up"/>
-						<PushedTexture file="Interface\Buttons\UI-Panel-MinimizeButton-Down"/>
-					</Button>
-				</Frames>
 			</Frame>
 			<Frame parentKey="HideElements" hidden="true" />
 		</Frames>

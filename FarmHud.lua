@@ -573,11 +573,6 @@ function FarmHudMixin:SetScales(enabled)
 
 	ns.modules("Update",enabled)
 
-	local y = (self:GetHeight()*FarmHudDB.buttons_radius) * 0.5;
-	if (FarmHudDB.buttons_bottom) then y = -y; end
-	self.onScreenButtons:ClearAllPoints();
-	self.onScreenButtons:SetPoint("CENTER", self, "CENTER", 0, y);
-
 	self.TextFrame:SetScale(FarmHudDB.text_scale);
 	self.TextFrame.ScaledHeight = (self:GetHeight()/FarmHudDB.text_scale) * 0.5;
 
@@ -654,10 +649,6 @@ do
 			self.TextFrame.time:SetShown(FarmHudDB.time_show);
 		elseif IsKey(key,"time_color") then
 			self.TextFrame.time:SetTextColor(unpack(FarmHudDB.time_color));
-		elseif IsKey(key,"buttons_show") then
-			self.onScreenButtons:SetShown(FarmHudDB.buttons_show);
-		elseif IsKey(key,"buttons_alpha") then
-			self.onScreenButtons:SetAlpha(FarmHudDB.buttons_alpha);
 		elseif IsKey(key,"showDummy") then
 			FarmHudMinimapDummy:SetShown(FarmHudDB.showDummy);
 		elseif IsKey(key,"showDummyBg") then
@@ -1158,11 +1149,6 @@ function FarmHudMixin:OnEvent(event,...)
 		self.TextFrame.coords:SetTextColor(unpack(FarmHudDB.coords_color));
 
 		self.TextFrame.time:SetTextColor(unpack(FarmHudDB.time_color));
-
-		if (FarmHudDB.buttons_show) then
-			self.onScreenButtons:Show();
-		end
-		self.onScreenButtons:SetAlpha(FarmHudDB.buttons_alpha);
 
 		self.TextFrame.mouseWarn:SetText(L.MouseOn);
 		self.TextFrame.mouseWarn:SetTextColor(unpack(FarmHudDB.mouseoverinfo_color));
