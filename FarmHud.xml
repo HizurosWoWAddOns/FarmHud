@@ -90,14 +90,6 @@
 						<FontString parentKey="mouseWarn" inherits="FarmHudFont" text="MOUSE ON" hidden="true" />
 						<FontString parentKey="coords" inherits="FarmHudFont" hidden="true" />
 						<FontString parentKey="time" inherits="FarmHudFont" hidden="true" />
-						<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="N" />
-						<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="NE" />
-						<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="E" />
-						<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="SE" />
-						<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="S" />
-						<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="SW" />
-						<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="W" />
-						<FontString parentArray="cardinalPoints" inherits="FarmHudFont" text="NW" />
 					</Layer>
 				</Layers>
 			</Frame>

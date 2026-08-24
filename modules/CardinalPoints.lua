@@ -3,6 +3,7 @@ local addon,ns = ...;
 local L = ns.L;
 local cardinalTicker;
 
+local points,cp = {"N","NE","E","SE","S","SW","W","NW"}
 local module = {
 	dbDefaults={
 		cardinalpoints_show=true,
@@ -15,13 +16,15 @@ local module = {
 	},
 	events = {},
 	OnShow = nil,
-	OnHide = nil
+	OnHide = nil,
+	OnLoad = nil,
+	OnSetScales = nil,
 }
-
 
 local function CardinalPointsUpdate_TickerFunc()
 	local bearing = GetPlayerFacing();
 	local scaledRadius;
+
 	if FarmHudDB.cardinalpoints_gathercircle_bind then
 		local lp,radius,_ = FarmHudRangeCircles.CirclesDefault[1].linePool,nil,nil; -- gather circle
 		_,_,radius = lp[#lp-1]:GetEndPoint()
@@ -29,21 +32,22 @@ local function CardinalPointsUpdate_TickerFunc()
 		if FarmHudDB.cardinalpoints_gathercircle_pos=="inside" then
 			distance = -distance;
 		end
-		scaledRadius = radius * 0.725 + distance;
+		scaledRadius = radius * 0.925 + distance;
 	else
-		scaledRadius = FarmHud.TextFrame.ScaledHeight * FarmHudDB.cardinalpoints_radius;
+		scaledRadius = cp.ScaledHeight * FarmHudDB.cardinalpoints_radius;
 	end
 
-	for i=1, #FarmHud.TextFrame.cardinalPoints do
-		local cp = FarmHud.TextFrame.cardinalPoints[i];
-		cp:ClearAllPoints();
+	for i=1, #cp.points do
+		local p = cp.points[i];
+		p:ClearAllPoints();
 		if bearing then
-			cp:SetPoint("CENTER", FarmHud, "CENTER", math.sin(cp.rot+bearing)*scaledRadius, math.cos(cp.rot+bearing)*scaledRadius);
+			p:SetPoint("CENTER", FarmHud, "CENTER", math.sin(p.rot+bearing)*scaledRadius, math.cos(p.rot+bearing)*scaledRadius);
 		end
+		-- cardinal points disappearing in zones without access on player facing. mostly in dungeons and raids.
 	end
 end
 
-function module.ToggleCardicalPoints(state)
+local function ToggleCardicalPoints(state)
 	if FarmHudDB.cardinalpoints_show then
 		if not cardinalTicker and state~=false then
 			cardinalTicker = C_Timer.NewTicker(1/24, CardinalPointsUpdate_TickerFunc);
@@ -54,7 +58,7 @@ function module.ToggleCardicalPoints(state)
 		if not GetPlayerFacing() then
 			state = false;
 		end
-		for i,e in ipairs(FarmHud.TextFrame.cardinalPoints) do
+		for i,e in ipairs(cp.points) do
 			e:SetShown(state);
 		end
 	else
@@ -62,19 +66,56 @@ function module.ToggleCardicalPoints(state)
 			cardinalTicker:Cancel();
 			cardinalTicker = nil;
 		end
-		for i,e in ipairs(FarmHud.TextFrame.cardinalPoints) do
+		for i,e in ipairs(cp.points) do
 			e:SetShown(false);
 		end
 	end
 end
 
 function module.OnShow()
-	module.ToggleCardicalPoints(true)
+	ToggleCardicalPoints(true)
 end
 
 function module.OnHide()
-	module.ToggleCardicalPoints(false)
+	ToggleCardicalPoints(false)
 end
+
+function module.OnSetScales(enabled,scaledHeight)
+	cp.ScaledHeight = scaledHeight
+end
+
+function module.OnLoad()
+	cp = CreateFrame("Frame",nil,FarmHud)
+	FarmHud.CardinalPoints = cp
+	cp:SetSize(1,1)
+	cp:SetPoint("CENTER")
+	cp.points = {}
+	for i,p in ipairs(points)do
+		local P = cp:CreateFontString(nil,"ARTWORK","FarmHudFont")
+		P:SetText(p)
+		P.key = p
+		P.NWSE = strlen(p)==1
+		P.rot = (math.pi / 4 * (i-1))
+		P:SetText(L[p])
+		P:SetTextColor(1.0,0.82,0)
+		tinsert(cp.points,P)
+	end
+end
+
+function module.events.ADDON_LOADED()
+	if not cp then
+		return
+	end
+	for _,p in ipairs(cp.points)do
+		if p.NWSE then
+			p:SetTextColor(unpack(FarmHudDB.cardinalpoints_color1));
+		else
+			p:SetTextColor(unpack(FarmHudDB.cardinalpoints_color2));
+		end
+	end
+end
+
+--function module.events.PLAYER_LOGIN() end
 
 local function opt(info,value,...)
 	local key = info[#info];
@@ -84,7 +125,7 @@ local function opt(info,value,...)
 		end
 		FarmHudDB[key] = value
 		if key=="cardinalpoints_show" then
-			module.ToggleCardicalPoints(FarmHud:IsShown())
+			ToggleCardicalPoints(FarmHud:IsShown())
 		end
 	end
 	if type(FarmHudDB[key])=="table" then
@@ -158,17 +199,6 @@ local options = {
 
 function module.AddOptions()
 	return options
-end
-
---function module.events.ADDON_LOADED() end
-
-function module.events.PLAYER_LOGIN()
-	--FarmHud:UpdateCardinalPoints();
-	for k,v in pairs(module.dbDefaults)do
-		if FarmHudDB[k]==nil then
-			FarmHudDB[k] = CopyTable(module.dbDefaults);
-		end
-	end
 end
 
 ns.modules["CardinalPoints"] = module;
