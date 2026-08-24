@@ -59,6 +59,29 @@ end
 
 --function module.OnHide() end
 
+function module.OnLoad()
+	FarmHud.onScreenButtons = CreateFrame("Frame",nil,FarmHud)
+	FarmHud.onScreenButtons:SetSize(1,1)
+	for buttonName,buttonData in pairs(buttons)do
+		local btn = CreateFrame("Button", nil, FarmHud.onScreenButtons)
+		btn:SetSize(20,20)
+		btn:SetPoint(unpack(buttonData[2]))
+		btn:SetNormalTexture(buttonData[3][1])
+		btn:SetPushedTexture(buttonData[4][1])
+		btn:SetHighlightTexture("Interface/Buttons/UI-Panel-MinimizeButton-Highlight")
+		btn:GetHighlightTexture():SetBlendMode("ADD")
+		if buttonData[4][2] then
+			btn:GetPushedTexture():SetDesaturated(true)
+		end
+		btn:SetScript("OnClick",buttonData[5])
+		FarmHud.onScreenButtons[buttonName] = btn
+	end
+end
+
+-- function module.events.ADDON_LOADED() end
+
+-- function module.events.PLAYER_LOGIN() end
+
 local function opt(info,value,...)
 	local key = info[#info];
 	if value~=nil then
@@ -103,30 +126,6 @@ function module.AddOptions()
 			}
 		}
 	}
-end
-
-function module.events.ADDON_LOADED()
-	FarmHud.onScreenButtons = CreateFrame("Frame",nil,FarmHud,"FarmHudOnScreenButtonsTemplate")
-	for buttonName,buttonData in pairs(buttons)do
-		local btn = CreateFrame("Button", nil, FarmHud.onScreenButtons, "FarmHudonScreenButtonTemplate")
-		btn:SetPoint(unpack(buttonData[2]))
-		btn:SetNormalTexture(buttonData[3][1])
-		btn:SetPushedTexture(buttonData[4][1])
-		if buttonData[4][2] then
-			btn:GetPushedTexture():SetDesaturated(true)
-		end
-		btn:SetScript("OnClick",buttonData[5])
-		FarmHud.onScreenButtons[buttonName] = btn
-	end
-end
-
-function module.events.PLAYER_LOGIN()
-	for k,v in pairs(module.dbDefaults)do
-		if FarmHudDB[k]==nil then
-			FarmHudDB[k] = v;
-		end
-	end
-
 end
 
 ns.modules["OnScreenButtons"] = module;
