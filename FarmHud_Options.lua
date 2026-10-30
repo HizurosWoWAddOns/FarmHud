@@ -34,7 +34,7 @@ local dbDefaults = {
 	player_dot="blizz", holdKeyForMouseOn = "_none",
 	rotation=true, showDummy = true, showDummyBg = true,
 	QuestArrowInfoMsg = false,
-	hideInInstance=false, hideInCombat=false,
+	hideInInstance=false, hideInCombat=false, showWithHiddenUI=false,
 	background_alpha=0, background_alpha2=0.5, background_alpha_toggle=true, background_alpha_default=true,
 	strata="L1"
 }
@@ -193,6 +193,10 @@ local options = {
 					type = "select", order = 4,
 					name = L["Strata"], desc = L["StrataDesc"],
 					values = framestrataValues
+				},
+				showWithHiddenUI = {
+					type = "toggle", order = 5, width = "full",
+					name = L["ShowWithHiddenUI"], desc = L["ShowWithHiddenUIDesc"]
 				},
 				hud_scale = {
 					type = "range", order = 11,
