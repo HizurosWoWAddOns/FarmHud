@@ -1270,20 +1270,36 @@ function FarmHudMixin:OnLoad()
 		end
 	end)
 
-	if EditModeManagerFrame and EditModeManagerFrame.IsShown then
-		-- Close FarmHud on ShowUIPanel(EditModeManagerFrame) to prevent problems
-		hooksecurefunc(EditModeManagerFrame,"IsShown",function(self)
-			local dbg = debugstack(); -- nil sucks
-			if dbg and dbg:match("ShowUIPanel") then
-				FarmHud:Toggle(false);
-			end
-		end);
+	do -- prevent problem with some full screen frames like PerksProgramFrame (TradingPost)
+		hooksecurefunc(_G,"StaticPopup_SetFullScreenFrame",function()
+			if not FarmHud:IsShown() then return end
+			FarmHud:Toggle(false,"StaticPopup_SetFullScreenFrame");
+		end)
 
-		hooksecurefunc(_G,"ShowUIPanel",function(frame)
-			if EditModeManagerFrame==frame or frame=="EditModeManagerFrame" then
-				FarmHud:Toggle(false)
-			end
-		end);
+		if type(_G.ShowUIPanel)=="function" then
+			local hideMeOnFramesShown = {EditModeManagerFrame=true,MovieFrame=true,PerksProgramFrame=true}
+			hooksecurefunc(_G,"ShowUIPanel",function(frame)
+				if not FarmHud:IsShown() then return end
+				if type(frame)=="string" and hideMeOnFramesShown[frame] then
+					FarmHud:Toggle(false,"ShowUIPanel-byNameString")
+				else
+					for k in pairs(hideMeOnFramesShown) do
+						if _G[k]==frame then
+							FarmHud:Toggle(false,"ShowUIPanel-byLoop")
+							break;
+						end
+					end
+				end
+			end);
+		end
+
+		-- some ways to close FarmHud on EditModeManagerFrame set shown to prevent problems.
+		if EditModeManagerFrame then
+			EditModeManagerFrame:HookScript("OnShow", function()
+				if not FarmHud:IsShown() then return end
+				FarmHud:Toggle(false,"EM-OnShow");
+			end)
+		end
 	end
 
 	if not ns.IsClassic() then
