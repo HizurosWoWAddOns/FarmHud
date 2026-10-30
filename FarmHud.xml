@@ -72,7 +72,7 @@
 		</Scripts>
 	</Frame>
 
-	<Frame name="FarmHud" parent="UIParent" mixin="FarmHudMixin" frameStrata="BACKGROUND" alpha="1" hidden="true">
+	<Frame name="FarmHud" mixin="FarmHudMixin" frameStrata="BACKGROUND" alpha="1" hidden="true">
 		<Size x="140" y="140"/>
 		<Anchors>
 			<!-- Anchored to WorldFrame for view port changed by users -->

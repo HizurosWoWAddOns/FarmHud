@@ -551,14 +551,6 @@ function FarmHudMixin:SetScales(enabled)
 		self = FarmHud
 	end
 
-	-- optional parent WorldFrame to keep the HUD visible while UIParent is hidden (Alt+Z)
-	local parent = FarmHudDB.showWithHiddenUI and WorldFrame or UIParent;
-	if self:GetParent()~=parent then
-		self:SetParent(parent);
-	end
-	-- WorldFrame ignores the UI scale; compensate to match the effective scale of UIParent
-	self:SetScale(parent==WorldFrame and UIParent:GetEffectiveScale()/WorldFrame:GetEffectiveScale() or 1);
-
 	-- using WorldFrame size for changable view port by users
 	local eScale = UIParent:GetEffectiveScale();
 	local width,height = WorldFrame:GetSize();
@@ -736,6 +728,10 @@ function FarmHudWarningMixin:OnHide()
 end
 
 function FarmHudMixin:OnShow()
+	if FarmHud.dontChange then
+		FarmHud.dontChange=nil
+		return
+	end
 	trackEnableMouse = true;
 
 	FarmHudMinimapDummy:SetParent(Minimap:GetParent());
@@ -912,6 +908,10 @@ function FarmHudMixin:OnShow()
 end
 
 function FarmHudMixin:OnHide()
+	if FarmHud.dontChange then
+		FarmHud.dontChange=nil
+		return
+	end
 	if rotationMode ~= mps.rotation then
 		C_CVar.SetCVar("rotateMinimap", mps.rotation);
 		rotationMode = mps.rotation
@@ -1054,7 +1054,10 @@ function FarmHudMixin:RegisterForeignAddOnObject(object,byAddOn)
 end
 
 -- Toggle FarmHud display
-function FarmHudMixin:Toggle(force)
+function FarmHudMixin:Toggle(force, dbgInfo)
+	if FarmHudDB.showWithHiddenUI==false and UIParent:IsShown()==false then
+		return
+	end
 	if #knownProblematicAddOnsDetected>0 then
 		ns:print("|cffffee00"..L["KnownProblematicAddOnDetected"].."|r","|cffff8000("..table.concat(knownProblematicAddOnsDetected,", ")..")|r")
 	end
@@ -1198,6 +1201,9 @@ function FarmHudMixin:OnEvent(event,...)
 		self.hideInCombatActive = nil;
 		self:Show(); -- restore visibility after combat
 		return;
+	elseif event=="UI_SCALE_CHANGED" then
+		FarmHud:SetScale(UIParent:GetScale())
+		return;
 	end
 end
 
@@ -1244,6 +1250,26 @@ function FarmHudMixin:OnLoad()
 		ns:print(L.PleaseReportThisMessage,"<EnableMouse>",bool,"|n"..debugstack());
 	end);
 
+	-- show/hide hook on UIParent for "Keep farmHud visible " option
+	UIParent:HookScript("OnShow",function()
+		if FarmHudDB.showWithHiddenUI then
+			return
+		end
+		if Minimap:GetParent()==FarmHud then
+			FarmHud.dontChange = true
+			FarmHud:Show()
+		end
+	end)
+	UIParent:HookScript("OnHide",function()
+		if FarmHudDB.showWithHiddenUI then
+			return
+		end
+		if Minimap:GetParent()==FarmHud then
+			FarmHud.dontChange = true
+			FarmHud:Hide()
+		end
+	end)
+
 	if EditModeManagerFrame and EditModeManagerFrame.IsShown then
 		-- Close FarmHud on ShowUIPanel(EditModeManagerFrame) to prevent problems
 		hooksecurefunc(EditModeManagerFrame,"IsShown",function(self)
@@ -1285,6 +1311,7 @@ function FarmHudMixin:OnLoad()
 
 	self:RegisterEvent("PLAYER_REGEN_DISABLED");
 	self:RegisterEvent("PLAYER_REGEN_ENABLED");
+	self:RegisterEvent("UI_SCALE_CHANGED");
 
 	ns.modules("OnLoad");
 end

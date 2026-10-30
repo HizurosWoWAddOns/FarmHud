@@ -186,7 +186,7 @@ local options = {
 					name = L["AddOnLoaded"], desc = L["AddOnLoadedDesc"].."|n|n|cff44ff44"..L["AddOnLoadedDescAlt"].."|r"
 				},
 				rotation = {
-					type = "toggle", order = 3, width="full",
+					type = "toggle", order = 3,
 					name = L["Rotation"], desc = L["RotationDesc"]
 				},
 				strata = {
