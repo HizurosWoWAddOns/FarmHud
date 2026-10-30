@@ -551,6 +551,14 @@ function FarmHudMixin:SetScales(enabled)
 		self = FarmHud
 	end
 
+	-- optional parent WorldFrame to keep the HUD visible while UIParent is hidden (Alt+Z)
+	local parent = FarmHudDB.showWithHiddenUI and WorldFrame or UIParent;
+	if self:GetParent()~=parent then
+		self:SetParent(parent);
+	end
+	-- WorldFrame ignores the UI scale; compensate to match the effective scale of UIParent
+	self:SetScale(parent==WorldFrame and UIParent:GetEffectiveScale()/WorldFrame:GetEffectiveScale() or 1);
+
 	-- using WorldFrame size for changable view port by users
 	local eScale = UIParent:GetEffectiveScale();
 	local width,height = WorldFrame:GetSize();
