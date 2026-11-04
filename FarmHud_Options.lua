@@ -43,6 +43,31 @@ local excludeFrames = {}
 local isAddOnsLoadedForOption = {
 }
 
+local supporter = {
+	-- {<color>,<name>}, <localizations>, <donations>, <otherSupportTypes>, <special text>,
+	{"github","bruteostrich"},		false,false,false,{"githubPR"},
+	{"github","grzegorzkarolewski"},false,false,false,{"githubPR"},
+	{"github","Mayron"},			false,false,false,{"githubPR"},
+	{"github","MrStrugglez"},		false,false,false,{"githubPR"},
+	{"github","mtdo"},				false,false,false,{"githubPR"},
+	{"github","Sockdolager"},		false,false,false,{"githubPR"},
+	{"github","tucomel"},			false,false,false,{"githubPR"},
+	{"curseforge","Dathwada"},		{"deDE"},false,false,false,
+	{"curseforge","g0ldenev1l"},	{"zhCN"},false,false,false,
+	{"curseforge","gjfleo"},		{"zhCN"},false,false,false,
+	{"curseforge","justregular16"},	{"esMX"},false,false,false,
+	{"curseforge","kuaishan"},		{"zhCN"},false,false,false,
+	{"curseforge","LvWind"},		{"zhCN"},false,false,false,
+	{"curseforge","mccma"},			{"zhTW"},false,false,false,
+	{"curseforge","netaras"},		{"koKR"},false,false,false,
+	{"curseforge","oxscott"},		{"itIT"},false,false,false,
+	{"curseforge","Subly"},			{"frFR"},false,false,false,
+	{"curseforge","supahmexman"},	{"esES"},false,false,false,
+	{"curseforge","Zickwik"},		{"frFR"},false,false,false,
+	{"curseforge","Zurent"},		{"esES"},false,false,false,
+	{"battlenet","pas06",false,"/", "curseforge","Bullseiify"},{"deDE"},false,false,false,
+}
+
 local function printFrames(key,value)
 	local keyType = type(key);
 	if keyType=="table" then
@@ -117,7 +142,10 @@ local function opt(info,value,...)
 	elseif value~=nil then
 		if key=="MinimapIcon" then
 			FarmHudDB[key].hide = not value;
-			LibStub("LibDBIcon-1.0", true):Refresh(addon);
+			local LBDi = LibStub("LibDBIcon-1.0", true)
+			if LBDi then
+				LBDi:Refresh(addon);
+			end
 		else
 			if (...) then
 				value = {value,...}; -- color table
@@ -503,11 +531,6 @@ local options = {
 				}
 			}
 		},
-		credits = {
-			type = "group", order = 200,
-			name = L["Credits"],
-			args = {}
-		},
 	},
 	plugins = {}
 };
@@ -623,7 +646,7 @@ function ns.RegisterOptions()
 	LibStub("AceConfig-3.0"):RegisterOptionsTable(addon, options);
 	LibStub("AceConfigDialog-3.0"):AddToBlizOptions(addon);
 
-	LibStub("HizurosSharedTools").AddCredit(addon,options.args.credits.args);
+	LibStub("HizurosSharedTools").AddCredit(addon,options.args,{supporter=supporter});
 end
 
 if AddonCompartmentFrame then

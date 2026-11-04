@@ -12,7 +12,7 @@
 	<Script file="modules/CardinalPoints.lua"/>
 	<Include file="modules/TrailPath.xml"/>
 	<Include file="modules/RangeCircles.xml" />
-	<Include file="modules/OnScreenButtons.xml"/>
+	<Script file="modules/OnScreenButtons.lua"/>
 	<Script file="modules/TomTom.lua" />
 
 	<FontString name="FarmHudFont" inherits="SystemFont_Small2" outline="THICK" hidden="true" virtual="true">
