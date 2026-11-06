@@ -17,6 +17,7 @@
 	<Script file="modules/OnScreenButtons.lua"/>
 	<Script file="modules/Time.lua"/>
 	<Script file="modules/TomTom.lua"/>
+	<Script file="modules/Tracking.lua"/>
 	<Include file="modules/TrailPath.xml"/>
 	<!-- /modules -->
 
@@ -93,8 +94,6 @@
 				<Layers>
 					<Layer level="ARTWORK">
 						<FontString parentKey="mouseWarn" inherits="FarmHudFont" text="MOUSE ON" hidden="true" />
-						<FontString parentKey="coords" inherits="FarmHudFont" hidden="true" />
-						<FontString parentKey="time" inherits="FarmHudFont" hidden="true" />
 					</Layer>
 				</Layers>
 			</Frame>

@@ -37,7 +37,6 @@ end
 local background_alpha_current;
 local knownProblematicAddOns, knownProblematicAddOnsDetected = {BasicMinimap=true},{};
 local SetPointToken,SetParentToken = {},{};
-local trackingTypes,trackingTypesStates,numTrackingTypes,trackingHookLocked = {},{},0,false;
 local MinimapFunctionHijacked --= {"SetParent","ClearAllPoints","SetAllPoints","GetPoint","GetNumPoints"};
 local rotationMode
 local foreignObjects = {}
@@ -218,55 +217,6 @@ function FarmHudMixin:UpdateMapAlpha(by,force)
 		background_alpha_current = FarmHudDB.background_alpha_toggle and "main" or "alt";
 	end
 	MinimapMT.SetAlpha(Minimap,force and force or alpha[background_alpha_current]);
-end
-
--- tracking options
-
-function ns.GetTrackingTypes()
-	if ns.IsClassic() then return {}; end
-	local num = C_Minimap.GetNumTrackingTypes();
-	if numTrackingTypes~=num then
-		numTrackingTypes = num;
-		wipe(trackingTypes);
-		for i=1, num do
-			local info = C_Minimap.GetTrackingInfo(i) or {}
-			trackingTypes[info.texture] = {index=i,name=info.name,active=info.active,level=info.subType}
-		end
-	end
-	return trackingTypes;
-end
-
-local function TrackingTypes_Update(bool, id)
-	if ns.IsClassic() then return end
-	if not id then
-		ns.GetTrackingTypes();
-		for tId in pairs(trackingTypes) do
-			if FarmHudDB["tracking^"..tId]=="true" or FarmHudDB["tracking^"..tId]=="false" then
-				TrackingTypes_Update(bool, tId);
-			end
-		end
-		return;
-	end
-	local key,data = "tracking^"..id,trackingTypes[id];
-	local info = C_Minimap.GetTrackingInfo(data.index) or {};
-	trackingHookLocked = true;
-	if bool then
-		if FarmHudDB[key]=="client" then
-			if trackingTypesStates[data.index]~=nil then
-				C_Minimap.SetTracking(data.index,trackingTypesStates[data.index]);
-				trackingTypesStates[data.index] = nil;
-			end
-		elseif FarmHudDB[key]~=tostring(info.active) then
-			if trackingTypesStates[data.index]==nil then
-				trackingTypesStates[data.index] = info.active;
-			end
-			C_Minimap.SetTracking(data.index,FarmHudDB[key]=="true");
-		end
-	elseif not bool and trackingTypesStates[data.index]~=nil then
-		C_Minimap.SetTracking(data.index,trackingTypesStates[data.index]);
-		trackingTypesStates[data.index] = nil;
-	end
-	trackingHookLocked = false;
 end
 
 
@@ -584,11 +534,6 @@ do
 		elseif IsKey(key,"strata") then
 			MinimapMT.SetFrameStrata(Minimap,strata[FarmHudDB.strata]);
 			MinimapMT.SetFrameStrata(self,strata[FarmHudDB.strata]);
-		elseif key:find("tracking^%d+") and not ns.IsClassic() then
-			local id = tonumber((key:match("^tracking%^(%d+)$")));
-			if id then
-				TrackingTypes_Update(true,id);
-			end
 		elseif key:find("rotation") then
 			rotationMode = FarmHudDB.rotation and "1" or "0";
 			C_CVar.SetCVar("rotateMinimap", rotationMode);
@@ -818,8 +763,8 @@ function FarmHudMixin:OnShow()
 		Minimap[k] = v;
 	end
 
+	ns.modules("OnShow",true)
 	SetPlayerDotTexture(true);
-	TrackingTypes_Update(true);
 
 	self:SetScales(true);
 
@@ -827,8 +772,6 @@ function FarmHudMixin:OnShow()
 	suppressNextMouseEnable = true;
 	MinimapMT.EnableMouse(Minimap,false);
 	MinimapMT.EnableMouseWheel(Minimap,false);
-
-	ns.modules("OnShow",true)
 
 	MinimapMT.Show(Minimap);
 end
@@ -935,9 +878,7 @@ function FarmHudMixin:OnHide()
 	MinimapMT.SetZoom(Minimap,mps.zoom);
 
 	ns.modules("OnHide");
-
 	SetPlayerDotTexture(false);
-	TrackingTypes_Update(false);
 	self:UpdateForeignAddOns(false);
 
 	wipe(mps);
@@ -1062,8 +1003,6 @@ function FarmHudMixin:OnEvent(event,...)
 	elseif event=="PLAYER_LOGIN" then
 		self:SetFrameLevel(2);
 
-		self.TextFrame.time:SetTextColor(unpack(FarmHudDB.time_color));
-
 		self.TextFrame.mouseWarn:SetText(L.MouseOn);
 		self.TextFrame.mouseWarn:SetTextColor(unpack(FarmHudDB.mouseoverinfo_color));
 
@@ -1163,6 +1102,7 @@ function FarmHudMixin:OnLoad()
 			FarmHud:Show()
 		end
 	end)
+
 	UIParent:HookScript("OnHide",function()
 		if FarmHudDB.showWithHiddenUI then
 			return
@@ -1203,14 +1143,6 @@ function FarmHudMixin:OnLoad()
 				FarmHud:Toggle(false,"EM-OnShow");
 			end)
 		end
-	end
-
-	if not ns.IsClassic() then
-		hooksecurefunc(C_Minimap,"SetTracking",function(index,bool)
-			if not trackingHookLocked and FarmHud:IsVisible() and trackingTypesStates[index]~=nil then
-				trackingTypesStates[index]=bool;
-			end
-		end);
 	end
 
 	function self.cluster:GetZoom()

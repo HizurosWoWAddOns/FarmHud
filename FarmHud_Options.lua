@@ -9,11 +9,6 @@ local playerDot_textures = {
 	["black"]         = L["Black player dot"],
 	["hide"]          = L["Hide player arrow"],
 };
-local TrackingValues = {
-	["true"] = SHOW,
-	["false"] = HIDE,
-	["client"] = L["TrackingOptionsLikeMinimap"]
-}
 local framestrataValues = {
 	-- https://warcraft.wiki.gg/wiki/Frame_Strata
 	--   WORLD [reserved]
@@ -177,18 +172,6 @@ local function optKeyBind(info,value)
 		SaveBindings(GetCurrentBindingSet());
 	end
 	return GetBindingKey(key);
-end
-
-local function optTracking(info,value)
-	local key = info[#info];
-	if not key:find("^tracking^%d+$") then return end
-
-	if value~=nil then
-		FarmHudDB[key] = value;
-		FarmHud:UpdateOptions(key);
-		return;
-	end
-	return FarmHudDB[key];
 end
 
 local options = {
@@ -404,34 +387,6 @@ local options = {
 				},
 			}
 		},
-		tracking = {
-			type = "group", order = 8,
-			name = L["TrackingOptions"],
-			get = optTracking, set = optTracking,
-			childGroups = "tab",
-			args = {
-				desc = {
-					type = "description", order = 1, fontSize = "medium",
-					name = L["TrackingOptionsDesc"]
-				},
-				misc = {
-					type = "group", order = 2,
-					name = MISCELLANEOUS,
-					args = {
-						-- filled by function updateTrackingOptions
-					},
-					hidden = true,
-				},
-				townsfolk = {
-					type = "group", order = 3,
-					name = TOWNSFOLK_TRACKING_TEXT,
-					args = {
-						-- filled by function updateTrackingOptions
-					},
-					hidden = true,
-				}
-			}
-		},
 		keybindings = {
 			type = "group", order = 99,
 			name = KEY_BINDINGS,
@@ -471,42 +426,6 @@ local options = {
 	plugins = {}
 };
 
-local trackingTypes,trackingOpts,trackingTemplate = {},{},{
-	type = "select", name = "", values = TrackingValues
-};
-local trackingPattern = "|T%d:26:26:0:0|t %s"
-
-local function sortTrackingTypes(a,b)
-	return a.index<b.index;
-end
-
-local function updateTrackingOptions(info)
-	if info[#info]~="tracking" then return false end
-	if ns.IsClassic() then
-		return true;
-	end
-	wipe(options.args.tracking.args.townsfolk.args);
-	wipe(options.args.tracking.args.misc.args);
-	trackingTypes = ns.GetTrackingTypes(); -- defined in FarmHud.lua
-	table.sort(trackingTypes,sortTrackingTypes);
-	for textureId,data in pairs(trackingTypes)do
-		local key = "tracking^"..textureId;
-		if trackingOpts[textureId]==nil then
-			trackingOpts[textureId] = CopyTable(trackingTemplate);
-			trackingOpts[textureId].name = trackingPattern:format(textureId,data.name);
-			trackingOpts[textureId].order = data.index;
-		end
-		if data.level==2 then -- townfolk
-			options.args.tracking.args.townsfolk.args[key] = trackingOpts[textureId]
-			options.args.tracking.args.townsfolk.hidden=false;
-		else -- misc
-			options.args.tracking.args.misc.args[key] = trackingOpts[textureId];
-			options.args.tracking.args.misc.hidden=false;
-		end
-	end
-	return false;
-end
-
 function ns.RegisterOptions()
 	if FarmHudDB==nil then
 		FarmHudDB={};
@@ -518,13 +437,6 @@ function ns.RegisterOptions()
 			minimapPos = 220,
 			radius = 80
 		};
-	end
-
-	if not ns.IsClassic() then
-		trackingTypes = ns.GetTrackingTypes();
-		for id, data in pairs(trackingTypes)do
-			dbDefaults["tracking^"..id] = "client"
-		end
 	end
 
 	local modOptsOrder = 50;
@@ -565,19 +477,6 @@ function ns.RegisterOptions()
 		FarmHudDB.MinimapIcon.hide = not FarmHudDB.MinimapIcon.show;
 		FarmHudDB.MinimapIcon.show = nil;
 	end
-
-	if not ns.IsClassic() then
-		for id, data in pairs(trackingTypes)do
-			local v = FarmHudDB["tracking^"..id];
-			if not (v=="client" or v=="true" or v=="false") then
-				FarmHudDB["tracking^"..id] = "client";
-			end
-		end
-		options.args.tracking.hidden = updateTrackingOptions
-	else
-		options.args.tracking = nil;
-	end
-
 
 	LibStub("AceConfig-3.0"):RegisterOptionsTable(addon, options);
 	LibStub("AceConfigDialog-3.0"):AddToBlizOptions(addon);
