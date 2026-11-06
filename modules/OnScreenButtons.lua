@@ -24,7 +24,11 @@ local module = {
 	},
 	events = {},
 	OnShow = nil,
-	OnHide = nil
+	OnHide = nil,
+	Update = nil,
+	OnLoad = nil,
+	OnSetScale = nil,
+	AddOptions = nil,
 }
 
 local function updateButtons()
@@ -100,7 +104,7 @@ end
 function module.AddOptions()
 	return {
 		onscreenbuttons = {
-			type = "group", order = 6,
+			type = "group",
 			name = L["OnScreen"],
 			get = opt,
 			set = opt,
@@ -109,20 +113,26 @@ function module.AddOptions()
 					type = "toggle", order = 1, width = "double",
 					name = L["OnScreenShow"], desc = L["OnScreenShowDesc"]
 				},
-				buttons_bottom = {
-					type = "toggle", order = 2, width = "double",
-					name = L["OnScreenBottom"], desc = L["OnScreenBottomDesc"],
-				},
-				buttons_radius = {
-					type = "range", order = 3,
-					name = L["ChangeRadius"], desc = L["ChangeRadiusDesc"],
-					min = 0.1, max = 0.9, step=0.005, isPercent=true
-				},
 				buttons_alpha = {
 					type = "range", order = 4,
 					name = OPACITY, desc = L["OnScreenAlphaDesc"],
 					min = 0, max = 1, step = 0.1, isPercent = true
-				}
+				},
+				positionOptions = {
+					type = "group", order=10, inline = true,
+					name = "|cff00aaff"..L["Position options"].."|r",
+					args = {
+						buttons_bottom = {
+							type = "toggle", order = 1, width = "double",
+							name = L["OnScreenBottom"], desc = L["OnScreenBottomDesc"],
+						},
+						buttons_radius = {
+							type = "range", order = 2,
+							name = L["ChangeRadius"], desc = L["ChangeRadiusDesc"],
+							min = 0.1, max = 0.9, step=0.005, isPercent=true
+						},
+					}
+				},
 			}
 		}
 	}
