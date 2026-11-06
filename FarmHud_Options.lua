@@ -28,7 +28,6 @@ local framestrataValues = {
 }
 local dbDefaults = {
 	hud_scale=1.4, text_scale=1.4, hud_size=1,
-	coords_show=true,coords_bottom=false,coords_color={1,0.82,0,0.7},coords_radius=0.51,
 	time_show=true, time_server=true, time_local=true, time_radius = 0.48, time_bottom=false, time_color={1,0.82,0,0.7},
 	mouseoverinfo_color={1,0.82,0,0.7},
 	player_dot="blizz", holdKeyForMouseOn = "_none",
@@ -404,33 +403,6 @@ local options = {
 					type = "execute", order = 24,
 					name = L["ResetColor"], --desc = L["ResetColorDesc"]
 				},
-			}
-		},
-		coords = {
-			type = "group", order = 4,
-			name = L["Coords"],
-			args = {
-				coords_show = {
-					type = "toggle", order = 1,
-					name = L["CoordsShow"], desc = L["CoordsShowDesc"]
-				},
-				coords_radius = {
-					type = "range", order = 2,
-					name = L["ChangeRadius"], desc = L["ChangeRadiusDesc"],
-					min = 0.1, max = 0.9, step=0.005, isPercent=true
-				},
-				coords_bottom = {
-					type = "toggle", order = 3, width = "double",
-					name = L["CoordsBottom"], desc = L["CoordsBottomDesc"]
-				},
-				coords_color = {
-					type = "color", order = 4, hasAlpha = true,
-					name = COLOR, desc = L["CoordsColorDesc"]
-				},
-				coords_resetcolor = {
-					type = "execute", order = 5,
-					name = L["ResetColor"], desc = L["CoordsColorResetDesc"]
-				}
 			}
 		},
 		time = {

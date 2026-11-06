@@ -34,7 +34,7 @@ local playerDot_orig, playerDot_custom = "Interface\\Minimap\\MinimapArrow",nil;
 if WOW_PROJECT_ID==WOW_PROJECT_MAINLINE then
 	playerDot_orig = "minimaparrow" -- blizzard using atlas entry of ObjectIconsAtlas.blp now
 end
-local timeTicker,coordsTicker,background_alpha_current;
+local timeTicker,background_alpha_current;
 local knownProblematicAddOns, knownProblematicAddOnsDetected = {BasicMinimap=true},{};
 local SetPointToken,SetParentToken = {},{};
 local trackingTypes,trackingTypesStates,numTrackingTypes,trackingHookLocked = {},{},0,false;
@@ -463,33 +463,6 @@ local function objectToDummy(object,enable,debugStr)
 	return changedSetParent,changedSetPoint;
 end
 
--- coordinates
-
-local function CoordsUpdate_TickerFunc()
-	local x,y,uiMapID = 0,0,C_Map.GetBestMapForUnit("player");
-	if uiMapID then
-		local obj = C_Map.GetPlayerMapPosition(uiMapID,"player");
-		if obj and obj.GetXY then
-			x,y = obj:GetXY();
-		end
-	end
-	if x and x>0 then
-		FarmHud.TextFrame.coords:SetFormattedText("%.1f, %.1f",x*100,y*100);
-	else
-		FarmHud.TextFrame.coords:SetText("");
-	end
-end
-
-function FarmHudMixin:UpdateCoords(state)
-	if state==true and coordsTicker==nil then
-		coordsTicker = C_Timer.NewTicker(1/24,CoordsUpdate_TickerFunc);
-	elseif state==false and coordsTicker then
-		coordsTicker:Cancel();
-		coordsTicker=nil;
-	end
-	self.TextFrame.coords:SetShown(state);
-end
-
 -- time
 
 local function TimeUpdate_TickerFunc()
@@ -571,21 +544,18 @@ function FarmHudMixin:SetScales(enabled)
 	self.cluster:SetFrameStrata(Minimap:GetFrameStrata());
 	self.cluster:SetFrameLevel(Minimap:GetFrameLevel());
 
-	ns.modules("Update",enabled)
+	local scaledHeight = (self:GetHeight()/FarmHudDB.text_scale) * 0.5;
+	ns.modules("OnSetScales",enabled,scaledHeight)
 
 	self.TextFrame:SetScale(FarmHudDB.text_scale);
-	self.TextFrame.ScaledHeight = (self:GetHeight()/FarmHudDB.text_scale) * 0.5;
+	self.TextFrame.ScaledHeight = scaledHeight
 
-	local coords_y = self.TextFrame.ScaledHeight * FarmHudDB.coords_radius;
 	local time_y = self.TextFrame.ScaledHeight * FarmHudDB.time_radius;
-	if (FarmHudDB.coords_bottom) then coords_y = -coords_y; end
 	if (FarmHudDB.time_bottom) then time_y = -time_y; end
 
-	self.TextFrame.coords:ClearAllPoints()
 	self.TextFrame.time:ClearAllPoints()
 	self.TextFrame.mouseWarn:ClearAllPoints()
 
-	self.TextFrame.coords:SetPoint("CENTER", self, "CENTER", 0, coords_y);
 	self.TextFrame.time:SetPoint("CENTER",self,"CENTER",0, time_y);
 	self.TextFrame.mouseWarn:SetPoint("CENTER",self,"CENTER",0,-16);
 
@@ -641,10 +611,6 @@ do
 			SetPlayerDotTexture(true);
 		elseif IsKey(key,"mouseoverinfo_color") then
 			self.TextFrame.mouseWarn:SetTextColor(unpack(FarmHudDB.mouseoverinfo_color));
-		elseif IsKey(key,"coords_show") then
-			self.TextFrame.coords:SetShown(FarmHudDB.coords_show);
-		elseif IsKey(key,"coords_color") then
-			self.TextFrame.coords:SetTextColor(unpack(FarmHudDB.coords_color));
 		elseif IsKey(key,"time_show") then
 			self.TextFrame.time:SetShown(FarmHudDB.time_show);
 		elseif IsKey(key,"time_color") then
@@ -894,7 +860,6 @@ function FarmHudMixin:OnShow()
 	TrackingTypes_Update(true);
 
 	self:SetScales(true);
-	self:UpdateCoords(FarmHudDB.coords_show);
 	self:UpdateTime(FarmHudDB.time_show);
 
 	-- second try to suppress mouse enable state
@@ -1015,7 +980,6 @@ function FarmHudMixin:OnHide()
 
 	wipe(mps);
 
-	self:UpdateCoords(false);
 	self:UpdateTime(false);
 	self:UpdateForeignAddOns(false);
 
@@ -1138,12 +1102,6 @@ function FarmHudMixin:OnEvent(event,...)
 		end
 	elseif event=="PLAYER_LOGIN" then
 		self:SetFrameLevel(2);
-
-		if (FarmHudDB.coords_show) then
-			self.TextFrame.coords:Show();
-		end
-
-		self.TextFrame.coords:SetTextColor(unpack(FarmHudDB.coords_color));
 
 		self.TextFrame.time:SetTextColor(unpack(FarmHudDB.time_color));
 
