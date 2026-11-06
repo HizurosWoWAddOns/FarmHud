@@ -11,7 +11,7 @@
 	<Script file="FarmHud_DataBroker.lua"/>
 	<Script file="modules/CardinalPoints.lua"/>
 	<Include file="modules/TrailPath.xml"/>
-	<Include file="modules/RangeCircles.xml" />
+	<Scrip file="modules/RangeCircles.lua" />
 	<Script file="modules/OnScreenButtons.lua"/>
 	<Script file="modules/TomTom.lua" />
 
