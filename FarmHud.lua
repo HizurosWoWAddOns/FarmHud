@@ -34,7 +34,7 @@ local playerDot_orig, playerDot_custom = "Interface\\Minimap\\MinimapArrow",nil;
 if WOW_PROJECT_ID==WOW_PROJECT_MAINLINE then
 	playerDot_orig = "minimaparrow" -- blizzard using atlas entry of ObjectIconsAtlas.blp now
 end
-local timeTicker,background_alpha_current;
+local background_alpha_current;
 local knownProblematicAddOns, knownProblematicAddOnsDetected = {BasicMinimap=true},{};
 local SetPointToken,SetParentToken = {},{};
 local trackingTypes,trackingTypesStates,numTrackingTypes,trackingHookLocked = {},{},0,false;
@@ -463,34 +463,6 @@ local function objectToDummy(object,enable,debugStr)
 	return changedSetParent,changedSetPoint;
 end
 
--- time
-
-local function TimeUpdate_TickerFunc()
-	local timeStr = {};
-	if FarmHudDB.time_server then
-		local h,m = GetGameTime();
-		tinsert(timeStr,string.format("%d:%02d",h,m)); -- realm time
-	end
-	if FarmHudDB.time_local then
-		tinsert(timeStr,date("%H:%M")); -- local time
-		if #timeStr==2 then
-			timeStr[1] = "R: "..timeStr[1];
-			timeStr[2] = "L: "..timeStr[2];
-		end
-	end
-	FarmHud.TextFrame.time:SetText(table.concat(timeStr," / "));
-end
-
-function FarmHudMixin:UpdateTime(state)
-	if state==true and timeTicker==nil then
-		timeTicker = C_Timer.NewTicker(1,TimeUpdate_TickerFunc);
-		TimeUpdate_TickerFunc();
-	elseif state==false and timeTicker then
-		timeTicker:Cancel();
-		timeTicker=nil;
-	end
-	self.TextFrame.time:SetShown(state);
-end
 
 -- dummy frame mixin functions
 
@@ -550,13 +522,7 @@ function FarmHudMixin:SetScales(enabled)
 	self.TextFrame:SetScale(FarmHudDB.text_scale);
 	self.TextFrame.ScaledHeight = scaledHeight
 
-	local time_y = self.TextFrame.ScaledHeight * FarmHudDB.time_radius;
-	if (FarmHudDB.time_bottom) then time_y = -time_y; end
-
-	self.TextFrame.time:ClearAllPoints()
 	self.TextFrame.mouseWarn:ClearAllPoints()
-
-	self.TextFrame.time:SetPoint("CENTER",self,"CENTER",0, time_y);
 	self.TextFrame.mouseWarn:SetPoint("CENTER",self,"CENTER",0,-16);
 
 	if enabled then
@@ -611,10 +577,6 @@ do
 			SetPlayerDotTexture(true);
 		elseif IsKey(key,"mouseoverinfo_color") then
 			self.TextFrame.mouseWarn:SetTextColor(unpack(FarmHudDB.mouseoverinfo_color));
-		elseif IsKey(key,"time_show") then
-			self.TextFrame.time:SetShown(FarmHudDB.time_show);
-		elseif IsKey(key,"time_color") then
-			self.TextFrame.time:SetTextColor(unpack(FarmHudDB.time_color));
 		elseif IsKey(key,"showDummy") then
 			FarmHudMinimapDummy:SetShown(FarmHudDB.showDummy);
 		elseif IsKey(key,"showDummyBg") then
@@ -860,7 +822,6 @@ function FarmHudMixin:OnShow()
 	TrackingTypes_Update(true);
 
 	self:SetScales(true);
-	self:UpdateTime(FarmHudDB.time_show);
 
 	-- second try to suppress mouse enable state
 	suppressNextMouseEnable = true;
@@ -977,11 +938,9 @@ function FarmHudMixin:OnHide()
 
 	SetPlayerDotTexture(false);
 	TrackingTypes_Update(false);
+	self:UpdateForeignAddOns(false);
 
 	wipe(mps);
-
-	self:UpdateTime(false);
-	self:UpdateForeignAddOns(false);
 
 	if mps.backdropMouse~=MinimapBackdrop:IsMouseEnabled() then
 		MinimapBackdrop:EnableMouse(mps.backdropMouse);

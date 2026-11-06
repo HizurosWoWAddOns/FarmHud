@@ -28,7 +28,6 @@ local framestrataValues = {
 }
 local dbDefaults = {
 	hud_scale=1.4, text_scale=1.4, hud_size=1,
-	time_show=true, time_server=true, time_local=true, time_radius = 0.48, time_bottom=false, time_color={1,0.82,0,0.7},
 	mouseoverinfo_color={1,0.82,0,0.7},
 	player_dot="blizz", holdKeyForMouseOn = "_none",
 	rotation=true, showDummy = true, showDummyBg = true,
@@ -402,41 +401,6 @@ local options = {
 				healcircle_resetcolor = {
 					type = "execute", order = 24,
 					name = L["ResetColor"], --desc = L["ResetColorDesc"]
-				},
-			}
-		},
-		time = {
-			type = "group", order = 5,
-			name = L["Time"],
-			args = {
-				time_show = {
-					type = "toggle", order = 1, width = "full",
-					name = L["TimeShow"], desc = L["TimeShowDesc"]
-				},
-				time_server = {
-					type = "toggle", order = 2,
-					name = L["TimeServer"], desc = L["TimeServerDesc"]
-				},
-				time_local = {
-					type = "toggle", order = 3,
-					name = L["TimeLocal"], desc = L["TimeLocalDesc"]
-				},
-				time_radius = {
-					type = "range", order = 4,
-					name = L["ChangeRadius"], desc = L["ChangeRadiusDesc"],
-					min = 0.1, max = 0.9, step=0.005, isPercent=true
-				},
-				time_bottom = {
-					type = "toggle", order = 5, width = "double",
-					name = L["TimeBottom"], desc = L["TimeBottomDesc"]
-				},
-				time_color = {
-					type = "color", order = 6, hasAlpha = true,
-					name = COLOR, desc = L["TimeColorDesc"]
-				},
-				time_resetcolor = {
-					type = "execute", order = 7,
-					name = L["ResetColor"], desc = L["TimeColorResetDesc"]
 				},
 			}
 		},
