@@ -212,17 +212,24 @@ local function UpdateTrailPath(force)
 	end
 end
 
-local module = {};
-module.events = {};
-module.dbDefaults = {
-	trailPathShow = true,
-	trailPathOnMinimap = true,
-	trailPathCount = 32,
-	trailPathTimeout = 60,
-	trailPathIcon = "arrow01",
-	trailPathColor1 = {1,.2,.2,1,.75},
-	trailPathScale = 1,
-};
+local module = {
+	dbDefaults = {
+		trailPathShow = true,
+		trailPathOnMinimap = true,
+		trailPathCount = 32,
+		trailPathTimeout = 60,
+		trailPathIcon = "arrow01",
+		trailPathColor1 = {1,.2,.2,1,.75},
+		trailPathScale = 1,
+	},
+	events = {},
+	OnShow = nil,
+	OnHide = nil,
+	Update = nil,
+	OnLoad = nil,
+	OnSetScale = nil,
+	AddOptions = nil,
+}
 
 function module.AddOptions()
 	return {
@@ -233,7 +240,7 @@ function module.AddOptions()
 			args = {
 				onWorldmap = {
 					type = "group", inline = true,
-					name = L["TrailPathOnWorldmap"],
+					name = "|cff00aaff"..L["TrailPathOnWorldmap"].."|r",
 					args = {
 						trailPathShow = {
 							type = "toggle", order = 1,
@@ -253,12 +260,12 @@ function module.AddOptions()
 				},
 				onMinimap = {
 					type = "group", inline = true,
-					name = L["TrailPathOnMinimap"],
-					desc = L["TrailPathOnMinimapDesc"],
+					name = "|cff00aaff"..L["TrailPathOnMinimap"].."|r",
 					args = {
 						trailPathOnMinimap = {
 							type = "toggle", order = 2,
 							name = SHOW,
+							desc = L["TrailPathOnMinimapDesc"]
 						},
 						trailPathMinimapIcon = {
 							type = "select", order = 5,
