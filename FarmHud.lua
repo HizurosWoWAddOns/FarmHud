@@ -34,7 +34,7 @@ local playerDot_orig, playerDot_custom = "Interface\\Minimap\\MinimapArrow",nil;
 if WOW_PROJECT_ID==WOW_PROJECT_MAINLINE then
 	playerDot_orig = "minimaparrow" -- blizzard using atlas entry of ObjectIconsAtlas.blp now
 end
-local timeTicker,cardinalTicker,coordsTicker,background_alpha_current;
+local timeTicker,coordsTicker,background_alpha_current;
 local knownProblematicAddOns, knownProblematicAddOnsDetected = {BasicMinimap=true},{};
 local SetPointToken,SetParentToken = {},{};
 local trackingTypes,trackingTypesStates,numTrackingTypes,trackingHookLocked = {},{},0,false;
@@ -1138,20 +1138,6 @@ function FarmHudMixin:OnEvent(event,...)
 		end
 	elseif event=="PLAYER_LOGIN" then
 		self:SetFrameLevel(2);
-
-		--local radius = Minimap:GetWidth() * 0.214;
-		for i, v in ipairs(self.TextFrame.cardinalPoints) do
-			local label = v:GetText();
-			v.NWSE = strlen(label)==1;
-			v.rot = (0.785398163 * (i-1));
-			v:SetText(L[label]);
-			v:SetTextColor(1.0,0.82,0);
-			if v.NWSE then
-				v:SetTextColor(unpack(FarmHudDB.cardinalpoints_color1));
-			else
-				v:SetTextColor(unpack(FarmHudDB.cardinalpoints_color2));
-			end
-		end
 
 		if (FarmHudDB.coords_show) then
 			self.TextFrame.coords:Show();

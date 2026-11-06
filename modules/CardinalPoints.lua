@@ -3,7 +3,7 @@ local addon,ns = ...;
 local L = ns.L;
 local cardinalTicker;
 
-local points,cp = {"N","NE","E","SE","S","SW","W","NW"}
+local points,cp = {"N","NE","E","SE","S","SW","W","NW"},{}
 local module = {
 	dbDefaults={
 		cardinalpoints_show=true,
@@ -13,17 +13,24 @@ local module = {
 		cardinalpoints_gathercircle_bind = false,
 		cardinalpoints_gathercircle_pos = "inside",
 		cardinalpoints_gathercircle_distance = 10,
+		cardinalpoints_textscale = 1,
 	},
 	events = {},
 	OnShow = nil,
 	OnHide = nil,
+	Update = nil,
 	OnLoad = nil,
-	OnSetScales = nil,
+	OnSetScale = nil,
+	AddOptions = nil,
 }
 
 local function CardinalPointsUpdate_TickerFunc()
-	local bearing = GetPlayerFacing();
-	local scaledRadius;
+	local bearing, scaledRadius = GetPlayerFacing()
+
+	if not bearing then
+		-- zones without access on player facing. mostly in dungeons and raids.
+		return
+	end
 
 	if FarmHudDB.cardinalpoints_gathercircle_bind then
 		local lp,radius,_ = FarmHudRangeCircles.CirclesDefault[1].linePool,nil,nil; -- gather circle
@@ -37,47 +44,38 @@ local function CardinalPointsUpdate_TickerFunc()
 		scaledRadius = cp.ScaledHeight * FarmHudDB.cardinalpoints_radius;
 	end
 
-	for i=1, #cp.points do
-		local p = cp.points[i];
-		p:ClearAllPoints();
-		if bearing then
-			p:SetPoint("CENTER", FarmHud, "CENTER", math.sin(p.rot+bearing)*scaledRadius, math.cos(p.rot+bearing)*scaledRadius);
-		end
-		-- cardinal points disappearing in zones without access on player facing. mostly in dungeons and raids.
-	end
-end
-
-local function ToggleCardicalPoints(state)
-	if FarmHudDB.cardinalpoints_show then
-		if not cardinalTicker and state~=false then
-			cardinalTicker = C_Timer.NewTicker(1/24, CardinalPointsUpdate_TickerFunc);
-		elseif cardinalTicker and state==false then
-			cardinalTicker:Cancel();
-			cardinalTicker = nil;
-		end
-		if not GetPlayerFacing() then
-			state = false;
-		end
-		for i,e in ipairs(cp.points) do
-			e:SetShown(state);
-		end
-	else
-		if cardinalTicker then
-			cardinalTicker:Cancel();
-			cardinalTicker = nil;
-		end
-		for i,e in ipairs(cp.points) do
-			e:SetShown(false);
-		end
+	for _, point in ipairs(cp.points) do
+		point:ClearAllPoints();
+		point:SetPoint("CENTER", FarmHud, "CENTER", math.sin(point.rot+bearing)*scaledRadius, math.cos(point.rot+bearing)*scaledRadius);
 	end
 end
 
 function module.OnShow()
-	ToggleCardicalPoints(true)
+	if not FarmHudDB.cardinalpoints_show then
+		return
+	end
+	local r1,g1,b1,a1 = unpack(FarmHudDB.cardinalpoints_color1)
+	local r2,g2,b2,a2 = unpack(FarmHudDB.cardinalpoints_color2)
+	for _, point in ipairs(cp.points) do
+		if point.NWSE then
+			point:SetTextColor(r1,g1,b1,a1);
+		else
+			point:SetTextColor(r2,g2,b2,a2);
+		end
+	end
+	if not cardinalTicker then
+		cardinalTicker = C_Timer.NewTicker(1/24, CardinalPointsUpdate_TickerFunc);
+	end
+	cp:Show()
+	ns:debug("<cp>","<OnShow>",cp.points[1]:IsShown(),cp:IsShown())
 end
 
 function module.OnHide()
-	ToggleCardicalPoints(false)
+	if cardinalTicker then
+		cardinalTicker:Cancel();
+		cardinalTicker = nil;
+	end
+	cp:Hide()
 end
 
 function module.OnSetScales(enabled,scaledHeight)
@@ -85,114 +83,173 @@ function module.OnSetScales(enabled,scaledHeight)
 end
 
 function module.OnLoad()
+	-- create cardinal points
 	cp = CreateFrame("Frame",nil,FarmHud)
 	FarmHud.CardinalPoints = cp
 	cp:SetSize(1,1)
 	cp:SetPoint("CENTER")
+	cp:Hide();
 	cp.points = {}
-	for i,p in ipairs(points)do
-		local P = cp:CreateFontString(nil,"ARTWORK","FarmHudFont")
-		P:SetText(p)
-		P.key = p
-		P.NWSE = strlen(p)==1
-		P.rot = (math.pi / 4 * (i-1))
-		P:SetText(L[p])
-		P:SetTextColor(1.0,0.82,0)
-		tinsert(cp.points,P)
+	for i,pointLetter in ipairs(points)do
+		local point = cp:CreateFontString(nil,"ARTWORK","FarmHudFont")
+		point.key = pointLetter
+		point.NWSE = strlen(pointLetter)==1
+		point.rot = (math.pi / 4 * (i-1))
+		point:SetText(L[pointLetter])
+		point:Show()
+		tinsert(cp.points,point)
 	end
 end
 
-function module.events.ADDON_LOADED()
-	if not cp then
+-- function module.events.PLAYER_LOGIN() end
+
+-- function module.events.PLAYER_LOGIN() end
+
+local function updateVisibility()
+	ns:debug("<cp>","<updateVisibility>")
+	-- for entering zones with disabled player facing
+	if not FarmHud:IsShown() then
+		if cardinalTicker then
+			module.OnHide()
+		end
 		return
 	end
-	for _,p in ipairs(cp.points)do
-		if p.NWSE then
-			p:SetTextColor(unpack(FarmHudDB.cardinalpoints_color1));
-		else
-			p:SetTextColor(unpack(FarmHudDB.cardinalpoints_color2));
+	local state = FarmHudDB.cardinalpoints_show
+	if not GetPlayerFacing() then
+		state = false
+	end
+	module[state and "OnShow" or "OnHide"]();
+end
+
+module.events.PLAYER_ENTERING_WORLD = updateVisibility
+module.events.ZONE_CHANGED = updateVisibility
+
+local function updateOpts(key)
+	if key=="cardinalpoints_show" and FarmHud:IsShown() then
+		module[FarmHudDB[key] and "OnShow" or "OnHide"]()
+	end
+	if key=="cardinalpoints_color1" then
+		local r,g,b,a = unpack(FarmHudDB.cardinalpoints_color1)
+		for _, point in ipairs(cp.points)do
+			if point.NWSE then
+				point:SetTextColor(r,g,b,a)
+			end
+		end
+	end
+	if key=="cardinalpoints_color2" then
+		local r,g,b,a = unpack(FarmHudDB.cardinalpoints_color2)
+		for _, point in ipairs(cp.points)do
+			if not point.NWSE then
+				point:SetTextColor(r,g,b,a)
+			end
 		end
 	end
 end
-
---function module.events.PLAYER_LOGIN() end
 
 local function opt(info,value,...)
 	local key = info[#info];
 	if value~=nil then
+		-- set option
 		if (...)~=nil then
 			value = {value,...}
 		end
 		FarmHudDB[key] = value
-		if key=="cardinalpoints_show" then
-			ToggleCardicalPoints(FarmHud:IsShown())
-		end
+		updateOpts(key)
+		return
 	end
+	-- get option
 	if type(FarmHudDB[key])=="table" then
 		return unpack(FarmHudDB[key]);
 	end
 	return FarmHudDB[key]
 end
 
+local function resetColor(info)
+	local key = info[#info]:gsub("reset","")
+	FarmHudDB[key] = CopyTable(module.dbDefaults[key])
+	updateOpts(key)
+end
+
 local options = {
 	cardinalpoints = {
-		type = "group", order = 3,
+		type = "group", --order = 3,
 		name = L["CardinalPoints"],
-		get=opt,set=opt,
+		get=opt, set=opt,
 		args = {
 			cardinalpoints_show = {
 				type = "toggle", order = 1, width = "double",
 				name = L["CardinalPointsShow"], desc = L["CardinalPointsShowDesc"],
 			},
-			cardinalpoints_gathercircle_bind = {
-				type = "toggle", order = 2, width = "full",
-				name = L["CardinalPointsGatherCircleBind"], desc = L["CardinalPointsGatherCircleBindDesc"]
+			positionOptions = {
+				type = "group", order=10, inline = true,
+				name = "|cff00aaff"..L["Position options"].."|r",
+				args = {
+					cardinalpoints_gathercircle_bind = {
+						type = "toggle", order = 1, width = "full",
+						name = L["CardinalPointsGatherCircleBind"], desc = L["CardinalPointsGatherCircleBindDesc"]
+					},
+					cardinalpoints_radius = {
+						type = "range", order = 2, width = "double",
+						name = L["ChangeRadius"], desc = L["ChangeRadiusDesc"],
+						min = 0.1, max = 0.95, step=0.005, isPercent=true,
+						disabled = function() return FarmHudDB.cardinalpoints_gathercircle_bind; end
+					},
+					cardinalpoints_gathercircle_pos = {
+						type = "select", order = 3,
+						name = L["CardinalPointsGatherCirclePos"], desc = L["CardinalPointsGatherCirclePosDesc"],
+						values = {
+							inside = L["CardinalPointsInside"],
+							outside = L["CardinalPointsOutside"]
+						},
+						disabled = function() return not FarmHudDB.cardinalpoints_gathercircle_bind; end
+					},
+					cardinalpoints_gathercircle_distance = {
+						type = "range", order = 4,
+						name = L["CardinalPointsGatherCircleDistance"], desc = L["CardinalPointsGatherCircleDistanceDesc"],
+						min = 10, max = 100, step=2,
+						disabled = function() return not FarmHudDB.cardinalpoints_gathercircle_bind; end
+					},
+
+				}
 			},
-			cardinalpoints_radius = {
-				type = "range", order = 3, width = "double",
-				name = L["ChangeRadius"], desc = L["ChangeRadiusDesc"],
-				min = 0.1, max = 0.95, step=0.005, isPercent=true,
-				disabled = function() return FarmHudDB.cardinalpoints_gathercircle_bind; end
+			textOptions = {
+				type = "group", order=20, inline = true,
+				name = "|cff00aaff"..L["Text options"].."|r",
+				args = {
+					cardinalpoints_textscale = {
+						type = "range", order = 1, width="full",
+						name = L["TextScale"], desc = L["TextScaleDesc"],
+						min = 1, max = 2.5, step = 0.1, isPercent = true
+					},
+					cardinalpoints_header1 = {
+						type = "header", order = 10,
+						name = L["CardinalPointsGroup1"]
+					},
+					cardinalpoints_color1 = {
+						type = "color", order = 11, hasAlpha = true,
+						name = COLOR, desc = L["CardinalPointsColorDesc"]:format(L["CardinalPointsGroup1"])
+					},
+					cardinalpoints_resetcolor1 = {
+						type = "execute", order = 12,
+						name = L["ResetColor"], desc = L["CardinalPointsColorResetDesc"]:format(L["CardinalPointsGroup1"]),
+						func = resetColor
+					},
+					cardinalpoints_header2 = {
+						type = "header", order = 20,
+						name = L["CardinalPointsGroup2"]
+					},
+					cardinalpoints_color2 = {
+						type = "color", order = 21, hasAlpha = true,
+						name = COLOR, desc = L["CardinalPointsColorDesc"]:format(L["CardinalPointsGroup2"])
+					},
+					cardinalpoints_resetcolor2 = {
+						type = "execute", order = 22,
+						name = L["ResetColor"], desc = L["CardinalPointsColorResetDesc"]:format(L["CardinalPointsGroup2"]),
+						func = resetColor
+					}
+				}
 			},
-			cardinalpoints_gathercircle_pos = {
-				type = "select", order = 4,
-				name = L["CardinalPointsGatherCirclePos"], desc = L["CardinalPointsGatherCirclePosDesc"],
-				values = {
-					inside = L["CardinalPointsInside"],
-					outside = L["CardinalPointsOutside"]
-				},
-				disabled = function() return not FarmHudDB.cardinalpoints_gathercircle_bind; end
-			},
-			cardinalpoints_gathercircle_distance = {
-				type = "range", order = 5,
-				name = L["CardinalPointsGatherCircleDistance"], desc = L["CardinalPointsGatherCircleDistanceDesc"],
-				min = 10, max = 100, step=2,
-				disabled = function() return not FarmHudDB.cardinalpoints_gathercircle_bind; end
-			},
-			cardinalpoints_header1 = {
-				type = "header", order = 6,
-				name = L["CardinalPointsGroup1"]
-			},
-			cardinalpoints_color1 = {
-				type = "color", order = 7, hasAlpha = true,
-				name = COLOR, desc = L["CardinalPointsColorDesc"]:format(L["CardinalPointsGroup1"])
-			},
-			cardinalpoints_resetcolor1 = {
-				type = "execute", order = 8,
-				name = L["ResetColor"], desc = L["CardinalPointsColorResetDesc"]:format(L["CardinalPointsGroup1"])
-			},
-			cardinalpoints_header2 = {
-				type = "header", order = 9,
-				name = L["CardinalPointsGroup2"]
-			},
-			cardinalpoints_color2 = {
-				type = "color", order = 10, hasAlpha = true,
-				name = COLOR, desc = L["CardinalPointsColorDesc"]:format(L["CardinalPointsGroup2"])
-			},
-			cardinalpoints_resetcolor2 = {
-				type = "execute", order = 11,
-				name = L["ResetColor"], desc = L["CardinalPointsColorResetDesc"]:format(L["CardinalPointsGroup2"])
-			}
+
 		}
 	},
 }
