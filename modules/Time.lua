@@ -44,6 +44,7 @@ function module.OnShow()
 		timeTicker = C_Timer.NewTicker(1/24,TimeUpdate_TickerFunc);
 	end
 	FarmHud.TextFrame.time:SetTextColor(unpack(FarmHudDB.time_color));
+	FarmHud.TextFrame.time:SetTextScale(FarmHudDB.time_textscale)
 	FarmHud.TextFrame.time:Show();
 end
 
@@ -55,16 +56,8 @@ function module.OnHide()
 	FarmHud.TextFrame.time:Hide();
 end
 
-local _scaledHeight
-function module.OnSetScales(enabled,scaledHeight)
-	_scaledHeight = scaledHeight
-	if not FarmHudDB.time_show then
-		return
-	end
-	local time_y = scaledHeight * FarmHudDB.time_radius;
-	if FarmHudDB.time_bottom then time_y = -time_y; end
-	FarmHud.TextFrame.time:ClearAllPoints()
-	FarmHud.TextFrame.time:SetPoint("CENTER",FarmHud,"CENTER",0,time_y);
+function module.OnSetScales()
+	FarmHud.TextFrame.time:SetPoint("CENTER",FarmHud,"CENTER",0,ns.calcDistance(FarmHudDB.time_radius,FarmHudDB.time_bottom));
 end
 
 function module.OnLoad()
@@ -78,20 +71,20 @@ end
 -- function module.events.PLAYER_LOGIN() end
 
 local function updateOpts(key)
-	if key=="time_show" or key==true then
+	if key=="time_show" then
 		FarmHud.TextFrame.time:SetShown(FarmHudDB.time_show and FarmHud:IsShown())
 	end
-	if not FarmHudDB.time_show then
-		return
+	if key=="time_radius" then
+		module.OnSetScales()
 	end
-	if (key=="time_radius" or key==true) and _scaledHeight then
-		module.OnSetScales(nil,_scaledHeight)
+	if key=="time_bottom" then
+		module.OnSetScales()
 	end
-	if (key=="time_bottom" or key==true) and _scaledHeight then
-		module.OnSetScales(nil,_scaledHeight)
-	end
-	if key=="time_color" or key==true then
+	if key=="time_color" then
 		FarmHud.TextFrame.time:SetTextColor(unpack(FarmHudDB.time_color));
+	end
+	if key=="time_textscale" then
+		FarmHud.TextFrame.time:SetTextScale(FarmHudDB.time_textscale)
 	end
 end
 
@@ -133,9 +126,9 @@ local options = {
 				name = L["Position options"],
 				args = {
 					time_radius = {
-						type = "range", order = 1,
+						type = "range", order = 1, width = "double",
 						name = L["ChangeRadius"], desc = L["ChangeRadiusDesc"],
-						min = 0.1, max = 0.9, step=0.005, isPercent=true
+						min = 0.1, max = 0.95, step=0.01, isPercent=true
 					},
 					time_bottom = {
 						type = "toggle", order = 2, width = "double",
