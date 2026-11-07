@@ -25,7 +25,6 @@ local module = {
 	events = {},
 	OnShow = nil,
 	OnHide = nil,
-	Update = nil,
 	OnLoad = nil,
 	OnSetScale = nil,
 	AddOptions = nil,
@@ -120,7 +119,7 @@ function module.AddOptions()
 				},
 				positionOptions = {
 					type = "group", order=10, inline = true,
-					name = "|cff00aaff"..L["Position options"].."|r",
+					name = L["Position options"],
 					args = {
 						buttons_bottom = {
 							type = "toggle", order = 1, width = "double",

@@ -12,7 +12,6 @@ local module = {
 	events = {},
 	OnShow = nil,
 	OnHide = nil,
-	Update = nil,
 	OnLoad = nil,
 	OnSetScale = nil,
 	AddOptions = nil,

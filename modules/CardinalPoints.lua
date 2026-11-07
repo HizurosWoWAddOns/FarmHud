@@ -18,7 +18,6 @@ local module = {
 	events = {},
 	OnShow = nil,
 	OnHide = nil,
-	Update = nil,
 	OnLoad = nil,
 	OnSetScale = nil,
 	AddOptions = nil,
@@ -182,7 +181,7 @@ local options = {
 			},
 			positionOptions = {
 				type = "group", order=10, inline = true,
-				name = "|cff00aaff"..L["Position options"].."|r",
+				name = L["Position options"],
 				args = {
 					cardinalpoints_gathercircle_bind = {
 						type = "toggle", order = 1, width = "full",
@@ -214,7 +213,7 @@ local options = {
 			},
 			textOptions = {
 				type = "group", order=20, inline = true,
-				name = "|cff00aaff"..L["Text options"].."|r",
+				name = L["Text options"],
 				args = {
 					cardinalpoints_textscale = {
 						type = "range", order = 1, width="full",

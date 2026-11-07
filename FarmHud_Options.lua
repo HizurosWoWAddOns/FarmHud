@@ -9,6 +9,7 @@ local playerDot_textures = {
 	["black"]         = L["Black player dot"],
 	["hide"]          = L["Hide player arrow"],
 };
+local groupColor = "|cff22ccef"
 local framestrataValues = {
 	-- https://warcraft.wiki.gg/wiki/Frame_Strata
 	--   WORLD [reserved]
@@ -22,14 +23,15 @@ local framestrataValues = {
 	L8 = L["Highest"] -- TOOLTIP
 }
 local dbDefaults = {
-	hud_scale=1.4, text_scale=1.4, hud_size=1,
+	hud_scale=1.4, hud_size=1,
 	mouseoverinfo_color={1,0.82,0,0.7},
 	player_dot="blizz", holdKeyForMouseOn = "_none",
 	rotation=true, showDummy = true, showDummyBg = true,
 	QuestArrowInfoMsg = false,
 	hideInInstance=false, hideInCombat=false, showWithHiddenUI=false,
 	background_alpha=0, background_alpha2=0.5, background_alpha_toggle=true, background_alpha_default=true,
-	strata="L1"
+	strata="L1",
+	mouseoverinfo_textscale=1.4,
 }
 local modDB = {};
 local excludeFrames = {}
@@ -110,20 +112,6 @@ local function printFrames(key,value)
 	end
 end
 
-local function checkAddOnLoaded(info)
-	local key,pKey = info[#info],info[#info-1];
-	if isAddOnsLoadedForOption[key] then
-		return not C_AddOns.IsAddOnLoaded(isAddOnsLoadedForOption[key].addon);
-	elseif isAddOnsLoadedForOption[pKey] then
-		local isLoaded = C_AddOns.IsAddOnLoaded(isAddOnsLoadedForOption[pKey].addon) and "Loaded" or "NotLoaded";
-		if isAddOnsLoadedForOption[pKey][key..isLoaded] then
-			return isAddOnsLoadedForOption[pKey][key..isLoaded];
-		elseif isAddOnsLoadedForOption[pKey][key] then
-			return isAddOnsLoadedForOption[pKey][key];
-		end
-	end
-end
-
 local function opt(info,value,...)
 	local key,reset = info[#info],info[#info]:gsub("reset","");
 	if key~=reset then
@@ -183,7 +171,7 @@ local options = {
 	func = opt,
 	args = {
 		general = {
-			type = "group", order = 0,
+			type = "group", order = 1,
 			name = COMPACT_UNIT_FRAME_PROFILE_SUBTYPE_ALL,
 			args = {
 				MinimapIcon = {
@@ -217,11 +205,6 @@ local options = {
 					name = L["HudSize"], desc = L["HudSizeDesc"],
 					min = 0.1, max = 1, step = 0.1, isPercent = true
 				},
-				text_scale = {
-					type = "range", order = 13,
-					name = L["TextScale"], desc = L["TextScaleDesc"],
-					min = 1, max = 2.5, step = 0.1, isPercent = true
-				},
 				player_dot = {
 					type = "select", order = 15,
 					name = L["PlayerDot"], desc = L["PlayerDotDesc"],
@@ -231,8 +214,14 @@ local options = {
 					end
 				},
 				player_dot_sickMove = {
-					type = "description", order=15, --width="normal",
-					name = L["PlayerDotNoLongerChangable"],
+					type = "group", order=15, inline=true,
+					name = INFO,
+					args = {
+						desc = {
+							type = "description", order=15, fontSize="medium",
+							name = "|cffffcc00"..L["PlayerDotNoLongerChangable"].."|r",
+						}
+					},
 					hidden = function()
 						return not ns.sickMove1
 					end
@@ -241,8 +230,53 @@ local options = {
 					type="group", order = 20, inline=true,
 					name = L["AutoHide"],
 					args = {
-						hideInInstance = {type="toggle", order=1, name=L["HideInInstance"], desc=L["HideInInstanceDesc"]},
-						hideInCombat = {type="toggle", order=2, name=L["hideInCombat"], desc=L["hideInCombatDesc"]},
+						hideInInstance = {
+							type="toggle", order=1,
+							name=L["HideInInstance"], desc=L["HideInInstanceDesc"]
+						},
+						hideInCombat = {
+							type="toggle", order=2,
+							name=L["hideInCombat"], desc=L["hideInCombatDesc"]
+						},
+					}
+				},
+				background = {
+					type="group", order = 97, inline=true,
+					name=L["BgMinimap"],
+					args={
+						desc = {
+							type="description", order=0,
+							name=L["BgMinimapDesc"]
+						},
+						background_alpha = {
+							type = "range", order = 1,
+							name = L["BgTransparency1"], desc = L["BgTransparencyDesc1"],
+							min = 0.0, max = 1, step = 0.1, isPercent = true,
+							get = function()
+								return 1-FarmHudDB.background_alpha
+							end,
+							set = function(info,value)
+								FarmHudDB.background_alpha = 1-value;
+								FarmHud:UpdateOptions("background_alpha");
+							end
+						},
+						background_alpha2 = {
+							type = "range", order = 2,
+							name = L["BgTransparency2"], desc = L["BgTransparencyDesc2"],
+							min = 0.0, max = 1, step = 0.1, isPercent = true,
+							get = function()
+								return 1-FarmHudDB.background_alpha2
+							end,
+							set = function(info,value)
+								FarmHudDB.background_alpha2 = 1-value;
+								FarmHud:UpdateOptions("background_alpha2");
+							end
+						},
+						background_alpha_default = {
+							type = "toggle", order = 4,
+							name = L["BgAlphaDefault"],
+							desc = L["BgAlphaDefaultDesc"]
+						}
 					}
 				},
 				placeholder = {
@@ -284,6 +318,11 @@ local options = {
 								SR = RSHIFT_KEY_TEXT,
 							}
 						},
+						mouseoverinfo_textscale = {
+							type = "range", order = 13,
+							name = L["TextScale"], desc = L["TextScaleDesc"],
+							min = 1, max = 2.5, step = 0.1, isPercent = true
+						},
 						mouseoverinfo_color = {
 							type = "color", order = 1,
 							name = COLOR, desc = L["MouseOverInfoColorDesc"],
@@ -297,98 +336,9 @@ local options = {
 				}
 			}
 		},
-		----------------------------------------------
-		background = {
-			type="group", order = 1,
-			name=L["BgMinimap"],
-			args={
-				desc = {
-					type="description", order=0,
-					name=L["BgMinimapDesc"]
-				},
-				background_alpha = {
-					type = "range", order = 1,
-					name = L["BgTransparency1"], desc = L["BgTransparencyDesc1"],
-					min = 0.0, max = 1, step = 0.1, isPercent = true,
-					get = function()
-						return 1-FarmHudDB.background_alpha
-					end,
-					set = function(info,value)
-						FarmHudDB.background_alpha = 1-value;
-						FarmHud:UpdateOptions("background_alpha");
-					end
-				},
-				background_alpha2 = {
-					type = "range", order = 2,
-					name = L["BgTransparency2"], desc = L["BgTransparencyDesc2"],
-					min = 0.0, max = 1, step = 0.1, isPercent = true,
-					get = function()
-						return 1-FarmHudDB.background_alpha2
-					end,
-					set = function(info,value)
-						FarmHudDB.background_alpha2 = 1-value;
-						FarmHud:UpdateOptions("background_alpha2");
-					end
-				},
-				background_alpha_default = {
-					type = "toggle", order = 4,
-					name = L["BgAlphaDefault"],
-					desc = L["BgAlphaDefaultDesc"]
-				}
-			}
-		},
-		rangecircles_old = {
-			type = "group", order = 2, hidden=true,
-			name = L["RangeCircles"],
-			args = {
-				-- gathercircle
-				gathercircle = {
-					type = "header", order = 10,
-					name = L["GatherCircle"],
-				},
-				gathercircle_desc = {
-					type = "description", order = 11, fontSize = "medium",
-					name = L["GatherCircleDesc"]
-				},
-				gathercircle_show = {
-					type = "toggle", order = 12, width = "double",
-					name = L["GatherCircleShow"], desc = L["GatherCircleShowDesc"]
-				},
-				gathercircle_color = {
-					type = "color", order = 13,
-					name = COLOR, desc = L["GatherCircleColorDesc"],
-					hasAlpha = true
-				},
-				gathercircle_resetcolor = {
-					type = "execute", order = 14,
-					name = L["ResetColor"], --desc = L["ResetColorDesc"]
-				},
-				-- healcircle
-				healcircle = {
-					type = "header", order = 20,
-					name = L["HealCircle"],
-				},
-				healcircle_desc = {
-					type = "description", order = 21, fontSize = "medium",
-					name = L["HealcircleDesc"]
-				},
-				healcircle_show = {
-					type = "toggle", order = 22, width = "double",
-					name = L["HealcircleShow"], desc = L["HealcircleShowDesc"]
-				},
-				healcircle_color = {
-					type = "color", order = 23,
-					name = COLOR, desc = L["HealcircleColorDesc"],
-					hasAlpha = true
-				},
-				healcircle_resetcolor = {
-					type = "execute", order = 24,
-					name = L["ResetColor"], --desc = L["ResetColorDesc"]
-				},
-			}
-		},
+
 		keybindings = {
-			type = "group", order = 99,
+			type = "group", order = 2,
 			name = KEY_BINDINGS,
 			get = optKeyBind,
 			set = optKeyBind,
@@ -407,24 +357,83 @@ local options = {
 				},
 			}
 		},
-		debugging = {
-			type = "group", order = 100,
-			name = BINDING_HEADER_DEBUG,
-			args = {
-				info = {
-					type = "description", order = 1, fontSize = "med",
-					name = L["DebugOptInfo"]
-				},
-				frames = {
-					type = "execute", order = 2,
-					name = L["DebugOptFrames"],
-					func = printFrames
-				}
-			}
+
+		separator1 = {
+			type = "group", order=50,
+			name=" ",
+			args = {},
+			disabled = true
 		},
+
+		headerModules={
+			type = "group", order=51,
+			name=groupColor..L["Modules"].."|r",
+			args = {},
+			disabled = true
+		},
+
+		-- debugging = {
+		-- 	type = "group", order = 100,
+		-- 	name = BINDING_HEADER_DEBUG,
+		-- 	hidden=true,
+		-- 	args = {
+		-- 		info = {
+		-- 			type = "description", order = 1, fontSize = "med",
+		-- 			name = L["DebugOptInfo"]
+		-- 		},
+		-- 		frames = {
+		-- 			type = "execute", order = 2,
+		-- 			name = L["DebugOptFrames"],
+		-- 			func = printFrames
+		-- 		}
+		-- 	}
+		-- },
 	},
 	plugins = {}
 };
+
+local InfoMessageAdd
+do
+	local InfoMessageIndex=1
+	local InfoMessage = {
+		type = "group", order = 0,
+		name = groupColor..INFO.."|r",
+		args = {
+			desc = {
+				type = "description", fontSize = "large",
+				name = "|cffffcc00"..table.concat(L["InfoMessage"..ns.InfoMessageIndex],"|n|n").."|r"
+			}
+		}
+	}
+	function InfoMessageAdd()
+		local t = time()
+		local timeout = 43200 -- a half day in seconds
+		if FarmHudDB.InfoMessageShown==ns.InfoMessageIndex and FarmHudDB.InfoMessageTime~=nil and (t-FarmHudDB.InfoMessageTime)>timeout then
+			return -- don't add it
+		end
+		options.args.info = InfoMessage
+		FarmHudDB.InfoMessageShown = ns.InfoMessageIndex
+		FarmHudDB.InfoMessageTime = t
+	end
+end
+
+local function UpdateGroupNames(tbl)
+	if tbl.type=="group" then
+		if type(tbl.name)=="string" and tbl.name~="" and not tbl.name:match("^\124") and tbl.inline then
+			tbl.name = groupColor..tbl.name.."|r"
+		end
+		for _, child in pairs(tbl.args) do
+			UpdateGroupNames(child)
+		end
+		if tbl.plugins then
+			for _,plg in pairs(tbl.plugins) do
+				for _, plgEntry in pairs(plg) do
+					UpdateGroupNames(plgEntry)
+				end
+			end
+		end
+	end
+end
 
 function ns.RegisterOptions()
 	if FarmHudDB==nil then
@@ -439,7 +448,7 @@ function ns.RegisterOptions()
 		};
 	end
 
-	local modOptsOrder = 50;
+	local modOptsOrder = 52;
 	for modName, mod in pairs(ns.modules)do
 		if mod.dbDefaults then
 			for k,v in pairs(mod.dbDefaults)do
@@ -452,19 +461,36 @@ function ns.RegisterOptions()
 		if mod.AddOptions then
 			local opts = mod.AddOptions()
 			if type(opts)=="table" then
-				options.plugins[modName] = opts
-				for k,v in pairs(options.plugins[modName])do
+				for _,v in pairs(opts)do
 					if v.order==nil then
 						v.order = modOptsOrder;
-						modOptsOrder = modOptsOrder + 1;
 					end
 				end
+				options.plugins[modName] = opts
 			end
 		end
 	end
 
+	-- little migration
+	if FarmHudDB.text_scale~=nil then
+		if FarmHudDB.mouseoverinfo_textscale==nil then
+			FarmHudDB.mouseoverinfo_textscale = FarmHudDB.text_scale
+		end
+		if FarmHudDB.cardinalpoints_textscale==nil then
+			FarmHudDB.cardinalpoints_textscale1 = FarmHudDB.text_scale
+			FarmHudDB.cardinalpoints_textscale2 = FarmHudDB.text_scale
+		end
+		if FarmHudDB.coords_textscale==nil then
+			FarmHudDB.coords_textscale = FarmHudDB.text_scale
+		end
+		if FarmHudDB.time_textscale==nil then
+			FarmHudDB.time_textscale = FarmHudDB.text_scale
+		end
+		FarmHudDB.text_scale=nil
+	end
+
 	for k,v in pairs(dbDefaults)do
-		if (FarmHudDB[k]==nil) then
+		if FarmHudDB[k]==nil then
 			FarmHudDB[k]=v;
 		end
 	end
@@ -478,10 +504,13 @@ function ns.RegisterOptions()
 		FarmHudDB.MinimapIcon.show = nil;
 	end
 
+	InfoMessageAdd()
+	UpdateGroupNames(options)
+
 	LibStub("AceConfig-3.0"):RegisterOptionsTable(addon, options);
 	LibStub("AceConfigDialog-3.0"):AddToBlizOptions(addon);
 
-	LibStub("HizurosSharedTools").AddCredit(addon,options.args,{supporter=supporter});
+	LibStub("HizurosSharedTools").AddCredit(addon,options.args,{supporter=supporter,order=6});
 end
 
 if AddonCompartmentFrame then
