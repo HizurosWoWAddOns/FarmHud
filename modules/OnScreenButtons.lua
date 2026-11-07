@@ -8,11 +8,12 @@ local dirs = {
 	media = "Interface/AddOns/FarmHud/media/",
 }
 
+local iName, iElement, iTexNormal, iTexPushed, iTexPushedDesaturated, iScriptFunc = 1,2,3,4,5,6
 local buttons = {
-	mouseButton      = { 1, {"CENTER",-34,0}, {dirs.media.."Mouse-Normal"},                 {dirs.media.."Mouse-Pushed"},                   function() FarmHud:ToggleMouse() end},
-	backgroundButton = { 2, {"CENTER",-12,0}, {dirs.WorldMap.."WorldMap-Icon"},             {dirs.WorldMap.."WorldMap-Icon",true},          function() FarmHud:ToggleBackground() end},
-	optionsButton    = { 3, {"CENTER", 12,0}, {dirs.media.."options"},                      {dirs.media.."options",true},                   function() FarmHud:ToggleOptions() end},
-	closeButton      = { 4, {"CENTER", 34,0}, {dirs.Buttons.."UI-Panel-MinimizeButton-Up"}, {dirs.Buttons.."UI-Panel-MinimizeButton-Down"}, function() FarmHud:Toggle(false) end},
+	{ "mouseButton",      false, dirs.media.."Mouse-Normal",                 dirs.media.."Mouse-Pushed",                   false, function() FarmHud:ToggleMouse() end},
+	{ "backgroundButton", false, dirs.WorldMap.."WorldMap-Icon",             dirs.WorldMap.."WorldMap-Icon",               true,  function() FarmHud:ToggleBackground() end},
+	{ "optionsButton",    false, dirs.media.."options",                      dirs.media.."options",                        true,  function() FarmHud:ToggleOptions() end},
+	{ "closeButton",      false, dirs.Buttons.."UI-Panel-MinimizeButton-Up", dirs.Buttons.."UI-Panel-MinimizeButton-Down", false, function() FarmHud:Toggle(false) end},
 }
 
 local module = {
@@ -30,51 +31,72 @@ local module = {
 	AddOptions = nil,
 }
 
-local function updateButtons()
-	FarmHud.onScreenButtons:SetShown(FarmHudDB.buttons_show)
-	FarmHud.onScreenButtons:SetPoint("CENTER", FarmHud, "CENTER", 0, ns.calcDistance(FarmHudDB.buttons_radius,FarmHudDB.buttons_bottom))
+local function createOnScreenButtons()
+	FarmHud.onScreenButtons = CreateFrame("Frame",nil,FarmHud)
+	local width = 0
+	for i=1, #buttons do
+		local size = FarmHudDB.button_size
+		local btn = CreateFrame("Button", nil, FarmHud.onScreenButtons)
+		buttons[i][iElement] = btn
+		btn:SetSize(size,size)
+		btn:SetNormalTexture(buttons[i][iTexNormal])
+		btn:SetPushedTexture(buttons[i][iTexPushed])
+		btn:SetHighlightTexture("Interface/Buttons/UI-Panel-MinimizeButton-Highlight")
+		btn:GetHighlightTexture():SetBlendMode("ADD")
+		if buttons[i][iTexPushedDesaturated] then
+			btn:GetPushedTexture():SetDesaturated(true)
+		end
+		btn:SetScript("OnClick",buttons[i][iScriptFunc])
+		FarmHud.onScreenButtons[buttons[i][iName]] = btn
+		if i==1 then
+			btn:SetPoint("LEFT", FarmHud.onScreenButtons, "LEFT", 0, 0)
+		else
+			btn:SetPoint("LEFT", buttons[i-1][iElement], "RIGHT", FarmHudDB.button_spacing, 0)
+			width = width+FarmHudDB.button_spacing
+		end
+		width = width+size
+	end
+	FarmHud.onScreenButtons:SetSize(width,1)
 	FarmHud.onScreenButtons:SetAlpha(FarmHudDB.buttons_alpha)
 end
 
-function module.ToggleButtons(state)
-	if not FarmHudDB.buttons_show then return end
-	if state==nil then
-		state = FarmHudDB.buttons_show
-	end
-	FarmHud.onScreenButtons:SetShown(state)
-	if state then
-		updateButtons()
-	end
-end
-
 function module.OnShow()
-	updateButtons()
+	if not FarmHudDB.buttons_show then return end
+	FarmHud.onScreenButtons:Show()
 end
 
 function module.OnHide()
 	FarmHud.onScreenButtons:Hide()
 end
 
-function module.OnSetScale()
-	updateButtons()
+function module.OnSetScales()
+	FarmHud.onScreenButtons:SetPoint("CENTER", FarmHud, "CENTER", 0, ns.calcDistance(FarmHudDB.buttons_radius,FarmHudDB.buttons_bottom))
 end
 
-function module.OnLoad()
-	FarmHud.onScreenButtons = CreateFrame("Frame",nil,FarmHud)
-	FarmHud.onScreenButtons:SetSize(1,1)
-	for buttonName,buttonData in pairs(buttons)do
-		local btn = CreateFrame("Button", nil, FarmHud.onScreenButtons)
-		btn:SetSize(20,20)
-		btn:SetPoint(unpack(buttonData[2]))
-		btn:SetNormalTexture(buttonData[3][1])
-		btn:SetPushedTexture(buttonData[4][1])
-		btn:SetHighlightTexture("Interface/Buttons/UI-Panel-MinimizeButton-Highlight")
-		btn:GetHighlightTexture():SetBlendMode("ADD")
-		if buttonData[4][2] then
-			btn:GetPushedTexture():SetDesaturated(true)
+-- function module.OnLoad() end
+
+-- function module.events.ADDON_LOADED() end
+
+function module.events.PLAYER_LOGIN()
+	createOnScreenButtons()
+end
+
+local function updateOpts(key)
+	if key=="buttons_show" then
+		FarmHud.onScreenButtons:SetShown(FarmHudDB.buttons_show)
+	elseif key=="buttons_radius" or key=="buttons_bottom" then
+		FarmHud.onScreenButtons:SetPoint("CENTER", FarmHud, "CENTER", 0, ns.calcDistance(FarmHudDB.buttons_radius,FarmHudDB.buttons_bottom))
+	elseif key=="buttons_alpha" then
+		FarmHud.onScreenButtons:SetAlpha(FarmHudDB.buttons_alpha)
+	elseif key=="button_spacing" or key=="button_size" then
+		local spacing = FarmHudDB.button_spacing
+		local size = FarmHudDB.button_size
+		buttons[1][iElement]:SetSize(size,size)
+		for i=2, #buttons do
+			buttons[i][iElement]:SetSize(size,size)
+			buttons[i][iElement]:SetPoint("LEFT", buttons[i-1][iElement], "RIGHT", spacing, 0)
 		end
-		btn:SetScript("OnClick",buttonData[5])
-		FarmHud.onScreenButtons[buttonName] = btn
+		FarmHud.onScreenButtons:SetSize((size+spacing)*#buttons-spacing,1)
 	end
 end
 
@@ -89,7 +111,7 @@ local function opt(info,value,...)
 			value = {value,...}
 		end
 		FarmHudDB[key] = value
-		updateButtons()
+		updateOpts(key)
 	end
 	if type(FarmHudDB[key])=="table" then
 		return unpack(FarmHudDB[key]);
