@@ -219,8 +219,10 @@ local module = {
 		trailPathCount = 32,
 		trailPathTimeout = 60,
 		trailPathIcon = "arrow01",
-		trailPathColor1 = {1,.2,.2,1,.75},
+		trailPathColor1 = {1,.2,.2,1,.65},
 		trailPathScale = 1,
+		trailPathMinimapIcon = "dot01",
+		trailPathMinimapScale = 1,
 	},
 	events = {},
 	OnShow = nil,
@@ -238,9 +240,63 @@ function module.AddOptions()
 			name = L["TrailPath"],
 			childGroups = "tab",
 			args = {
+				pointOptions = {
+					type = "group", order=1, inline = true,
+					name = L["TrailPathOptions"],
+					args = {
+						trailPathCount = {
+							type = "range", order = 3,
+							name = L["TrailPathCount"], desc = L["TrailPathCountDesc"],
+							min = 10, step = 1, max = 64,
+						},
+						trailPathTimeout = {
+							type = "range", order = 4,
+							name = L["TrailPathTimeout"], desc = L["TrailPathTimeoutDesc"],
+							min = 10, step = 10, max = 600,
+						},
+						-- TODO: header ?
+						-- TODO: Little description for LibSharedMedia support... maybe later?
+						--[[
+						trailPathColorMode = {
+							type = "select", order = 5,
+							name = L["TrailPathColorMode"],
+							values = {
+								-- single
+								-- 2 colors
+								-- 3 colors
+							}
+						},
+						]]
+						trailPathColor1 = {
+							type = "color", order = 7,
+							name = COLOR, desc = L["TrailPathColorsDesc"],
+							hasAlpha = true,
+							hidden = false -- function to check color mode
+						},
+						--[[
+						trailPathColor2 = {
+							type = "color", order = 8,
+							name = COLOR.." 2", desc = L["TrailPathColorsDesc"],
+							hidden = false -- function to check color mode
+						},
+						trailPathColor3 = {
+							type = "color", order = 9,
+							name = COLOR.." 2", desc = L["TrailPathColorsDesc"],
+							hidden = false -- function to check color mode
+						},
+						]]
+						resetColor = {
+							type = "execute",
+							name = L["ResetColor"],
+							func = function()
+								FarmHudDB.trailPathColor1 = CopyTable(module.dbDefaults.trailPathColor1)
+							end
+						}
+					}
+				},
 				onWorldmap = {
 					type = "group", inline = true,
-					name = "|cff00aaff"..L["TrailPathOnWorldmap"].."|r",
+					name = L["TrailPathOnWorldmap"],
 					args = {
 						trailPathShow = {
 							type = "toggle", order = 1,
@@ -260,66 +316,24 @@ function module.AddOptions()
 				},
 				onMinimap = {
 					type = "group", inline = true,
-					name = "|cff00aaff"..L["TrailPathOnMinimap"].."|r",
+					name = L["TrailPathOnMinimap"],
 					args = {
 						trailPathOnMinimap = {
 							type = "toggle", order = 2,
-							name = SHOW,
-							desc = L["TrailPathOnMinimapDesc"]
+							name = L["TrailPathShow"], --desc = L["TrailPathOnMinimapDesc"]
 						},
 						trailPathMinimapIcon = {
 							type = "select", order = 5,
-							name = L["TrailPathMinimapIcon"], desc = L["TrailPathMinimapIconDesc"],
+							name = L["TrailPathIcon"], desc = L["TrailPathIconDesc"],
 							values = TrailPathIconValues
 						},
 						trailPathMinimapScale = {
 							type = "range", order = 6,
-							name = L["TrailPathMinimapScale"], desc = L["TrailPathMinimapScaleDesc"],
+							name = L["TrailPathScale"], desc = L["TrailPathScaleDesc"],
 							min=0.1, step=0.1, max=1, isPercent = true
 						},
 					}
 				},
-				trailPathCount = {
-					type = "range", order = 3,
-					name = L["TrailPathCount"], desc = L["TrailPathCountDesc"],
-					min = 10, step = 1, max = 64,
-				},
-				trailPathTimeout = {
-					type = "range", order = 4,
-					name = L["TrailPathTimeout"], desc = L["TrailPathTimeoutDesc"],
-					min = 10, step = 10, max = 600,
-				},
-				-- TODO: header ?
-				-- TODO: Little description for LibSharedMedia support... maybe later?
-				--[[
-				trailPathColorMode = {
-					type = "select", order = 5,
-					name = L["TrailPathColorMode"],
-					values = {
-						-- single
-						-- 2 colors
-						-- 3 colors
-					}
-				},
-				]]
-				trailPathColor1 = {
-					type = "color", order = 7,
-					name = COLOR, desc = L["TrailPathColorsDesc"],
-					hasAlpha = true,
-					hidden = false -- function to check color mode
-				},
-				--[[
-				trailPathColor2 = {
-					type = "color", order = 8,
-					name = COLOR.." 2", desc = L["TrailPathColorsDesc"],
-					hidden = false -- function to check color mode
-				},
-				trailPathColor3 = {
-					type = "color", order = 9,
-					name = COLOR.." 2", desc = L["TrailPathColorsDesc"],
-					hidden = false -- function to check color mode
-				},
-				]]
 			}
 		}
 	};
