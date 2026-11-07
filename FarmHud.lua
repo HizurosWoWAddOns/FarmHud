@@ -111,6 +111,15 @@ local excludeInstance = { -- exclude instance from hideInInstace option
 
 }
 
+function ns.CalculateScale(key)
+	return (FarmHud:GetHeight()/FarmHudDB[key]) * 0.5;
+end
+
+function ns.calcDistance(radiusToCenter, invertPos)
+	local pos_y = FarmHud:GetHeight() * 0.5 * radiusToCenter
+	return invertPos and -pos_y or pos_y
+end
+
 local function moduleEventFunc(self,event,...)
 	if self.module.events[event] then
 		self.module.events[event](self.module.eventFrame,...)
@@ -469,14 +478,11 @@ function FarmHudMixin:SetScales(enabled)
 	self.cluster:SetFrameStrata(Minimap:GetFrameStrata());
 	self.cluster:SetFrameLevel(Minimap:GetFrameLevel());
 
-	local scaledHeight = (self:GetHeight()/FarmHudDB.text_scale) * 0.5;
-	ns.modules("OnSetScales",enabled,scaledHeight)
-
-	self.TextFrame:SetScale(FarmHudDB.text_scale);
-	self.TextFrame.ScaledHeight = scaledHeight
+	ns.modules("OnSetScales",enabled)
 
 	self.TextFrame.mouseWarn:ClearAllPoints()
 	self.TextFrame.mouseWarn:SetPoint("CENTER",self,"CENTER",0,-16);
+	self.TextFrame.mouseWarn:SetTextScale(FarmHudDB.mouseoverinfo_textscale)
 
 	if enabled then
 		self:UpdateForeignAddOns(true)
@@ -530,6 +536,8 @@ do
 			SetPlayerDotTexture(true);
 		elseif IsKey(key,"mouseoverinfo_color") then
 			self.TextFrame.mouseWarn:SetTextColor(unpack(FarmHudDB.mouseoverinfo_color));
+		elseif IsKey(key,"mouseoverinfo_textscale") then
+			self.TextFrame.mouseWarn:SetTextScale(FarmHudDB.mouseoverinfo_textscale)
 		elseif IsKey(key,"showDummy") then
 			FarmHudMinimapDummy:SetShown(FarmHudDB.showDummy);
 		elseif IsKey(key,"showDummyBg") then
