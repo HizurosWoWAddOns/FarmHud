@@ -22,6 +22,8 @@ local module = {
 		buttons_buttom=false,
 		buttons_radius=0.56,
 		buttons_alpha=0.6,
+		button_spacing = 6,
+		button_size = 20,
 	},
 	events = {},
 	OnShow = nil,
@@ -131,13 +133,29 @@ function module.AddOptions()
 					type = "toggle", order = 1, width = "double",
 					name = L["OnScreenShow"], desc = L["OnScreenShowDesc"]
 				},
-				buttons_alpha = {
-					type = "range", order = 4,
-					name = OPACITY, desc = L["OnScreenAlphaDesc"],
-					min = 0, max = 1, step = 0.1, isPercent = true
+				buttonOptions = {
+					type = "group", order = 10, inline = true,
+					name = L["OnScreenButtonOptions"],
+					args = {
+						button_size = {
+							type = "range", order=1, width="double",
+							name = L["OnScreenSize"],
+							min=16, max=64, step=1
+						},
+						button_spacing = {
+							type = "range", order=2, width="double",
+							name = L["OnScreenSpacing"],
+							min=1, max=24, step=1
+						},
+						buttons_alpha = {
+							type = "range", order = 3, width="double",
+							name = OPACITY, desc = L["OnScreenAlphaDesc"],
+							min = 0, max = 1, step = 0.1, isPercent = true
+						},
+					}
 				},
 				positionOptions = {
-					type = "group", order=10, inline = true,
+					type = "group", order=20, inline = true,
 					name = L["Position options"],
 					args = {
 						buttons_radius = {
