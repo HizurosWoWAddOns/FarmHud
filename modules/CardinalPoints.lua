@@ -13,7 +13,8 @@ local module = {
 		cardinalpoints_gathercircle_bind = false,
 		cardinalpoints_gathercircle_pos = "inside",
 		cardinalpoints_gathercircle_distance = 10,
-		cardinalpoints_textscale = 1,
+		cardinalpoints_textscale1 = 1.4,
+		cardinalpoints_textscale2 = 1.4,
 	},
 	events = {},
 	OnShow = nil,
@@ -31,21 +32,22 @@ local function CardinalPointsUpdate_TickerFunc()
 		return
 	end
 
-	if FarmHudDB.cardinalpoints_gathercircle_bind then
+	if FarmHudDB.cardinalpoints_gathercircle_bind and FarmHudRangeCircles and FarmHudRangeCircles.CirclesDefault and FarmHudRangeCircles.CirclesDefault[1] then
 		local lp,radius,_ = FarmHudRangeCircles.CirclesDefault[1].linePool,nil,nil; -- gather circle
 		_,_,radius = lp[#lp-1]:GetEndPoint()
 		local distance = FarmHudDB.cardinalpoints_gathercircle_distance;
 		if FarmHudDB.cardinalpoints_gathercircle_pos=="inside" then
 			distance = -distance;
 		end
-		scaledRadius = radius * 0.925 + distance;
+		scaledRadius = radius + distance;
 	else
-		scaledRadius = cp.ScaledHeight * FarmHudDB.cardinalpoints_radius;
+		scaledRadius = FarmHud:GetHeight() * 0.5 * FarmHudDB.cardinalpoints_radius;
 	end
 
 	for _, point in ipairs(cp.points) do
 		point:ClearAllPoints();
 		point:SetPoint("CENTER", FarmHud, "CENTER", math.sin(point.rot+bearing)*scaledRadius, math.cos(point.rot+bearing)*scaledRadius);
+		point:SetTextScale(FarmHudDB["cardinalpoints_textscale"..(point.NWSE and 1 or 2)])
 	end
 end
 
@@ -53,20 +55,14 @@ function module.OnShow()
 	if not FarmHudDB.cardinalpoints_show then
 		return
 	end
-	local r1,g1,b1,a1 = unpack(FarmHudDB.cardinalpoints_color1)
-	local r2,g2,b2,a2 = unpack(FarmHudDB.cardinalpoints_color2)
 	for _, point in ipairs(cp.points) do
-		if point.NWSE then
-			point:SetTextColor(r1,g1,b1,a1);
-		else
-			point:SetTextColor(r2,g2,b2,a2);
-		end
+		local c = FarmHudDB["cardinalpoints_color"..(point.NWSE and 1 or 2)]
+		point:SetTextColor(c[1],c[2],c[3],c[4]);
 	end
 	if not cardinalTicker then
 		cardinalTicker = C_Timer.NewTicker(1/24, CardinalPointsUpdate_TickerFunc);
 	end
 	cp:Show()
-	ns:debug("<cp>","<OnShow>",cp.points[1]:IsShown(),cp:IsShown())
 end
 
 function module.OnHide()
@@ -77,9 +73,7 @@ function module.OnHide()
 	cp:Hide()
 end
 
-function module.OnSetScales(enabled,scaledHeight)
-	cp.ScaledHeight = scaledHeight
-end
+-- function module.OnSetScales(enabled) end
 
 function module.OnLoad()
 	-- create cardinal points
@@ -183,14 +177,20 @@ local options = {
 				type = "group", order=10, inline = true,
 				name = L["Position options"],
 				args = {
+					cardinalpoints_gathercircle_bind_info = {
+						type = "description", order=0, fontSize="medium",
+						name=L["CardinalPointsBindingDisabled"],
+						hidden = not ns.IsForever()
+					},
 					cardinalpoints_gathercircle_bind = {
 						type = "toggle", order = 1, width = "full",
-						name = L["CardinalPointsGatherCircleBind"], desc = L["CardinalPointsGatherCircleBindDesc"]
+						name = L["CardinalPointsGatherCircleBind"], desc = L["CardinalPointsGatherCircleBindDesc"],
+						disabled = ns.IsForever()
 					},
 					cardinalpoints_radius = {
 						type = "range", order = 2, width = "double",
 						name = L["ChangeRadius"], desc = L["ChangeRadiusDesc"],
-						min = 0.1, max = 0.95, step=0.005, isPercent=true,
+						min = 0.1, max = 0.95, step=0.01, isPercent=true,
 						disabled = function() return FarmHudDB.cardinalpoints_gathercircle_bind; end
 					},
 					cardinalpoints_gathercircle_pos = {
@@ -254,6 +254,9 @@ local options = {
 }
 
 function module.AddOptions()
+	if ns.IsForever() then
+		FarmHudDB.cardinalpoints_gathercircle_bind=false
+	end
 	return options
 end
 
