@@ -137,6 +137,11 @@ local function updateOpts(key)
 			end
 		end
 	end
+	if tostring(key):match("cardinalpoints_textscale%d") then
+		for _, point in ipairs(cp.points)do
+			point:SetTextScale(FarmHudDB["cardinalpoints_textscale"..(point.NWSE and 1 or 2)])
+		end
+	end
 end
 
 local function opt(info,value,...)
@@ -215,21 +220,21 @@ local options = {
 				type = "group", order=20, inline = true,
 				name = L["Text options"],
 				args = {
-					cardinalpoints_textscale = {
-						type = "range", order = 1, width="full",
-						name = L["TextScale"], desc = L["TextScaleDesc"],
-						min = 1, max = 2.5, step = 0.1, isPercent = true
-					},
 					cardinalpoints_header1 = {
 						type = "header", order = 10,
 						name = L["CardinalPointsGroup1"]
 					},
+					cardinalpoints_textscale1 = {
+						type = "range", order = 11, width="full",
+						name = L["TextScale"], desc = L["TextScaleDesc"],
+						min = 1, max = 2.5, step = 0.1, isPercent = true
+					},
 					cardinalpoints_color1 = {
-						type = "color", order = 11, hasAlpha = true,
+						type = "color", order = 12, hasAlpha = true,
 						name = COLOR, desc = L["CardinalPointsColorDesc"]:format(L["CardinalPointsGroup1"])
 					},
 					cardinalpoints_resetcolor1 = {
-						type = "execute", order = 12,
+						type = "execute", order = 13,
 						name = L["ResetColor"], desc = L["CardinalPointsColorResetDesc"]:format(L["CardinalPointsGroup1"]),
 						func = resetColor
 					},
@@ -237,12 +242,17 @@ local options = {
 						type = "header", order = 20,
 						name = L["CardinalPointsGroup2"]
 					},
+					cardinalpoints_textscale2 = {
+						type = "range", order = 21, width="full",
+						name = L["TextScale"], desc = L["TextScaleDesc"],
+						min = 1, max = 2.5, step = 0.1, isPercent = true
+					},
 					cardinalpoints_color2 = {
-						type = "color", order = 21, hasAlpha = true,
+						type = "color", order = 22, hasAlpha = true,
 						name = COLOR, desc = L["CardinalPointsColorDesc"]:format(L["CardinalPointsGroup2"])
 					},
 					cardinalpoints_resetcolor2 = {
-						type = "execute", order = 22,
+						type = "execute", order = 23,
 						name = L["ResetColor"], desc = L["CardinalPointsColorResetDesc"]:format(L["CardinalPointsGroup2"]),
 						func = resetColor
 					}
