@@ -7,7 +7,7 @@ local module = {
 		coords_bottom=false,
 		coords_color={1,0.82,0,0.7},
 		coords_radius=0.51,
-		coords_textscale=1,
+		coords_textscale=1.4,
 	},
 	events = {},
 	OnShow = nil,
@@ -25,10 +25,10 @@ local function CoordsUpdate_TickerFunc()
 			x,y = obj:GetXY();
 		end
 	end
-	if x and x>0 then
-		FarmHud.TextFrame.coords:SetFormattedText("%.1f, %.1f",x*100,y*100);
+	if x and x~=0 and y~=0 then
+		FarmHud.TextFrame.coords:SetFormattedText("%.2f, %.2f",x*100,y*100);
 	else
-		FarmHud.TextFrame.coords:SetText("");
+		FarmHud.TextFrame.coords:SetText("−.−−, −.−−");
 	end
 end
 
@@ -40,6 +40,7 @@ function module.OnShow()
 		coordsTicker = C_Timer.NewTicker(1/24,CoordsUpdate_TickerFunc);
 	end
 	FarmHud.TextFrame.coords:SetTextColor(unpack(FarmHudDB.coords_color));
+	FarmHud.TextFrame.coords:SetTextScale(FarmHudDB.coords_textscale)
 	FarmHud.TextFrame.coords:Show()
 end
 
@@ -51,16 +52,8 @@ function module.OnHide()
 	FarmHud.TextFrame.coords:Hide();
 end
 
-local _scaledHeight
-function module.OnSetScales(enabled,scaledHeight)
-	_scaledHeight = scaledHeight
-	if not FarmHudDB.coords_show then
-		return
-	end
-	local coords_y = scaledHeight * FarmHudDB.coords_radius
-	if FarmHudDB.coords_bottom then coords_y = -coords_y end
-	FarmHud.TextFrame.coords:ClearAllPoints()
-	FarmHud.TextFrame.coords:SetPoint("CENTER",FarmHud,"CENTER",0,coords_y)
+function module.OnSetScales(enabled)
+	FarmHud.TextFrame.coords:SetPoint("CENTER",FarmHud,"CENTER",0,ns.calcDistance(FarmHudDB.coords_radius,FarmHudDB.coords_bottom))
 end
 
 function module.OnLoad()
@@ -74,19 +67,19 @@ end
 -- function module.events.PLAYER_LOGIN() end
 
 local function updateOpts(key)
-	if key=="coords_show" or key==true then
-		FarmHud.TextFrame.coords:SetShown(FarmHudDB.coords_show and FarmHud:IsShown())
+	if key=="coords_show" then
+		FarmHud.TextFrame.coords:SetShown(FarmHudDB.coords_show)
 	end
-	if not FarmHudDB.coords_show then
-		return
+	if (key=="coords_radius") then
+		module.OnSetScales(nil)
 	end
-	if (key=="coords_radius" or key==true) and _scaledHeight then
-		module.OnSetScales(nil,_scaledHeight)
+	if (key=="coords_bottom") then
+		module.OnSetScales(nil)
 	end
-	if (key=="coords_bottom" or key==true) and _scaledHeight then
-		module.OnSetScales(nil,_scaledHeight)
+	if key=="coords_textscale" then
+		FarmHud.TextFrame.coords:SetTextScale(FarmHudDB.coords_textscale)
 	end
-	if key=="coords_color" or key==true then
+	if key=="coords_color" then
 		FarmHud.TextFrame.coords:SetTextColor(unpack(FarmHudDB.coords_color));
 	end
 end
@@ -127,15 +120,15 @@ local options = {
 
 			positionOptions = {
 				type = "group", order=10, inline = true,
-				name = "|cff00aaff"..L["Position options"].."|r",
+				name = L["Position options"],
 				args = {
 					coords_radius = {
-						type = "range", order = 2,
+						type = "range", order = 2, width = "double",
 						name = L["ChangeRadius"], desc = L["ChangeRadiusDesc"],
-						min = 0.1, max = 0.9, step=0.005, isPercent=true
+						min = 0.1, max = 0.95, step=0.01, isPercent=true
 					},
 					coords_bottom = {
-						type = "toggle", order = 3,
+						type = "toggle", order = 3, width = "double",
 						name = L["CoordsBottom"], desc = L["CoordsBottomDesc"]
 					},
 				}
@@ -143,7 +136,7 @@ local options = {
 
 			textOptions = {
 				type = "group", order=20, inline = true,
-				name = "|cff00aaff"..L["Text options"].."|r",
+				name = L["Text options"],
 				args = {
 					coords_textscale = {
 						type = "range", order = 4, width="full",
