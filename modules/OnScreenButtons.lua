@@ -31,18 +31,9 @@ local module = {
 }
 
 local function updateButtons()
-	local parent = FarmHud
-	local Buttons = FarmHud.onScreenButtons
 	FarmHud.onScreenButtons:SetShown(FarmHudDB.buttons_show)
-	local y = parent:GetHeight()*FarmHudDB.buttons_radius*0.5
-	if FarmHudDB.buttons_bottom then
-		y = -y
-	end
-	Buttons:ClearAllPoints()
-	Buttons:SetPoint("CENTER", parent, "CENTER", 0, y)
-	for n in pairs(buttons) do
-		Buttons[n]:SetAlpha(FarmHudDB.buttons_alpha)
-	end
+	FarmHud.onScreenButtons:SetPoint("CENTER", FarmHud, "CENTER", 0, ns.calcDistance(FarmHudDB.buttons_radius,FarmHudDB.buttons_bottom))
+	FarmHud.onScreenButtons:SetAlpha(FarmHudDB.buttons_alpha)
 end
 
 function module.ToggleButtons(state)
@@ -60,7 +51,13 @@ function module.OnShow()
 	updateButtons()
 end
 
---function module.OnHide() end
+function module.OnHide()
+	FarmHud.onScreenButtons:Hide()
+end
+
+function module.OnSetScale()
+	updateButtons()
+end
 
 function module.OnLoad()
 	FarmHud.onScreenButtons = CreateFrame("Frame",nil,FarmHud)
@@ -121,14 +118,14 @@ function module.AddOptions()
 					type = "group", order=10, inline = true,
 					name = L["Position options"],
 					args = {
-						buttons_bottom = {
-							type = "toggle", order = 1, width = "double",
-							name = L["OnScreenBottom"], desc = L["OnScreenBottomDesc"],
-						},
 						buttons_radius = {
-							type = "range", order = 2,
+							type = "range", order = 1, width = "double",
 							name = L["ChangeRadius"], desc = L["ChangeRadiusDesc"],
-							min = 0.1, max = 0.9, step=0.005, isPercent=true
+							min = 0.1, max = 0.95, step=0.01, isPercent=true
+						},
+						buttons_bottom = {
+							type = "toggle", order = 2, width = "double",
+							name = L["OnScreenBottom"], desc = L["OnScreenBottomDesc"],
 						},
 					}
 				},
