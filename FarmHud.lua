@@ -762,7 +762,7 @@ function FarmHudMixin:OnShow()
 		rotationMode = FarmHudDB.rotation and "1" or "0";
 		C_CVar.SetCVar("rotateMinimap", rotationMode);
 		Minimap_UpdateRotationSetting();
-		if not ns.IsDragonFlight() then
+		if not ns.IsDragonFlight() and not ns.IsForever() then -- TODO: needs better reason
 			MinimapCompassTexture:Hide(); -- Note: Compass Texture is the new border texture in dragonflight
 		end
 	end
@@ -1061,8 +1061,6 @@ function FarmHudMixin:OnEvent(event,...)
 end
 
 function FarmHudMixin:OnLoad()
-	FarmHudMinimapDummy.bg:SetMask("interface/CHARACTERFRAME/TempPortraitAlphaMask");
-
 	self:RegisterForeignAddOnObject(Minimap,addon);
 
 	if Minimap.SetPlayerTexture then
@@ -1092,6 +1090,16 @@ function FarmHudMixin:OnLoad()
 	end);
 
 	hooksecurefunc(Minimap,"SetMaskTexture",function(_,texture)
+		local tTexture = type(texture)
+		if (tTexture=="string" or tTexture=="number") then
+			return
+		end
+		if tTexture=="string" and not texture:match("[%/%\\]") then
+			local info = C_Texture.GetAtlasInfo(texture)
+			if info and info.file then
+				texture = info.file
+			end
+		end
 		FarmHudMinimapDummy.bg:SetMask(texture);
 	end);
 
