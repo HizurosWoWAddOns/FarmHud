@@ -4,6 +4,8 @@ local L = ns.L;
 local cardinalTicker;
 
 local points,cp = {"N","NE","E","SE","S","SW","W","NW"},{}
+local PARENS_TEMPLATE = PARENS_TEMPLATE
+-- FRIENDS_LIST_NOTE_TEMPLATE or INSTANCE_DIFFICULTY_FORMAT or ITEM_MOD_MASTERY_RATING_SPELL or PRODUCT_CHOICE_SUBTEXT or TRANSMOG_EMPTY_SLOT_FORMAT
 local module = {
 	dbDefaults={
 		cardinalpoints_show=true,
@@ -216,14 +218,10 @@ local options = {
 
 				}
 			},
-			textOptions = {
+			textOptions1 = {
 				type = "group", order=20, inline = true,
-				name = L["Text options"],
+				name = L["Text options"].." "..PARENS_TEMPLATE:format(L["CardinalPointsGroup1"]),
 				args = {
-					cardinalpoints_header1 = {
-						type = "header", order = 10,
-						name = L["CardinalPointsGroup1"]
-					},
 					cardinalpoints_textscale1 = {
 						type = "range", order = 11, width="full",
 						name = L["TextScale"], desc = L["TextScaleDesc"],
@@ -238,10 +236,12 @@ local options = {
 						name = L["ResetColor"], desc = L["CardinalPointsColorResetDesc"]:format(L["CardinalPointsGroup1"]),
 						func = resetColor
 					},
-					cardinalpoints_header2 = {
-						type = "header", order = 20,
-						name = L["CardinalPointsGroup2"]
-					},
+				}
+			},
+			textOptions2 = {
+				type = "group", order=20, inline = true,
+				name = L["Text options"].." "..PARENS_TEMPLATE:format(L["CardinalPointsGroup2"]),
+				args = {
 					cardinalpoints_textscale2 = {
 						type = "range", order = 21, width="full",
 						name = L["TextScale"], desc = L["TextScaleDesc"],
@@ -257,8 +257,7 @@ local options = {
 						func = resetColor
 					}
 				}
-			},
-
+			}
 		}
 	},
 }
