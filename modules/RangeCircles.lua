@@ -322,7 +322,7 @@ local options = {
 		args = {
 			welcome = {
 				type = "description", fontSize = "large", order = 1,
-				name = L["RangeCirclesWelcome"]
+				name = "|cffffcc00"..L["RangeCirclesWelcome"].."|r"
 			},
 			desc = {
 				type = "description", fontSize = "medium", order = 2,
@@ -332,8 +332,29 @@ local options = {
 				type="header", order = 3,
 				name=DEFAULT, --L["RangeCirclesDefault"]
 			},
+			gatherCircleInfo = {
+				type = "description", fontSize = "medium", order = 4,
+				name = function()
+					local text,i,br = {},1,true
+					while rawget(L,"RangeCircle_GC_Info"..i) do
+						local txt = L["RangeCircle_GC_Info"..i]
+						if i>1 and br then
+							txt = "|n"..txt
+						end
+						if txt:match(":$") then
+							txt = "|cffffcc00"..txt.."|r"
+							br = false
+						else
+							br = true
+						end
+						tinsert(text,txt)
+						i=i+1
+					end
+					return table.concat(text,"|n")
+				end
+			},
 			defaultCircles = {
-				type = "group", order = 4, inline = true,
+				type = "group", order = 5, inline = true,
 				name = "",
 				get = opt,
 				set = opt,
@@ -341,15 +362,19 @@ local options = {
 				args = {}
 			},
 			customCirclesHeader = {
-				type="header", order = 5,
+				type="header", order = 6,
 				name=CHANNEL_CATEGORY_CUSTOM or VIDEO_QUALITY_LABEL6, --L["RangeCirclesCustom"]
 			},
+			customCircleInfo = {
+				type = "description", fontSize = "medium", order = 7,
+				name = L["RangeCircle_CC_Info"]
+			},
 			add_circle = {
-				type = "execute", order = 6,
+				type = "execute", order = 8,
 				name = ADD,
 			},
 			customCircles = {
-				type = "group", order = 7, inline = true,
+				type = "group", order = 9, inline = true,
 				name = "",
 				get = opt,
 				set = opt,
