@@ -23,6 +23,9 @@
 				</Animations>
 			</Frame>
 		</Frames>
+		<Scripts>
+			<OnShow method="OnShow"/>
+		</Scripts>
 	</Frame>
 
 </Ui>

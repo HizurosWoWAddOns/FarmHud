@@ -9,7 +9,8 @@ local HBDPins = LibStub("HereBeDragons-Pins-2.0")
 local EnableMouse, SetShown
 local media = "Interface\\AddOns\\FarmHud\\media\\";
 local minDistanceBetween = 12;
-local trailPathActive,trailPathPool,lastX,lastY,lastM,lastFacing,IsOpened = {},{},nil,nil,nil,nil,nil;
+local maxTeleportJumpDistance = 1000;
+local trailPathActive,trailPathMinimapPool,trailPathWorldmapPool,lastInstance,lastInInstance,trailMode = {},{},{},nil,nil,nil;
 local trailPathTicker,trailPathIcons = nil,{ -- coords_pos = { <left>, <right>, <top>, <bottom>, <sizeW>, <sizeH> }
 	-- arrows1.tga
 	arrow01 = {file=media.."arrows1.tga",coords_pos={58,122, 64,128,  128,128},desaturated=true},
@@ -70,145 +71,399 @@ local TrailPathIconValues = {
 
 FarmHudTrailPathPinMixin = {}
 
-local function UpdateVisibility(self)
-	local HUD = FarmHud:IsShown();
-	SetShown(self,HUD or (not HUD and FarmHudDB.trailPathOnMinimap))
+local function IsAnyTrailEnabled()
+	return FarmHudDB.trailPathShow or FarmHudDB.trailPathOnMinimap or FarmHudDB.trailPathOnWorldmap;
 end
 
-FarmHudTrailPathPinMixin.Show = UpdateVisibility
-FarmHudTrailPathPinMixin.SetShown = UpdateVisibility;
+local function ShouldShowMinimapPin()
+	if FarmHud:IsShown() then
+		return FarmHudDB.trailPathShow;
+	end
+	return FarmHudDB.trailPathOnMinimap;
+end
+
+local function UpdateVisibility(self)
+	if not SetShown then return end
+	SetShown(self, ShouldShowMinimapPin());
+end
+
 FarmHudTrailPathPinMixin.EnableMouse = function() end;
 
-function FarmHudTrailPathPinMixin:UpdatePin(facing,onCluster)
+function FarmHudTrailPathPinMixin:OnShow()
+	if not self.pin.Facing:IsPlaying() then
+		self.pin.Facing:Play();
+	end
+	if self.savedRadians then
+		self.pin.Facing.Rotate:SetRadians(self.savedRadians);
+	end
+end
+
+function FarmHudTrailPathPinMixin:UpdatePin(info,facing,isHUD)
 	-- facing
-	-- Not everyone has rotateMinimap turned on. Handle both situations accordingly so icon rotates properly on HUD and on trailPathOnMinimap.
-	local rotateMiniMap = C_CVar.GetCVarBool("rotateMinimap");
-	if facing and onCluster then
-		if rotateMiniMap then
-			self.pin.Facing.Rotate:SetRadians(self.info.f - facing);
-		elseif not rotateMiniMap then
-			self.pin.Facing.Rotate:SetRadians(self.info.f);
-		end
-    end
+	-- Not everyone has rotateMinimap turned on. Handle both situations accordingly so icon rotates properly on HUD, Minimap, and WorldMap.
+	local radians;
+	if self.isWorldMapPin then
+		radians = info.f;
+	elseif C_CVar.GetCVarBool("rotateMinimap") then
+		radians = info.f - (facing or GetPlayerFacing() or 0);
+	else
+		radians = info.f;
+	end
+	self.savedRadians = radians;
+	if not self.pin.Facing:IsPlaying() then
+		self.pin.Facing:Play();
+	end
+	self.pin.Facing.Rotate:SetRadians(radians);
+
 	-- texture
-	local pinIcon = (onCluster and FarmHudDB.rotation and FarmHudDB.trailPathIcon) or "dot02"; -- There is no "dot2"
-	if self.info.currentPinIcon ~= pinIcon then
+	local pinIcon;
+	if self.isWorldMapPin then
+		pinIcon = FarmHudDB.trailPathWorldmapIcon;
+	elseif isHUD then
+		pinIcon = FarmHudDB.trailPathIcon;
+	else
+		pinIcon = FarmHudDB.trailPathMinimapIcon;
+	end
+	if self.currentPinIcon ~= pinIcon then
 		local icon = trailPathIcons[pinIcon];
 		if icon then
-			self.pin.icon :SetTexture(icon.file)
+			self.pin.icon:SetTexture(icon.file);
 			if not icon.coords then
 				icon.coords = {0,1,0,1};
 			end
-			self.pin.icon :SetTexCoord(unpack(icon.coords));
-			self.pin.icon :SetDesaturated(icon.desaturated==true)
-			self.pin.icon :SetBlendMode(icon.mode or "BLEND");
-			self.info.currentPinIcon = pinIcon
+			self.pin.icon:SetTexCoord(unpack(icon.coords));
+			self.pin.icon:SetDesaturated(icon.desaturated==true);
+			self.pin.icon:SetBlendMode(icon.mode or "BLEND");
+			self.currentPinIcon = pinIcon;
 		end
 	end
+
 	-- scaling
-	local scale = onCluster and FarmHudDB.trailPathScale or 0.7;
-	if self.info.currentPinScale~=scale then
-		self.pin :SetScale(scale);
-		self.info.currentPinScale = scale;
+	local scale;
+	if self.isWorldMapPin then
+		scale = FarmHudDB.trailPathWorldmapScale;
+	elseif isHUD then
+		scale = FarmHudDB.trailPathScale;
+	else
+		scale = FarmHudDB.trailPathMinimapScale;
 	end
+	if self.currentPinScale ~= scale then
+		self.pin:SetScale(scale);
+		self.currentPinScale = scale;
+	end
+
 	-- color
-	if self.info.currentPinColor1~=FarmHudDB.trailPathColor1 then
-		self.pin.icon :SetVertexColor(unpack(FarmHudDB.trailPathColor1))
-		self.info.currentPinColor1 = FarmHudDB.trailPathColor1;
+	local color = FarmHudDB.trailPathColor1;
+	if self.currentPinColor1 ~= color then
+		self.pin.icon:SetVertexColor(color[1], color[2], color[3], color[4]);
+		self.currentPinColor1 = color;
 	end
 
 	-- Force EnableMouse off
-	EnableMouse(self,false);
+	if EnableMouse then
+		EnableMouse(self,false);
+	end
 
-	-- visibility
-	UpdateVisibility(self);
+	-- visibility (minimap/HUD pins override Show/SetShown; worldmap pins are managed by HBD's MapCanvas provider)
+	if not self.isWorldMapPin then
+		UpdateVisibility(self);
+	end
 end
 
 local function GetMicrotime()
 	return ceil(GetTime()*100);
 end
 
-local function TrailPath_TickerFunc()
-	-- get position from HereBeDragon
-	local x,y,instance = HBD:GetPlayerWorldPosition();
-
-	-- skip function on invalid result; in dungeons/raids
-	if not (x and y and instance) then
-		return
-	end
-
-	local registerNew = true;
-	local currentTime = GetMicrotime();
-	local currentFacing = GetPlayerFacing() or 0; -- 0 - 6.5
-	-- Make HUD icon settings apply to trailPathOnMinimap
-	local HUD = FarmHud:IsShown();
-	local IsOnCluster = HUD or (not HUD and FarmHudDB.trailPathOnMinimap);
-
-	-- check distance between current and prev. position; skip function
-	if trailPathActive[1] then
-		local a, distance =  HBD:GetWorldVector(instance,trailPathActive[1].info.x,trailPathActive[1].info.y,x,y);
-		if distance <= minDistanceBetween then
-			trailPathActive[1].info.f = currentFacing;
-			trailPathActive[1]:UpdatePin(nil,IsOnCluster);
-			registerNew = false;
+local function AcquirePin(pool, isWorldMapPin)
+	local pin = tremove(pool, 1);
+	if not pin then
+		pin = CreateFrame("Frame",nil,nil,"FarmHudTrailPathPinTemplate");
+		pin.isWorldMapPin = isWorldMapPin;
+		if not isWorldMapPin then
+			pin.Show = UpdateVisibility;
+			pin.SetShown = UpdateVisibility;
+		end
+		pin.pin.Facing:Play();
+		if EnableMouse then
+			EnableMouse(pin, false);
 		end
 	end
+	return pin;
+end
 
-	if registerNew then
-		-- reuse pin frame from pool or create new
-		local entry = trailPathPool[1];
-		if entry then
-			tremove(trailPathPool,1);
-		else
-			entry = CreateFrame("Frame",nil,nil,"FarmHudTrailPathPinTemplate");
-			entry.info = {};
-			entry.pin.Facing:Play();
-			entry:EnableMouse(false);
-		end
+local function ResetPinVisualState(pin)
+	pin.currentPinIcon = nil;
+	pin.currentPinScale = nil;
+	pin.currentPinColor1 = nil;
+	pin.savedRadians = nil;
+end
 
-		-- update info table entries
-		entry.info.map = instance;
-		entry.info.x = x;
-		entry.info.y = y;
-		entry.info.f = currentFacing;
-		entry.info.t = currentTime;
-		entry:UpdatePin(nil,IsOnCluster); -- There is no "IsInCluster"
-
-		-- register pin frame at HereBeDragon
-		HBDPins:AddMinimapIconWorld(FarmHud, entry, instance, x, y );
-		tinsert(trailPathActive,1,entry);
+local function ReleaseMinimapPin(entry)
+	local pin = entry.minimapPin;
+	if not pin then return end
+	HBDPins:RemoveMinimapIcon(FarmHud, pin);
+	if SetShown then
+		SetShown(pin, false);
+	else
+		pin:Hide();
 	end
+	ResetPinVisualState(pin);
+	tinsert(trailPathMinimapPool, pin);
+	entry.minimapPin = nil;
+end
 
-	-- check pin frame too old; remove or update
-	if #trailPathActive>0 then
-		for i=#trailPathActive, 1, -1 do
-			local v = trailPathActive[i];
-			if i>1 and (i>FarmHudDB.trailPathCount or (v.info.t and currentTime-v.info.t>(FarmHudDB.trailPathTimeout*100))) then
-				HBDPins:RemoveMinimapIcon(FarmHud,v);
-				wipe(v.info);
-				tinsert(trailPathPool,v);
-				tremove(trailPathActive,i);
+local function ReleaseWorldMapPin(entry)
+	local pin = entry.worldmapPin;
+	if not pin then return end
+	HBDPins:RemoveWorldMapIcon(FarmHud, pin);
+	pin:Hide();
+	pin:ClearAllPoints();
+	ResetPinVisualState(pin);
+	tinsert(trailPathWorldmapPool, pin);
+	entry.worldmapPin = nil;
+end
+
+local function SyncWorldMapPin(entry, needWorldmap, forceColorRefresh, useMapCoords)
+	if needWorldmap then
+		if not entry.worldmapPin then
+			entry.worldmapPin = AcquirePin(trailPathWorldmapPool, true);
+			entry.worldmapPin:UpdatePin(entry.info, nil, false);
+			if useMapCoords then
+				HBDPins:AddWorldMapIconMap(FarmHud, entry.worldmapPin, entry.info.uiMapID, entry.info.mx, entry.info.my);
 			else
- 				trailPathActive[i]:UpdatePin(currentFacing,IsOnCluster);
+				HBDPins:AddWorldMapIconWorld(FarmHud, entry.worldmapPin, entry.info.map, entry.info.x, entry.info.y);
+			end
+		else
+			if forceColorRefresh then
+				entry.worldmapPin.currentPinColor1 = nil;
+			end
+			entry.worldmapPin:UpdatePin(entry.info, nil, false);
+		end
+	elseif entry.worldmapPin then
+		ReleaseWorldMapPin(entry);
+	end
+end
+
+local function SyncAndRefreshPins(forceColorRefresh)
+	if #trailPathActive == 0 then return end
+
+	local currentTime = GetMicrotime();
+	local currentFacing = GetPlayerFacing() or 0;
+	local isHUD = FarmHud:IsShown();
+	local needMinimap = FarmHudDB.trailPathShow or FarmHudDB.trailPathOnMinimap;
+	local needWorldmap = FarmHudDB.trailPathOnWorldmap;
+
+	for i=#trailPathActive, 1, -1 do
+		local entry = trailPathActive[i];
+		if i>1 and (i>FarmHudDB.trailPathCount or (entry.info.t and currentTime-entry.info.t>(FarmHudDB.trailPathTimeout*100))) then
+			ReleaseMinimapPin(entry);
+			ReleaseWorldMapPin(entry);
+			wipe(entry.info);
+			tremove(trailPathActive, i);
+		else
+			if entry.info.uiMapID then
+				if entry.minimapPin then
+					ReleaseMinimapPin(entry);
+				end
+				SyncWorldMapPin(entry, needWorldmap, forceColorRefresh, true);
+			else
+				if needMinimap then
+					if not entry.minimapPin then
+						entry.minimapPin = AcquirePin(trailPathMinimapPool, false);
+						HBDPins:AddMinimapIconWorld(FarmHud, entry.minimapPin, entry.info.map, entry.info.x, entry.info.y);
+					end
+					if forceColorRefresh then
+						entry.minimapPin.currentPinColor1 = nil;
+					end
+					entry.minimapPin:UpdatePin(entry.info, currentFacing, isHUD);
+				elseif entry.minimapPin then
+					ReleaseMinimapPin(entry);
+				end
+
+				SyncWorldMapPin(entry, needWorldmap, forceColorRefresh, false);
 			end
 		end
 	end
 end
 
-local function UpdateTrailPath(force)
-	if force==nil then
-		force = FarmHudDB.trailPathShow;
+local function ClearAllTrailPins()
+	for i=#trailPathActive, 1, -1 do
+		local entry = trailPathActive[i];
+		ReleaseMinimapPin(entry);
+		ReleaseWorldMapPin(entry);
+		wipe(entry.info);
+		tremove(trailPathActive, i);
 	end
-	if force==true and trailPathTicker==nil then
-		trailPathTicker = C_Timer.NewTicker(0.5,TrailPath_TickerFunc);
-	elseif force==false and trailPathTicker then
-		trailPathTicker:Cancel();
-		trailPathTicker = nil;
-		if FarmHud.TrailPathPool then
-			for i,v in ipairs(FarmHud.TrailPathPool)do
-				v:Hide();
+	lastInstance = nil;
+	lastInInstance = nil;
+	trailMode = nil;
+	HBDPins:RemoveAllMinimapIcons(FarmHud);
+	HBDPins:RemoveAllWorldMapIcons(FarmHud);
+end
+
+local function GetMapFallbackPosition()
+	if not FarmHudDB.trailPathOnWorldmap then
+		return nil;
+	end
+	local uiMapID = C_Map.GetBestMapForUnit("player");
+	local pos = uiMapID and C_Map.GetPlayerMapPosition(uiMapID, "player");
+	if not pos then
+		return nil;
+	end
+	local mx, my = pos:GetXY();
+	if not (mx and my) then
+		return nil;
+	end
+	local wx, wy, wInstance = HBD:GetWorldCoordinatesFromZone(mx, my, uiMapID);
+	if not (wx and wy and wInstance) then
+		return nil;
+	end
+	return uiMapID, mx, my, wx, wy, wInstance;
+end
+
+local function IsTrailPositionValid()
+	local x,y,instance = HBD:GetPlayerWorldPosition();
+	if x and y and instance then
+		return true;
+	end
+	return GetMapFallbackPosition() ~= nil;
+end
+
+local UpdateTrailPath;
+
+local function TrailPath_TickerFunc()
+	local inInstance = IsInInstance() and true or false;
+	if lastInInstance ~= nil and inInstance ~= lastInInstance then
+		ClearAllTrailPins();
+	end
+
+	-- Prefer world coordinates (works outdoors and in non-restricted instances like delves)
+	local x,y,instance = HBD:GetPlayerWorldPosition();
+	if x and y and instance then
+		if trailMode and trailMode ~= "world" then
+			ClearAllTrailPins();
+		end
+		if lastInstance and lastInstance ~= instance then
+			ClearAllTrailPins();
+		end
+		trailMode = "world";
+		lastInInstance = inInstance;
+		lastInstance = instance;
+
+		local registerNew = true;
+		local currentTime = GetMicrotime();
+		local currentFacing = GetPlayerFacing() or 0; -- 0 - 6.5
+
+		-- check distance between current and prev. position; skip function or reset on large teleport
+		if trailPathActive[1] and trailPathActive[1].info.map == instance then
+			local _, distance = HBD:GetWorldVector(instance,trailPathActive[1].info.x,trailPathActive[1].info.y,x,y);
+			if distance then
+				if distance > maxTeleportJumpDistance then
+					ClearAllTrailPins();
+					trailMode = "world";
+					lastInInstance = inInstance;
+					lastInstance = instance;
+				elseif distance <= minDistanceBetween then
+					trailPathActive[1].info.f = currentFacing;
+					registerNew = false;
+				end
 			end
 		end
+
+		if registerNew then
+			local entry = {
+				info = {
+					map = instance,
+					x = x,
+					y = y,
+					f = currentFacing,
+					t = currentTime,
+				}
+			};
+			tinsert(trailPathActive, 1, entry);
+		end
+
+		SyncAndRefreshPins();
+		return
+	end
+
+	-- World Map-only fallback for restricted instances (dungeons/raids where UnitPosition is nil)
+	local uiMapID, mx, my, wx, wy, wInstance = GetMapFallbackPosition();
+	if not uiMapID then
+		lastInInstance = inInstance;
+		return
+	end
+
+	if trailMode and trailMode ~= "map" then
+		ClearAllTrailPins();
+	end
+	trailMode = "map";
+	lastInInstance = inInstance;
+
+	local registerNew = true;
+	local currentTime = GetMicrotime();
+	local facing = GetPlayerFacing();
+	local entryFacing = facing or 0;
+	local needsDirection = facing == nil;
+
+	if trailPathActive[1] and trailPathActive[1].info.uiMapID == uiMapID then
+		local angle, distance = HBD:GetWorldVector(wInstance,trailPathActive[1].info.wx,trailPathActive[1].info.wy,wx,wy);
+		if distance then
+			if distance > maxTeleportJumpDistance then
+				ClearAllTrailPins();
+				trailMode = "map";
+				lastInInstance = inInstance;
+			elseif distance <= minDistanceBetween then
+				if facing then
+					trailPathActive[1].info.f = facing;
+					trailPathActive[1].info.needsDirection = nil;
+				end
+				registerNew = false;
+			elseif needsDirection and angle then
+				if trailPathActive[1].info.needsDirection then
+					trailPathActive[1].info.f = angle;
+					trailPathActive[1].info.needsDirection = nil;
+				end
+				entryFacing = angle;
+			end
+		end
+	end
+
+	if registerNew then
+		local entry = {
+			info = {
+				uiMapID = uiMapID,
+				mx = mx,
+				my = my,
+				wx = wx,
+				wy = wy,
+				wInstance = wInstance,
+				f = entryFacing,
+				needsDirection = needsDirection,
+				t = currentTime,
+			}
+		};
+		tinsert(trailPathActive, 1, entry);
+	end
+
+	SyncAndRefreshPins();
+end
+
+function UpdateTrailPath(force)
+	if force==nil then
+		force = IsAnyTrailEnabled() and IsTrailPositionValid();
+	end
+	if force==true then
+		if trailPathTicker==nil then
+			trailPathTicker = C_Timer.NewTicker(0.5,TrailPath_TickerFunc);
+			TrailPath_TickerFunc();
+		end
+	elseif force==false then
+		if trailPathTicker then
+			trailPathTicker:Cancel();
+			trailPathTicker = nil;
+		end
+		ClearAllTrailPins();
 	end
 end
 
@@ -216,6 +471,7 @@ local module = {
 	dbDefaults = {
 		trailPathShow = true,
 		trailPathOnMinimap = true,
+		trailPathOnWorldmap = true,
 		trailPathCount = 32,
 		trailPathTimeout = 60,
 		trailPathIcon = "arrow01",
@@ -223,6 +479,8 @@ local module = {
 		trailPathScale = 1,
 		trailPathMinimapIcon = "dot01",
 		trailPathMinimapScale = 1,
+		trailPathWorldmapIcon = "arrow01",
+		trailPathWorldmapScale = 1,
 	},
 	events = {},
 	OnShow = nil,
@@ -289,14 +547,15 @@ function module.AddOptions()
 							type = "execute",
 							name = L["ResetColor"],
 							func = function()
-								FarmHudDB.trailPathColor1 = CopyTable(module.dbDefaults.trailPathColor1)
+								FarmHudDB.trailPathColor1 = CopyTable(module.dbDefaults.trailPathColor1);
+								module.UpdateOptions("trailPathColor1");
 							end
 						}
 					}
 				},
-				onWorldmap = {
-					type = "group", inline = true,
-					name = L["TrailPathOnWorldmap"],
+				onFarmHud = {
+					type = "group", order = 2, inline = true,
+					name = L["TrailPathOnFarmHud"],
 					args = {
 						trailPathShow = {
 							type = "toggle", order = 1,
@@ -315,7 +574,7 @@ function module.AddOptions()
 					}
 				},
 				onMinimap = {
-					type = "group", inline = true,
+					type = "group", order = 3, inline = true,
 					name = L["TrailPathOnMinimap"],
 					args = {
 						trailPathOnMinimap = {
@@ -334,31 +593,84 @@ function module.AddOptions()
 						},
 					}
 				},
+				onWorldmap = {
+					type = "group", order = 4, inline = true,
+					name = L["TrailPathOnWorldmap"],
+					args = {
+						trailPathOnWorldmap = {
+							type = "toggle", order = 1,
+							name = L["TrailPathShow"],
+						},
+						trailPathWorldmapIcon = {
+							type = "select", order = 5,
+							name = L["TrailPathIcon"], desc = L["TrailPathIconDesc"],
+							values = TrailPathIconValues
+						},
+						trailPathWorldmapScale = {
+							type = "range", order = 6,
+							name = L["TrailPathScale"], desc = L["TrailPathScaleDesc"],
+							min=0.1, step=0.1, max=1, isPercent = true
+						},
+					}
+				},
 			}
 		}
 	};
 end
 
--- function module.OnShow() end
+function module.OnShow()
+	SyncAndRefreshPins();
+end
 
--- function module.OnHide() end
-
--- function module.<eventName>(...) end
+function module.OnHide()
+	SyncAndRefreshPins();
+end
 
 function module.UpdateOptions(key,value)
-	if key=="trailPathShow" then
-		UpdateTrailPath(value);
+	if key=="trailPathShow" or key=="trailPathOnMinimap" or key=="trailPathOnWorldmap" then
+		if not IsTrailPositionValid() then
+			UpdateTrailPath(false);
+		else
+			UpdateTrailPath();
+			SyncAndRefreshPins();
+		end
+	elseif key=="trailPathColor1" then
+		SyncAndRefreshPins(true);
+	else
+		SyncAndRefreshPins();
 	end
+end
+
+function module.events.CVAR_UPDATE(eventFrame, cvar)
+	if cvar=="rotateMinimap" or cvar=="ROTATE_MINIMAP" then
+		SyncAndRefreshPins();
+	end
+end
+
+local function HandleZoneOrInstanceChange()
+	local inInstance = IsInInstance() and true or false;
+	if lastInInstance ~= nil and inInstance ~= lastInInstance then
+		ClearAllTrailPins();
+	end
+	if not IsTrailPositionValid() then
+		UpdateTrailPath(false);
+		return
+	end
+	local _,_,instance = HBD:GetPlayerWorldPosition();
+	if lastInstance and instance and instance ~= lastInstance then
+		ClearAllTrailPins();
+	end
+	UpdateTrailPath();
 end
 
 function module.events.PLAYER_ENTERING_WORLD()
-	local x,y,instance = HBD:GetPlayerWorldPosition()
-	if x==nil then
-		UpdateTrailPath(false)
-	else
-		UpdateTrailPath()
-	end
+	ClearAllTrailPins();
+	UpdateTrailPath();
 end
+
+module.events.ZONE_CHANGED_NEW_AREA = HandleZoneOrInstanceChange;
+module.events.ZONE_CHANGED = HandleZoneOrInstanceChange;
+module.events.ZONE_CHANGED_INDOORS = HandleZoneOrInstanceChange;
 
 function module.events.PLAYER_LOGIN()
 	local mt = getmetatable(FarmHud).__index;
