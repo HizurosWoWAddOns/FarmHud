@@ -11,6 +11,7 @@ end});
 -- https://www.curseforge.com/wow/addons/@cf-project-name@/localization
 
 L["CardinalPointsBindingDisabled"] = "Gathercircle binding is temporarily disabled as long as Range Circles are not available."
+L["TrailPathOnFarmHud"] = "On FarmHud"
 
 ns.InfoMessageIndex = 1
 L["InfoMessage1"] = {
